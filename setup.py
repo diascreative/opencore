@@ -32,6 +32,7 @@ requires = [
     'repoze.who',
     'repoze.who-friendlyform',
     'repoze.whoplugins.zodb',
+    'repoze.workflow',
     'repoze.zodbconn',
     'zope.testing', # fwd compat when not directly relied on by BFG
     'simplejson',

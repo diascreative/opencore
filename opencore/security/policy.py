@@ -25,8 +25,9 @@ NO_INHERIT = (Deny, Everyone, ALL)
 
 class ACLChecker(object):
     """ 'Checker' object used as a ``attr_checker`` callback for a
-    path index set up to use the __acl__ attribute as an
-    ``attr_discriminator`` """
+        path index set up to use the __acl__ attribute as an
+        ``attr_discriminator``
+    """
     def __init__(self, principals, permission='view'):
         self.principals = principals
         self.permission = permission

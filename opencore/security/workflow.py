@@ -1,3 +1,5 @@
+## TODO: decide whether we will use repoze.workflow for publishing states etc.
+
 from repoze.bfg.security import has_permission
 from repoze.bfg.traversal import model_path
 from repoze.folder.interfaces import IFolder

@@ -4,7 +4,7 @@ from repoze.bfg import testing
 class TestACLPathCache(unittest.TestCase):
 
     def _getTargetClass(self):
-        from karl.security.cache import ACLPathCache
+        from opencore.security.cache import ACLPathCache
         return ACLPathCache
 
     def _makeOne(self):
@@ -27,12 +27,12 @@ class TestACLPathCache(unittest.TestCase):
 
     def test_class_conforms_to_IACLPathCache(self):
         from zope.interface.verify import verifyClass
-        from karl.security.cache import IACLPathCache
+        from opencore.security.interfaces import IACLPathCache
         verifyClass(IACLPathCache, self._getTargetClass())
 
     def test_instance_conforms_to_IACLPathCache(self):
         from zope.interface.verify import verifyObject
-        from karl.security.cache import IACLPathCache
+        from opencore.security.interfaces import IACLPathCache
         verifyObject(IACLPathCache, self._makeOne())
 
     def test_ctor(self):
@@ -159,7 +159,7 @@ class TestACLPathCache(unittest.TestCase):
 
     def test_lookup_nonroot_sparse_w_permission_w_all(self):
         from repoze.bfg.security import Allow
-        from karl.security.policy import ALL
+        from opencore.security.policy import ALL
         cache = self._makeOne()
         root = self._makeModel()
         child = self._makeModel('child', root, principals=('bob',))
@@ -206,7 +206,7 @@ class TestACLPathCache(unittest.TestCase):
 
 class TestACLChecker(unittest.TestCase):
     def _getTargetClass(self):
-        from karl.security.policy import ACLChecker
+        from opencore.security.policy import ACLChecker
         return ACLChecker
 
     def _makeOne(self, principals, permission):
@@ -214,7 +214,7 @@ class TestACLChecker(unittest.TestCase):
 
     def test_it(self):
         from repoze.bfg.security import Allow, Deny, Everyone
-        from karl.security.policy import ALL
+        from opencore.security.policy import ALL
         acl_one = ((Allow, 'a', 'view'), (Allow, 'b', 'view'))
         acl_two = ((Allow, 'c', 'view'), (Allow, 'd', 'view'),)
         acl_three = ((Allow, 'd', ALL), (Allow, 'e', 'view'),
@@ -252,7 +252,7 @@ class TestACLChecker(unittest.TestCase):
 
 class TestSecuredStateMachine(unittest.TestCase):
     def _getTargetClass(self):
-        from karl.security.workflow import SecuredStateMachine
+        from opencore.security.workflow import SecuredStateMachine
         return SecuredStateMachine
 
     def _makeOne(self, state_attr, states=None, initial_state=None):
@@ -373,7 +373,7 @@ class TestSecuredStateMachine(unittest.TestCase):
 
 class TestPostorder(unittest.TestCase):
     def _callFUT(self, node):
-        from karl.security.workflow import postorder
+        from opencore.security.workflow import postorder
         return postorder(node)
 
     def test_None_node(self):
@@ -430,7 +430,7 @@ class TestResetSecurityWorkflow(unittest.TestCase):
     def _callFUT(self, root):
         L = []
         output = L.append
-        from karl.security.workflow import reset_security_workflow
+        from opencore.security.workflow import reset_security_workflow
         reset_security_workflow(root, output)
         return L
 
@@ -497,7 +497,7 @@ class TestResetSecurityWorkflow(unittest.TestCase):
             
 class Test_has_custom_acl(unittest.TestCase):
     def _callFUT(self, ob):
-        from karl.security.workflow import has_custom_acl
+        from opencore.security.workflow import has_custom_acl
         return has_custom_acl(ob)
 
     def test_it_no_custom_acl(self):
@@ -522,7 +522,7 @@ class Test_has_custom_acl(unittest.TestCase):
         
 class Test_get_security_states(unittest.TestCase):
     def _callFUT(self, workflow, context=None, request=None):
-        from karl.security.workflow import get_security_states
+        from opencore.security.workflow import get_security_states
         return get_security_states(workflow, context, request)
 
     def test_it_with_custom_acl(self):
@@ -579,7 +579,7 @@ class Test_get_security_states(unittest.TestCase):
 
 class Test_available_workflow_states(unittest.TestCase):
     def _callFUT(self, workflow, context=None, request=None):
-        from karl.security.workflow import available_workflow_states
+        from opencore.security.workflow import available_workflow_states
         return available_workflow_states(workflow, context, request)
 
     def test_it_two_states(self):
@@ -624,7 +624,7 @@ class Test_available_workflow_states(unittest.TestCase):
 
 class Test_acl_diff(unittest.TestCase):
     def _callFUT(self, ob, acl):
-        from karl.security.workflow import acl_diff
+        from opencore.security.workflow import acl_diff
         return acl_diff(ob, acl)
 
     def test_call_no_diff_has_acl(self):
@@ -658,7 +658,7 @@ class Test_acl_diff(unittest.TestCase):
 
 class Test_ace_repr(unittest.TestCase):
     def _callFUT(self, ace):
-        from karl.security.workflow import ace_repr
+        from opencore.security.workflow import ace_repr
         return ace_repr(ace)
 
     def test_with_permissions_iter(self):
@@ -670,7 +670,7 @@ class Test_ace_repr(unittest.TestCase):
         self.assertEqual(result, 'Allow foo buz')
 
     def test_with_permissions_all(self):
-        from karl.security.policy import ALL
+        from opencore.security.policy import ALL
         result = self._callFUT(('Allow', 'foo', ALL))
         self.assertEqual(result, 'Allow foo ALL')
 
