@@ -12,10 +12,10 @@ from zope.component import queryUtility
 from repoze.bfg.traversal import find_model
 from repoze.catalog.catalog import Catalog
 from repoze.catalog.interfaces import ICatalog
+from repoze.lru import LRUCache
 
 from opencore.interfaces import ICatalogQueryEvent
 from opencore.interfaces import ICatalogSearchCache
-from opencore.lru import LRUCache
 from opencore.utils import find_site
 
 from BTrees.Length import Length
