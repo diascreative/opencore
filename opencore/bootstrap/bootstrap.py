@@ -16,9 +16,13 @@ from opencore.site import Site
 def populate(root, do_transaction_begin=True):
     if do_transaction_begin:
         transaction.begin()
-
+  
     data = queryUtility(IInitialData, default=DefaultInitialData())
-    site = root['site'] = Site()
+    if 'communities_name' in dir(data):
+        communities_name = data.communities_name
+    else:
+        communities_name = None 
+    site = root['site'] = Site(communities_name)
     site.__acl__ = data.site_acl
     site.events = SiteEvents()
 
@@ -64,9 +68,6 @@ def populate(root, do_transaction_begin=True):
                                                    lastname=lastname,
                                                    email=email,
                                                   )
-        #workflow = get_workflow(IProfile, 'security', profiles)
-        #if workflow is not None:
-        #    workflow.initialize(profile)
 
     # tool factory wants a dummy request
     COMMUNIITY_INCLUDED_TOOLS = data.community_tools
@@ -89,7 +90,7 @@ def populate(root, do_transaction_begin=True):
     converted['tags'] = ''
     converted['tools'] = COMMUNIITY_INCLUDED_TOOLS
 
-    communities = site['communities']
+    communities = site[communities_name]
     #add_community = AddCommunityFormController(communities, request)
     #add_community.handle_submit(converted)
     #communities['default'].title = 'Default Community'

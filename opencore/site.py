@@ -256,7 +256,7 @@ class Site(Folder):
     title = 'Site'
     list_aliases = None
 
-    def __init__(self):
+    def __init__(self, communities_name=None):
         super(Site, self).__init__()
         self.catalog = CachingCatalog()
         self.update_indexes()
@@ -265,7 +265,8 @@ class Site(Folder):
         profiles = create_content(IProfiles)
         self['profiles'] = profiles
         communities = create_content(ICommunities)
-        self['communities'] = communities
+        communities_name = communities_name or 'communities'  
+        self[communities_name] = communities
         self.users = KARLUsers(self)
         self.tags = Tags(self)
         self.sessions = SessionDataManager(3600, 5)
