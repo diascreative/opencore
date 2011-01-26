@@ -1,25 +1,18 @@
 import unittest
 from repoze.bfg import testing
 
-from zope.testing.cleanup import cleanUp
-
 from repoze.bfg.configuration import Configurator
 from repoze.bfg.threadlocal import get_current_registry
-
-from karl.views.interfaces import IToolAddables
-from karl.models.interfaces import IToolFactory
-from repoze.lemonade.listitem import get_listitems
-from zope.interface import implements
 
 class TestPopulate(unittest.TestCase):
     """
     XXX Integration test.
     """
     def setUp(self):
-        cleanUp()
+        testing.cleanUp()
 
     def tearDown(self):
-        cleanUp()
+        testing.cleanUp()
 
     def _registerComponents(self):
         # Install a bit of configuration that make_app() usually
@@ -27,13 +20,10 @@ class TestPopulate(unittest.TestCase):
         reg = get_current_registry()
         config = Configurator(reg)
         config.setup_registry()
-        config.load_zcml('karl.includes:configure.zcml')
-        from zope.interface import Interface
-        testing.registerAdapter(DummyToolAddables, (Interface, Interface),
-                                IToolAddables)
+        config.load_zcml('opencore.includes:configure.zcml')
 
     def _callFUT(self, root, do_transaction_begin=True):
-        from karl.bootstrap.bootstrap import populate
+        from opencore.bootstrap.bootstrap import populate
         populate(root, do_transaction_begin=do_transaction_begin)
 
     def test_it(self):
@@ -46,18 +36,10 @@ class TestPopulate(unittest.TestCase):
         self._callFUT(root, False)
         site = root['site']
 
-        communities = site.get('communities')
-        self.failUnless(communities)
-        self.assertEqual(len(communities), 1)
-
-        default_community = site['communities'].get('default')
-        self.failUnless(default_community)
-
-        profiles = site.get('profiles')
-        self.failUnless(profiles)
-
-        admin_profile = profiles.get('admin')
-        self.failUnless(admin_profile)
+        ## TODO:
+        #communities = site.get('communities')
+        #self.failUnless(communities)
+        #self.assertEqual(len(communities), 1)
 
     def test_external_catalog(self):
         self._registerComponents()
@@ -74,11 +56,10 @@ class TestPopulate(unittest.TestCase):
         catalog = connections['catalog'].root()['catalog']
         self.assertEquals(root['site'].catalog, catalog)
 
+    def test_data_override(self):
+        ## TODO
+        pass
 
-class DummyToolFactory:
-    def add(self, context, request):
-        self.context = context
-        self.request = request
 
 class DummySecurityWorkflow:
     initial_state_set = False
@@ -103,19 +84,4 @@ class DummyConnection:
 
 class DummyDummy(dict):
     pass
-
-EXCLUDE_TOOLS = ['intranets',]
-
-class DummyToolAddables(object):
-    implements(IToolAddables)
-
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-
-    def __call__(self):
-        """ What tools can go in a community?
-        """
-        tools = get_listitems(IToolFactory)
-        return [tool for tool in tools if tool['name'] not in EXCLUDE_TOOLS]
 

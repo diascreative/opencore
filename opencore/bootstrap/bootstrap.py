@@ -1,10 +1,8 @@
 import sys
 import transaction
 from zope.component import queryUtility
-from zope.interface import alsoProvides
 
 from repoze.bfg.traversal import model_path
-from repoze.bfg import testing
 from repoze.lemonade.content import create_content
 
 from opencore.bootstrap.interfaces import IInitialData
@@ -59,59 +57,11 @@ def populate(root, do_transaction_begin=True):
 
     for login, firstname, lastname, email, groups in data.users_and_groups:
         users.add(login, login, login, groups)
-        profile = profiles[login] = create_content(IProfile,
-                                                   firstname=firstname,
-                                                   lastname=lastname,
-                                                   email=email,
-                                                  )
-        #workflow = get_workflow(IProfile, 'security', profiles)
-        #if workflow is not None:
-        #    workflow.initialize(profile)
-
-    # tool factory wants a dummy request
-    COMMUNIITY_INCLUDED_TOOLS = data.community_tools
-    class FauxPost(dict):
-        def getall(self, key):
-            return self.get(key, ())
-    request = testing.DummyRequest()
-    request.environ['repoze.who.identity'] = {
-            'repoze.who.userid': data.admin_user,
-            'groups': data.admin_groups,
-           }
-
-    # Create a Default community
-    request.POST = FauxPost(request.POST)
-    converted = {}
-    converted['title'] = 'default'
-    converted['description'] = 'Created by startup script'
-    converted['text'] = '<p>Default <em>values</em> in here.</p>'
-    converted['security_state'] = 'public'
-    converted['tags'] = ''
-    converted['tools'] = COMMUNIITY_INCLUDED_TOOLS
-
-    communities = site['communities']
-    #add_community = AddCommunityFormController(communities, request)
-    #add_community.handle_submit(converted)
-    #communities['default'].title = 'Default Community'
-
- 
-    # Set up default feeds from snapshots.
-    #import os
-    #import feedparser
-    #from karl.models.interfaces import IFeedsContainer
-    #from karl.models.interfaces import IFeed
-    #feeds_container = create_content(IFeedsContainer)
-    #site['feeds'] = feeds_container
-    #snapshot_dir = os.path.join(os.path.dirname(data.__file__), 'feedsnapshots')
-    #for name in os.listdir(snapshot_dir):
-        #feed_name, ext = os.path.splitext(name)
-        #if ext != '.xml':
-            #continue
-        #path = os.path.abspath(os.path.join(snapshot_dir, name))
-        #parser = feedparser.parse(path)
-        #feed = create_content(IFeed, feed_name)
-        #feed.update(parser)
-        #feeds_container[feed_name] = feed
+        profiles[login] = create_content(IProfile,
+                                         firstname=firstname,
+                                         lastname=lastname,
+                                         email=email,
+                                         )
 
     bootstrap_evolution(root)
 
