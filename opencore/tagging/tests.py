@@ -25,7 +25,7 @@ _marker = object()
 class TagAddedTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from karl.tagging import TagAddedEvent
+        from opencore.tagging import TagAddedEvent
         return TagAddedEvent
 
     def _makeOne(self, item=13, user='phred', name='test', community=_marker):
@@ -40,19 +40,19 @@ class TagAddedTests(unittest.TestCase):
 
     def test_class_conforms_to_ITagAddedEvent(self):
         from zope.interface.verify import verifyClass
-        from karl.tagging.interfaces import ITagAddedEvent
+        from opencore.tagging.interfaces import ITagAddedEvent
         verifyClass(ITagAddedEvent, self._getTargetClass())
 
     def test_object_conforms_to_ITagAddedEvent(self):
         from zope.interface.verify import verifyObject
-        from karl.tagging.interfaces import ITagAddedEvent
+        from opencore.tagging.interfaces import ITagAddedEvent
         verifyObject(ITagAddedEvent, self._makeOne())
 
 
 class TagRemovedTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import TagRemovedEvent
         return TagRemovedEvent
 
     def _makeOne(self, item=13, user='phred', name='test', community=_marker):
@@ -67,19 +67,19 @@ class TagRemovedTests(unittest.TestCase):
 
     def test_class_conforms_to_ITagRemovedEvent(self):
         from zope.interface.verify import verifyClass
-        from karl.tagging.interfaces import ITagRemovedEvent
+        from opencore.tagging.interfaces import ITagRemovedEvent
         verifyClass(ITagRemovedEvent, self._getTargetClass())
 
     def test_object_conforms_to_ITagRemovedEvent(self):
         from zope.interface.verify import verifyObject
-        from karl.tagging.interfaces import ITagRemovedEvent
+        from opencore.tagging.interfaces import ITagRemovedEvent
         verifyObject(ITagRemovedEvent, self._makeOne())
 
 
 class TagTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from karl.tagging import Tag
+        from opencore.tagging import Tag
         return Tag
 
     def _makeOne(self, item=13, user='phred', name='test', community=_marker):
@@ -91,12 +91,12 @@ class TagTests(unittest.TestCase):
 
     def test_class_conforms_to_ITag(self):
         from zope.interface.verify import verifyClass
-        from karl.tagging.interfaces import ITag
+        from opencore.tagging.interfaces import ITag
         verifyClass(ITag, self._getTargetClass())
 
     def test_object_conforms_to_ITag(self):
         from zope.interface.verify import verifyObject
-        from karl.tagging.interfaces import ITag
+        from opencore.tagging.interfaces import ITag
         verifyObject(ITag, self._makeOne())
 
     def test_ctor_simple(self):
@@ -184,7 +184,7 @@ class TagsTests(unittest.TestCase):
         testing.tearDown()
 
     def _getTargetClass(self):
-        from karl.tagging import Tags
+        from opencore.tagging import Tags
         return Tags
 
     def _makeOne(self, site=None):
@@ -195,7 +195,7 @@ class TagsTests(unittest.TestCase):
 
     def _registerCommunityFinder(self, name='community'):
         from zope.interface import Interface
-        from karl.tagging.interfaces import ITagCommunityFinder
+        from opencore.tagging.interfaces import ITagCommunityFinder
         def _factory(context):
             def _callable(item):
                 return name
@@ -210,22 +210,22 @@ class TagsTests(unittest.TestCase):
 
     def test_class_conforms_to_ITaggingEngine(self):
         from zope.interface.verify import verifyClass
-        from karl.tagging.interfaces import ITaggingEngine
+        from opencore.tagging.interfaces import ITaggingEngine
         verifyClass(ITaggingEngine, self._getTargetClass())
 
     def test_object_conforms_to_ITaggingEngine(self):
         from zope.interface.verify import verifyClass
-        from karl.tagging.interfaces import ITaggingEngine
+        from opencore.tagging.interfaces import ITaggingEngine
         verifyClass(ITaggingEngine, self._getTargetClass())
 
     def test_class_conforms_to_ITaggingStatistics(self):
         from zope.interface.verify import verifyObject
-        from karl.tagging.interfaces import ITaggingStatistics
+        from opencore.tagging.interfaces import ITaggingStatistics
         verifyObject(ITaggingStatistics, self._makeOne())
 
     def test_object_conforms_to_ITaggingStatistics(self):
         from zope.interface.verify import verifyObject
-        from karl.tagging.interfaces import ITaggingStatistics
+        from opencore.tagging.interfaces import ITaggingStatistics
         verifyObject(ITaggingStatistics, self._makeOne())
 
     def test_empty(self):
@@ -606,8 +606,8 @@ class TagsTests(unittest.TestCase):
         self.assertEqual(len(freq), 0)
 
     def test_update_one(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
         TAGS = ('bedrock', 'dinosaur')
         events = self._registerEventsListener()
         engine = self._makeOne()
@@ -662,8 +662,8 @@ class TagsTests(unittest.TestCase):
             self.assertEqual(engine.getFrequency((tag,))[0][1], 1)
 
     def test_update_one_with_community(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
         TAGS = ('bedrock', 'dinosaur')
         self._registerCommunityFinder()
         events = self._registerEventsListener()
@@ -721,8 +721,8 @@ class TagsTests(unittest.TestCase):
             self.assertEqual(engine.getFrequency((tag,))[0][1], 1)
 
     def test_update_dupe_plus_remove(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
 
         engine.update(13, 'phred', ('bedrock', 'dinosaur'))
@@ -742,8 +742,8 @@ class TagsTests(unittest.TestCase):
         self.failIf(('phred', 13, 'dinosaur') in tuples)
 
     def test_update_dupe_plus_add(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
         engine = self._makeOne()
 
         engine.update(13, 'phred', ('bedrock',))
@@ -774,8 +774,8 @@ class TagsTests(unittest.TestCase):
         engine.update(13, 'bharney', ('bedrock',))
 
     def test_delete_w_item(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -802,8 +802,8 @@ class TagsTests(unittest.TestCase):
         self.assertEqual(len(tagObjs), 3)
 
     def test_delete_w_user(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -830,8 +830,8 @@ class TagsTests(unittest.TestCase):
         self.assertEqual(len(tagObjs), 2)
 
     def test_delete_w_tag(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -863,8 +863,8 @@ class TagsTests(unittest.TestCase):
         self.failUnless('neighbor' in tags)
 
     def test_delete_w_item_and_user(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -890,8 +890,8 @@ class TagsTests(unittest.TestCase):
         self.failIf(42 in engine.getItems())
 
     def test_delete_w_item_and_user_and_tag(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -952,9 +952,9 @@ class TagsTests(unittest.TestCase):
         self.assertEqual(len(events), 0)
 
     def test_rename_actual(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -980,9 +980,9 @@ class TagsTests(unittest.TestCase):
         self.failUnless('Bedrock' in engine.getTags())
 
     def test_reassign_to_new_user(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -1009,9 +1009,9 @@ class TagsTests(unittest.TestCase):
         self.assertFalse('bharney' in engine.getUsers())
 
     def test_reassign_to_existing_user(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -1041,9 +1041,9 @@ class TagsTests(unittest.TestCase):
         self.assertFalse('bharney' in engine.getUsers())
 
     def test_normalize_default(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         engine.update(13, 'phred', ('BEDROCK', 'DINOSAUR'))
         engine.update(42, 'bharney', ('BEDROCK', 'NEIGHBOR'))
@@ -1083,9 +1083,9 @@ class TagsTests(unittest.TestCase):
         self.failIf('DINOSAUR' in engine.getTags())
 
     def test_normalize_callable(self):
-        from karl.tagging import Tag
-        from karl.tagging import TagAddedEvent
-        from karl.tagging import TagRemovedEvent
+        from opencore.tagging import Tag
+        from opencore.tagging import TagAddedEvent
+        from opencore.tagging import TagRemovedEvent
         engine = self._makeOne()
         self._populate(engine)
         events = self._registerEventsListener()
@@ -1142,7 +1142,7 @@ class TagCommunityFinderTests(unittest.TestCase):
         testing.tearDown()
 
     def _getTargetClass(self):
-        from karl.tagging import TagCommunityFinder
+        from opencore.tagging import TagCommunityFinder
         return TagCommunityFinder
 
     def _makeOne(self, context=None):
@@ -1152,12 +1152,12 @@ class TagCommunityFinderTests(unittest.TestCase):
 
     def test_class_conforms_to_ITagCommunityFinder(self):
         from zope.interface.verify import verifyClass
-        from karl.tagging.interfaces import ITagCommunityFinder
+        from opencore.tagging.interfaces import ITagCommunityFinder
         verifyClass(ITagCommunityFinder, self._getTargetClass())
 
     def test_object_conforms_to_ITagCommunityFinder(self):
         from zope.interface.verify import verifyObject
-        from karl.tagging.interfaces import ITagCommunityFinder
+        from opencore.tagging.interfaces import ITagCommunityFinder
         verifyObject(ITagCommunityFinder, self._makeOne())
 
     def test___call___no_catalog_raises(self):
@@ -1174,42 +1174,42 @@ class TagCommunityFinderTests(unittest.TestCase):
         adapter = self._makeOne(context)
         self.assertRaises(KeyError, adapter, 123)
 
-    def test___call___w_catalog_good_docid(self):
-        from zope.interface import directlyProvides
-        from karl.models.interfaces import ICommunity
-        context = testing.DummyModel()
-        site = context.site = testing.DummyModel()
-        commune = site['commune'] = testing.DummyModel()
-        directlyProvides(commune, ICommunity)
-        doc = commune['doc'] = testing.DummyModel()
-        testing.registerModels({'/commune/doc': doc})
-        catalog = site.catalog = testing.DummyModel()
-        catalog.document_map = DummyDocumentMap({123: '/commune/doc'})
+    # def test___call___w_catalog_good_docid(self):
+    #     from zope.interface import directlyProvides
+    #     from opencore.models.interfaces import ICommunity
+    #     context = testing.DummyModel()
+    #     site = context.site = testing.DummyModel()
+    #     commune = site['commune'] = testing.DummyModel()
+    #     directlyProvides(commune, ICommunity)
+    #     doc = commune['doc'] = testing.DummyModel()
+    #     testing.registerModels({'/commune/doc': doc})
+    #     catalog = site.catalog = testing.DummyModel()
+    #     catalog.document_map = DummyDocumentMap({123: '/commune/doc'})
 
-        adapter = self._makeOne(context)
+    #     adapter = self._makeOne(context)
 
-        self.assertEqual(adapter(123), 'commune')
+    #     self.assertEqual(adapter(123), 'commune')
 
-    def test___call___w_catalog_good_docid_not_in_community(self):
-        from zope.interface import directlyProvides
-        from karl.models.interfaces import ICommunity
-        context = testing.DummyModel()
-        site = context.site = testing.DummyModel()
-        profiles = site['profiles'] = testing.DummyModel()
-        user1 = profiles['user1'] = testing.DummyModel()
-        testing.registerModels({'/profiles/user1': user1})
-        catalog = site.catalog = testing.DummyModel()
-        catalog.document_map = DummyDocumentMap({123: '/profiles/user1'})
+    # def test___call___w_catalog_good_docid_not_in_community(self):
+    #     from zope.interface import directlyProvides
+    #     from opencore.models.interfaces import ICommunity
+    #     context = testing.DummyModel()
+    #     site = context.site = testing.DummyModel()
+    #     profiles = site['profiles'] = testing.DummyModel()
+    #     user1 = profiles['user1'] = testing.DummyModel()
+    #     testing.registerModels({'/profiles/user1': user1})
+    #     catalog = site.catalog = testing.DummyModel()
+    #     catalog.document_map = DummyDocumentMap({123: '/profiles/user1'})
 
-        adapter = self._makeOne(context)
+    #     adapter = self._makeOne(context)
 
-        self.assertEqual(adapter(123), None)
+    #     self.assertEqual(adapter(123), None)
 
 
 class TagIndexTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from karl.tagging.index import TagIndex
+        from opencore.tagging.index import TagIndex
         return TagIndex
 
     def _makeOne(self, context=None):

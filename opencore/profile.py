@@ -9,6 +9,7 @@ from repoze.folder import Folder
 from opencore.consts import countries
 from opencore.interfaces import IProfile
 from opencore.interfaces import IProfiles
+from opencore.interfaces import ITextIndexData
 
 
 class Profile(Folder):
@@ -141,3 +142,36 @@ class ProfilesFolder(Folder):
         if name is not None:
             return self[name]
 
+@implementer(ITextIndexData)
+@adapter(IProfile)
+def profile_textindexdata(profile):
+    """Provides info for the text index"""
+    text = []
+    for attr in (
+        '__name__',
+        "firstname",
+        "lastname",
+        "email",
+        "phone",
+        "extension",
+        "department",
+        "position",
+        "organization",
+        "location",
+        "country",
+        "website",
+        "languages",
+        "office",
+        "room_no",
+        "biography",
+        ):
+        v = getattr(profile, attr, None)
+        if v:
+            if isinstance(v, str):
+                try:
+                    v = v.decode('UTF8')
+                except UnicodeDecodeError:
+                    v = v.decode('latin1')
+            text.append(unicode(v))
+    text = '\n'.join(text)
+    return lambda: text

@@ -25,8 +25,9 @@ NO_INHERIT = (Deny, Everyone, ALL)
 
 class ACLChecker(object):
     """ 'Checker' object used as a ``attr_checker`` callback for a
-    path index set up to use the __acl__ attribute as an
-    ``attr_discriminator`` """
+        path index set up to use the __acl__ attribute as an
+        ``attr_discriminator``
+    """
     def __init__(self, principals, permission='view'):
         self.principals = principals
         self.permission = permission
@@ -61,4 +62,29 @@ class ACLChecker(object):
 def get_groups(identity, request):
     if 'groups' in identity:
         return identity['groups']
+
+def ace_repr(ace):
+    action = ace[0]
+    principal = ace[1]
+    permissions = ace[2]
+    if not hasattr(permissions, '__iter__'):
+        permissions = [permissions]
+    if permissions == ALL:
+        permissions = ['ALL']
+    permissions = sorted(list(set(permissions)))
+    return '%s %s %s' % (action, principal, ', '.join(permissions))
+
+def acl_diff(ob, acl):
+    ob_acl = getattr(ob, '__acl__', {})
+    if ob_acl != acl:
+        added = []
+        removed = []
+        for ob_ace in ob_acl:
+            if ob_ace not in acl:
+                removed.append(ace_repr(ob_ace))
+        for ace in acl:
+            if ace not in ob_acl:
+                added.append(ace_repr(ace))
+        return '|'.join(added), '|'.join(removed)
+    return None, None    
 
