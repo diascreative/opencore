@@ -608,7 +608,7 @@ class TagsTests(unittest.TestCase):
     def test_update_one(self):
         from opencore.tagging import Tag
         from opencore.tagging import TagAddedEvent
-        TAGS = ('bedrock', 'dinosaur')
+        TAGS = ('dinosaur', 'bedrock')
         events = self._registerEventsListener()
         engine = self._makeOne()
 
