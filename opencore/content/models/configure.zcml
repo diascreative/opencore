@@ -1,0 +1,139 @@
+<configure xmlns="http://namespaces.repoze.org/bfg"
+    xmlns:lemonade="http://namespaces.repoze.org/lemonade">
+
+  <include package="repoze.lemonade.includes" file="meta.zcml"/>
+
+  <!-- default tools available to communities (IToolFactories) -->
+
+  
+  <lemonade:listitem
+     component=".forum.forums_tool_factory"
+     provides="opencore.interfaces.IToolFactory"
+     name="forums"
+     title="Forums"
+     description="Forums tool"
+     sort_key="50"
+  />
+     
+  <lemonade:listitem
+     component=".blog.blog_tool_factory"
+     provides="opencore.interfaces.IToolFactory"
+     name="blog"
+     title="Blog"
+     description="Blog tool"
+     sort_key="10"
+     />
+
+
+
+  <lemonade:listitem
+     component=".files.files_tool_factory"
+     provides="opencore.interfaces.IToolFactory"
+     name="files"
+     title="Files"
+     description="Files tool"
+     sort_key="40"
+     />
+
+ 
+
+  <!-- default content registrations -->
+  
+   <lemonade:content
+      factory=".forum.ForumsFolder"
+      type="opencore.content.interfaces.IForumsFolder"
+      />
+
+  <lemonade:content
+      factory=".forum.Forum"
+      type="opencore.content.interfaces.IForum"
+      />
+
+  <lemonade:content
+      factory=".forum.ForumTopic"
+      type="opencore.content.interfaces.IForumTopic"
+      />
+  
+
+  <lemonade:content
+      factory=".blog.Blog"
+      type="opencore.content.interfaces.IBlog"
+      />
+
+  <lemonade:content
+      factory=".blog.BlogEntry"
+      type="opencore.content.interfaces.IBlogEntry"
+      />
+   
+
+
+
+  <lemonade:content
+      factory=".files.CommunityRootFolder"
+      type="opencore.content.interfaces.ICommunityRootFolder"
+      />
+    
+  <lemonade:content
+      factory=".files.CommunityFolder"
+      type="opencore.content.interfaces.ICommunityFolder"
+      />
+
+  <lemonade:content
+      factory=".files.CommunityFile"
+      type="opencore.content.interfaces.ICommunityFile"
+      />
+
+  <lemonade:content
+      factory=".references.ReferenceManual"
+      type="opencore.content.interfaces.IReferenceManual"
+      />
+    
+  <lemonade:content
+      factory=".references.ReferenceSection"
+      type="opencore.content.interfaces.IReferenceSection"
+      />
+    
+  <adapter
+      for="opencore.content.interfaces.ICommunityFile"
+      provides="opencore.interfaces.ITextIndexData"
+      factory=".adapters.FileTextIndexData"
+     />
+
+  <adapter
+      for="opencore.content.interfaces.IBlogEntry"
+      provides="opencore.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndTextIndexData"
+     />
+
+
+  <adapter
+      for="opencore.content.interfaces.IReferenceManual"
+      provides="opencore.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndDescriptionIndexData"
+     />
+
+  <adapter
+      for="opencore.content.interfaces.IReferenceSection"
+      provides="opencore.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndDescriptionIndexData"
+     />
+
+
+
+  <adapter
+      for="opencore.interfaces.IComment"
+      provides="opencore.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndTextIndexData"
+     />
+
+
+
+  <lemonade:content
+      factory=".commenting.Comment"
+      type="opencore.interfaces.IComment"
+      />
+
+ 
+
+
+</configure>

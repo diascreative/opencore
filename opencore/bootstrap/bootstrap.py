@@ -10,8 +10,12 @@ from opencore.bootstrap.data import DefaultInitialData
 from opencore.contentfeeds import SiteEvents
 from opencore.interfaces import IProfile
 from opencore.site import Site
+from opencore.security.policy import to_profile_active
+import logging
 
-def populate(root, do_transaction_begin=True):
+log = logging.getLogger(__name__)
+
+def populate(root, do_transaction_begin=True, post_app_setup=None):
     if do_transaction_begin:
         transaction.begin()
   
@@ -60,13 +64,23 @@ def populate(root, do_transaction_begin=True):
     users = site.users
 
     for login, firstname, lastname, email, groups in data.users_and_groups:
+        log.info('adding to users login=%s, groups=%s' % (login, str(groups)))
         users.add(login, login, login, groups)
-        profiles[login] = create_content(IProfile,
+        profile = profiles[login] = create_content(IProfile,
                                          firstname=firstname,
                                          lastname=lastname,
                                          email=email,
                                          )
-
+        log.info('activating profile (%s)' % login)
+        to_profile_active(profile)
+        
+        
+    def noop_post_app_setup(site):
+        log.info('no post app setup required.')
+        return root
+    
+    post_app_setup_hook = post_app_setup or noop_post_app_setup
+    post_app_setup_hook(site)
     bootstrap_evolution(root)
 
 def bootstrap_evolution(root):

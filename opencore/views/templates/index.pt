@@ -1,0 +1,191 @@
+
+<div xmlns="http://www.w3.org/1999/xhtml" 
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal" 
+     metal:use-macro="api.generic_layout">
+
+<div metal:fill-slot="content">
+            <div class="content-2-3" tal:condition="featured_challenge is not None">
+                <div class="box">
+                    <div class="top"></div>
+                    <div class="mid featured-mid" it="were-in-home-page">
+                        <h3>
+                            Featured Challenge
+                            <div tal:condition="'sponsor' in featured_challenge" tal:omit-tag="">
+                            <img src="${ api.find_image_url(featured_challenge['sponsor'], 'photo.thumbnail') }" tal:condition="'defaultUser.gif' not in api.find_image_url(featured_challenge['sponsor'], 'photo.thumbnail')" class="sponsor-logo" alt="" />
+                            <span id="quo">${ featured_challenge['sponsor'].description }</span>
+                            </div>
+                        </h3>
+
+
+                        <a tal:condition="featured_video" href="${ featured_video }" type="application/x-shockwave-flash" class="featured-image watch-how-it-works">
+                            <div class="video-overlay"></div>
+                            <img src="${api.find_image_url(featured_challenge, 'photo')}" alt="" />
+                        </a>
+                        <a tal:condition="not featured_video" href="${api.get_url(featured_challenge)}" class="featured-image">
+                            <img src="${api.find_image_url(featured_challenge, 'photo')}" alt="" />
+                        </a>
+
+                        <h3 class="graff">
+                            <a href="${api.get_url(featured_challenge)}">${featured_challenge.title}</a>
+                        </h3>
+
+                        <div id="featured-data">
+                            <div class="clear"></div>
+                            <div tal:content="structure featured_challenge.description" tal:omit-tag=""></div><br />
+                            <a href="${api.get_url(featured_challenge)}brief.html">Read The Challenge Brief</a>
+                        </div>
+
+                        <div class="clear"></div>
+                        <div class="featured-bars">
+                            <div class="mini-t-container">
+                             <div class="selected-pointer">evaluation</div>
+                             <div class="mini-timeline clearfix" rel="${api.model_path(featured_challenge)}/timeline_info.jsonp">
+                                <div class="mini-bg"></div>
+                                <div class="bar" tal:repeat="i range(0, len(featured_challenge.phases))" tal:omit-tag="">
+                                    <div class="block phase_type" style="width : ${ ( 106-len(featured_challenge.phases) ) / len(featured_challenge.phases) }px"></div>
+                                </div>
+                             </div>
+                            </div>
+                        </div>
+                        <div class="clear"></div>
+                        <div class="in-final-space">
+                            <a href="${api.get_url(featured_challenge)}" id="take-challenge"><span>Take up the Challenge</span></a>
+                            <div id="last-comment"><div class="clear"></div></div>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </div>
+                <div class="bot"></div>
+
+                <div class="content-2-4">
+                    <div class="top"></div>
+                    <div class="mid future-challenges">
+                        <h3>Featured Channel</h3>
+                        <div class="list-item-future clearfix">
+                            <a href="http://openplanetideas.com/" target="_blank">
+                                <img src="/static/img/opi.png" alt="" />
+                            </a>
+                            <div class="clear"></div>
+                            <a href="http://openplanetideas.com/" class="image float-right" target="_blank">
+                                <img src="/static/img/opi-sony.png" alt="" />
+                            </a>
+                             <div class="text">
+                                <h4><a href="http://openplanetideas.com/" target="_blank">How can today's technology address the environmental challenges we're all facing?</a></h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bot"></div>
+
+                    <div tal:condition="len(past_challenges)" tal:omit-tag="">
+                    <div class="top"></div>
+                    <div class="mid">
+                        <h3>Current Challenges</h3>
+                        <div tal:repeat="challenge challenges" class="challenge-listing-small clearfix">
+                             <div class="text">
+                                <a href="${api.model_path(challenge)}">${challenge.title}</a>
+                            </div>
+                            
+                            <div class="clear"></div>
+                            
+                            <div class="challenge-listing-small-timeline mini-t-container">
+                                 <div class="selected-pointer">evaluation</div>
+                                 <div class="mini-timeline clearfix" rel="${api.model_path(challenge)}/timeline_info.jsonp">
+                                    <div class="mini-bg"></div>
+                                    <div class="bar" tal:repeat="i range(0, len(challenge.phases))" tal:omit-tag="">
+                                        <div class="block phase_type" style="width : ${ ( 106-len(challenge.phases) ) / len(challenge.phases) }px"></div>
+                                    </div>
+                                 </div>
+                             </div>
+                        </div>
+                        <div class="clear"></div>
+                        <div class="in-final-space">
+                            <a href="/open/" class="fancy-font browse-fancy"><span class="browse-challenge"></span></a>
+                            <img src="/static/img/little-men-1.png" class="little-icon" alt="" />
+                        </div>
+                    </div>
+                    <div class="bot"></div>
+                    </div>
+
+                    <div tal:condition="len(past_challenges)" tal:omit-tag="">
+                    <div class="top"></div>
+                    <div class="mid">
+                        <h3>Recently Completed Challenges</h3>
+                        <div tal:repeat="challenge past_challenges" class="challenge-listing-small clearfix">
+                             <div class="text">
+                                <a href="${api.model_path(challenge)}/brief.html">${challenge.title}</a>
+                            </div>
+                            
+                            <div class="clear"></div>
+                            
+                            <div class="challenge-listing-small-timeline mini-t-container">
+                                 <div class="selected-pointer">evaluation</div>
+                                 <div class="mini-timeline clearfix" rel="${api.model_path(challenge)}/timeline_info.jsonp">
+                                    <div class="mini-bg"></div>
+                                    <div class="bar" tal:repeat="i range(0, len(challenge.phases))" tal:omit-tag="">
+                                        <div class="block phase_type" style="width : ${ ( 106-len(challenge.phases) ) / len(challenge.phases) }px"></div>
+                                    </div>
+                                 </div>
+                             </div>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                    <div class="bot"></div>
+                    </div>
+                </div>
+            
+                <div class="side-bar">
+                    <div class="top"></div>
+                    <div class="mid field-notes-feed">
+                        <h3>Field notes</h3>
+                        <div id="field-notes">
+                            <div class="field-notes-item" tal:repeat="note fieldnote_entries">
+                                <div class="date" tal:define="date = note.date.strftime('%B %d, %Y')">${ date }</div>
+                                <img src="${note.image_url}" alt="" tal:condition="note.image_url" />
+                                <div>
+                                    <h5>${ note.title }</h5>
+                                    ${ api.truncate_text(api.remove_html_tags(note.summary), 150) }
+                                    <a href="${ note.link }" target="_blank">READ MORE</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="in-final-space">
+                            <a href="/fieldnotes" class="fancy-font browse-fancy"><span class="field-notes-linky"></span></a>
+                            <img src="/static/img/little-men-2.png" class="little-icon" alt="" />
+                        </div>
+                    </div>
+                    <div class="bot"></div>
+                </div>
+            </div>
+            
+            <div class="side-bar">
+                <metal:resources use-macro="api.snippets.macros['facebook_home']"/>
+
+                <a href="http://www.ideo.com/careers/community-manager-openideo-palo-alto" class="bar-link-img" target="_blank"><img src="/static/img/were_hiring.png" alt="We're now hiring" /></a>
+                <a href="http://vimeo.com/moogaloop.swf?clip_id=13707896&amp;server=vimeo.com&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=&amp;fullscreen=1" id="watch-video" class="watch-how-it-works"><img src="/static/img/watch-our-video.png" alt="Watch our video to learn how it works" /></a>
+                <div tal:condition="featured_challenge" tal:omit-tag="">
+                <div class="top"></div>
+                <div class="mid story-so-far${ len(stats) &gt; 2 and ' for-three' or ''}">
+                    <div tal:repeat="stat stats" tal:omit-tag="">
+                    <a href="${stat[2]}" class="${repeat.stat.end and 'teller borderless' or 'teller'}" tal:condition="stat[2]">
+                        ${api.format_integer(stat[0])}
+                        <span>${stat[1]}</span>
+                    </a>
+                    <div class="${repeat.stat.end and 'teller borderless' or 'teller'}" tal:condition="not stat[2]">
+                        ${api.format_integer(stat[0])}
+                        <span>${stat[1]}</span>
+                    </div>
+                    </div>
+                </div>
+                <div class="bot"></div>
+                </div>
+                <div class="top"></div>
+                <div class="mid padding-less">
+                    <metal:resources use-macro="api.snippets.macros['home-activities-feed']"/>
+                </div>
+                <div class="bot"></div>
+            </div>
+            
+        </div>
+</div>

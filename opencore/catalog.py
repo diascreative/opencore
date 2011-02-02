@@ -104,7 +104,7 @@ class CachingCatalog(Catalog):
             # we need to unroll here; a btree-based structure may have
             # a reference to its connection
             docids = list(docids)
-            cache[key] = (num, docids)
+            cache.put(key, (num, docids))
 
         return cache.get(key)
 

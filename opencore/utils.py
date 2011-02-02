@@ -60,7 +60,8 @@ def find_community(context):
     return find_interface(context, ICommunity)
 
 def find_communities(context):
-    return find_site(context).get('communities')
+    site = find_site(context)
+    return site.get(site.communities_name)
 
 
 def get_setting(context, setting_name, default=None):
@@ -131,12 +132,12 @@ class PersistentBBB(object):
         return getattr(inst, self.name)
 
 def get_layout_provider(context, request):
-    from karl.content.views.adapters import DefaultLayoutProvider
+    from opencore.views.adapters import DefaultLayoutProvider
     return queryMultiAdapter((context, request), ILayoutProvider,
                              default=DefaultLayoutProvider(context,request))
 
 def get_folder_addables(context, request):
-    from karl.content.views.adapters import DefaultFolderAddables
+    from opencore.views.adapters import DefaultFolderAddables
     return queryMultiAdapter((context, request), IFolderAddables,
                              default=DefaultFolderAddables(context,request))
 
@@ -145,3 +146,15 @@ def find_tempfolder(context):
     if not 'TEMP' in root:
         root['TEMP'] = TempFolder()
     return root['TEMP']
+
+def get_user_bookmarks(context, userid, filter_community=True):
+    search = ICatalogSearch(context)
+    num, docids, resolver = search(bookmarks=[userid])
+    listings = [ l for l in [resolver(docid) for docid in docids] \
+                        if userid in l.get('bookmarks', []) ] # thanks catalog!
+
+    if filter_community:
+        community = find_community(context)
+        listings = [l for l in listings if community == find_community(l) ]
+
+    return listings

@@ -5,6 +5,11 @@ from repoze.bfg.security import Allow
 from repoze.bfg.security import Deny
 from repoze.bfg.security import Everyone
 from repoze.bfg.security import AllPermissionsList
+from repoze.bfg.traversal import model_path
+from repoze.who.plugins.zodb.users import Users
+import logging
+
+log = logging.getLogger(__name__)
 
 VIEW = 'view'
 EDIT = 'edit'
@@ -86,5 +91,58 @@ def acl_diff(ob, acl):
             if ace not in ob_acl:
                 added.append(ace_repr(ace))
         return '|'.join(added), '|'.join(removed)
-    return None, None    
+    return None, None
+
+def find_users(root):
+    # Called by repoze.who
+    # XXX Should this really go here?
+    zodb_root = 'site'
+    if not zodb_root in root:
+        return Users()
+    return root[zodb_root].users  
+
+def to_profile_active(ob):
+    from opencore.utils import find_users
+    from opencore.views.communities import get_community_groups
+    acl  = [
+        (Allow, ob.creator, MEMBER_PERMS + ('view_only',)),
+    ]
+    acl.append((Allow, 'group.KarlUserAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlStaff',
+                GUEST_PERMS + ('view_only',)))
+    users = find_users(ob)
+    user = users.get_by_id(ob.creator)
+    if user is not None:
+        groups = user['groups']
+        for group, role in get_community_groups(groups):
+            c_group = 'group.community:%s:%s' % (group, role)
+            acl.append((Allow, c_group, GUEST_PERMS + ('view_only',)))
+    acl.append((Allow, 'system.Authenticated', ('view_only',)))
+    acl.append(NO_INHERIT)
+    added, removed = acl_diff(ob, acl)
+    if added or removed:
+        ob.__acl__ = acl
+        log.info('profile (%s) to-active, added: %s, removed: %s' % (model_path(ob), added, removed))
+    #_reindex(ob)
+    #_reindex_peopledir(ob)
+
+
+def to_profile_inactive(ob):
+    acl  = [
+        (Allow, 'system.Authenticated', ('view_only',)),
+        (Allow, 'group.KarlUserAdmin', ADMINISTRATOR_PERMS + ('view_only',)),
+        (Allow, 'group.KarlAdmin', ADMINISTRATOR_PERMS + ('view_only',)),
+        NO_INHERIT,
+    ]
+    msg = None
+    added, removed = acl_diff(ob, acl)
+    if added or removed:
+        ob.__acl__ = acl
+        log.info('profile (%s) to-inactive, added: %s, removed: %s' % (model_path(ob), added, removed))
+    #_reindex(ob)
+    #_reindex_peopledir(ob)
+  
 

@@ -26,16 +26,10 @@ class TestCachingCatalog(unittest.TestCase):
         from repoze.catalog.interfaces import ICatalog
         verifyObject(ICatalog, self._makeOne())
 
-    def _registerCacheOrig(self, cache):
-        from opencore.interfaces import ICatalogSearchCache
-        testing.registerUtility(cache, ICatalogSearchCache)
-    
     def _registerCache(self, cache):
         from opencore.interfaces import ICatalogSearchCache
-        from repoze.bfg.threadlocal import get_current_registry
-        get_current_registry().registerUtility(cache, ICatalogSearchCache)
-        
-        
+        testing.registerUtility(cache, ICatalogSearchCache)
+       
     def test_clear(self):
         cache = DummyCache({1:1})
         self._registerCache(cache)
@@ -352,3 +346,6 @@ class DummyIndex:
 
 class DummyCache(dict):
     generation = 0
+    
+    def put(self, k, v):
+        self[k] = v

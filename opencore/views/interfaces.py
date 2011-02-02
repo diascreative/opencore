@@ -72,3 +72,35 @@ class IFooter(Interface):
         o api is an instance of TemplateAPI.
         """
 
+class IIntranetPortlet(Interface):
+    """ Adaptation of various data sources into a portlet """
+    title = Attribute('The title of the portlet')
+    href = Attribute('URL to get to the container being summarized')
+    entries = Attribute('Up to five of the entries')
+    
+class IFileInfo(Interface):
+    """ An interface representing file info for display in views """
+    name = Attribute('The name of the file in its container')
+    title = Attribute('The title of the file or folder')
+    modified = Attribute('A string representing the modification time/date '
+                         'of the file or folder')
+    url = Attribute('A url for the file or folder')
+    mimeinfo = Attribute('Mime information for the file or folder '
+        '(instance of karl.utilities.interfaces.IMimeInfo)')
+    size = Attribute('File size with units such as MB')
+
+class IBylineInfo(Interface):
+    """ Grabe resource info for showing a byline in ZPT macro"""
+
+    author_name = Attribute('The title of the profile for the creator')
+    author_url = Attribute('The URL to the profile of the creator')
+    posted_date = Attribute('A pretty representation of the posted date')
+
+class IFolderCustomizer(Interface):
+    """ Use adaptation to push policies on folder creation out of core"""
+
+    markers = Attribute('Sequence of interfaces to mark the new folder')
+
+class IShowSendalert(Interface):
+    """ Policy for when to show-hide the sendalert choice """
+    

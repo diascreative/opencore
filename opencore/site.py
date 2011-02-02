@@ -40,6 +40,9 @@ from opencore.interfaces import IUserRemovedGroup
 from opencore.tagging import Tags
 from opencore.tagging.index import TagIndex
 from opencore.utils import coarse_datetime_repr
+import logging
+
+log = logging.getLogger(__name__)
 
 class UserEvent(object):
     def __init__(self, site, id, login, groups, old_groups=None):
@@ -265,8 +268,8 @@ class Site(Folder):
         profiles = create_content(IProfiles)
         self['profiles'] = profiles
         communities = create_content(ICommunities)
-        communities_name = communities_name or 'communities'  
-        self[communities_name] = communities
+        self.communities_name = communities_name or 'communities'  
+        self[self.communities_name] = communities
         self.users = KARLUsers(self)
         self.tags = Tags(self)
         self.sessions = SessionDataManager(3600, 5)
@@ -307,12 +310,14 @@ class Site(Folder):
             'member_name': CatalogTextIndex(get_member_name),
             'virtual':CatalogFieldIndex(get_virtual),
             }
-
+        log.info('look up any other site indexes that have been registered.') 
         for name, utility in getUtilitiesFor(IIndexFactory):
+            log.info('found index name: %s, type: %s' % (name, utility))
             indexes[name] = utility()
 
         catalog = self.catalog
-
+        log.info('catalog indexes=%s' % str(indexes))
+         
         # add indexes
         for name, index in indexes.iteritems():
             if name not in catalog:

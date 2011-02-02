@@ -4,7 +4,8 @@
       identifier_name="auth_tkt"
       callback=".policy.get_groups"
    />
-
+   <!-- authorization information is obtained from ACL objects 
+        attached to model instances. -->
    <aclauthorizationpolicy/>
 
 </configure>

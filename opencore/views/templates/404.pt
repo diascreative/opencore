@@ -1,0 +1,18 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal" 
+     metal:use-macro="api.generic_layout">
+
+    <div metal:fill-slot="content">
+        <div class="content-1">
+            <div class="top"></div>
+            <div class="mid">
+                <div class="large-message">
+                    Oops, sorry it seems that page doesn't exist.
+                    <a href="${api.app_url}/" class="go-back-page">Click here to go back</a> or return to the <a href="${api.app_url}/">homepage</a>.
+                </div>
+            </div>
+            <div class="bot"></div>
+        </div>
+    </div>
+</html>

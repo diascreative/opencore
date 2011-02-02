@@ -3,4 +3,7 @@
   <include package="opencore" />
   <include package="opencore.security"/>
   <include package="opencore.tagging"/>
+  <include package="opencore.utilities"/>
+  <include package="opencore.content.models" />
+  <include package="opencore.views" />
 </configure>
