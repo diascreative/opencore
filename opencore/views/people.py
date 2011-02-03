@@ -33,6 +33,7 @@ from opencore.views.communities import get_my_communities
 from opencore.views.tags import get_tags_client_data
 from opencore.views.utils import convert_to_script
 from opencore.views.api import TemplateAPI
+from opencore.utilities.image import thumb_url
 
 
 PROFILE_THUMB_SIZE = (75, 100)
@@ -91,7 +92,7 @@ def show_profile_view(context, request):
     photo = context.get('photo')
     display_photo = {}
     if photo is not None:
-        display_photo["url"] = api.static_url + "/images/defaultUser.gif" #thumb_url(photo, request, PROFILE_THUMB_SIZE)
+        display_photo["url"] = api.static_url + thumb_url(photo, request, PROFILE_THUMB_SIZE)
     else:
         display_photo["url"] = api.static_url + "/images/defaultUser.gif"
     profile["photo"] = display_photo

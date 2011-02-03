@@ -30,8 +30,7 @@ from opencore.utils import find_profiles
 from opencore.utils import find_site
 from opencore.utils import find_users
 from opencore.utils import get_setting
-
-#from karl.content.interfaces import ICommunityFile
+from opencore.content.interfaces import ICommunityFile
 
 #from karl.views.forms.filestore import get_filestore
 
@@ -272,7 +271,8 @@ def photo_from_filestore_view(context, request, form_id):
 
 def handle_photo_upload(context, form):
     upload = form.get("photo", None)
-    if upload is not None and upload.file is not None:
+    #if upload is not None and upload.file is not None:
+    if upload is not None and upload != '' and upload.file is not None:
         request = get_current_request()
         userid = authenticated_userid(request)
         upload_file = upload.file

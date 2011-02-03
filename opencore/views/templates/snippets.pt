@@ -840,5 +840,17 @@ You are currently accessing KARL with Internet Explorer 6. This is an old browse
             <div class="hr"></div>
             <div id="activities-feed"></div>
     </metal:home-activities-feed>
+    
+    <!-- openideo additions below -->
+     <metal:submit-buttons define-macro="submit-buttons">
+        <div class="form-buttons">
+            <div class="button-container">
+                <input type="submit" tal:condition="submitterClass|False" id="submitter" name="${formprefix}submit" class="${ submitterClass }" value="Submit" />
+                <input type="submit" tal:condition="not submitterClass|True" id="submitter" name="${formprefix}submit" value="Submit" />
+                <a href="${ '/gallery/' in api.here_url and api.get_url(api.context.__parent__) or api.here_url }" class="cancel-button">Cancel</a>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </metal:submit-buttons>
   </body>
 </html>
