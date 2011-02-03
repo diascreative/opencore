@@ -127,6 +127,8 @@ class TemplateAPI(object):
             # server side session management, do not send secrets to client
             del d['user_secret']
             del d['admin_secret']
+            
+        self.formerrors = {} # from openideo    
 
     @property
     def snippets(self):
@@ -462,11 +464,55 @@ class TemplateAPI(object):
         if update_dict:
             d.update(update_dict)
         return convert_to_script(d, var_name='karl_client_data')
-    
+
+    # openideo additions below    
     def get_user_bookmarks(self, filter_challenge=True):
         if self.userid is None:
             return []
         return get_user_bookmarks(self.context, self.userid, filter_challenge)
+    
+    def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None):
+        if default is None:
+            default = self.formdata.get(id, '')
+        error = self.formerrors.get(id, '')
+        if isinstance(error, (list, tuple)):
+            error = '\n'.join(error)
+        from repoze.bfg.chameleon_zpt import get_template    
+        #template = template_cache.get('form_widgets', createfunc=get_form_widgets)
+        template = get_template('templates/form_widgets.pt')
+        if isinstance(default, (list, tuple)):
+            default_list = default
+        else:
+            default_list = [default]
+        return template.render_macro(widget_id, global_scope=True,
+                                     parameters=dict(name=id,
+                                                     label=label,
+                                                     choices=choices,
+                                                     compulsory=compulsory,
+                                                     default_value=default,
+                                                     default_list=default_list,
+                                                     error=error,
+                                                     api=self,))    
+        
+    def get_url(self, ob):
+        """ Returns the model url for `ob`
+        """
+        pass
+        '''if IProfile.providedBy(ob):
+            # return channel specific profile url
+            channel = find_realm(ob, self.request)
+            return '%s/' % join(model_url(channel, self.request), self.model_path(ob).lstrip('/'))
+        elif IComment.providedBy(ob):
+            content = find_interface(ob, IChallengeContentBase)
+            if content is None and getattr(ob, '__parent__', None):
+                # comments on top level
+                return model_url(ob.__parent__, self.request, anchor='comment-%s' % ob.__name__)
+            if content is None:
+                # comments on challenge brief
+                content = find_interface(ob, IChallenge)
+            return model_url(content, self.request, anchor='comment-%s' % ob.__name__)
+        
+        return model_url(ob, self.request).replace('https://', 'http://')'''        
 
 class SettingsReader:
     """Convenience for reading settings in templates"""
@@ -527,4 +573,5 @@ def _get_egg_rev():
             return 'r%d' % hash(rev)
         path = os.path.dirname(path)
         
-        
+  
+  
