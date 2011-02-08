@@ -127,8 +127,10 @@ class TemplateAPI(object):
             # server side session management, do not send secrets to client
             del d['user_secret']
             del d['admin_secret']
-            
-        self.formerrors = {} # from openideo    
+        
+        # from openideo     
+        self.formerrors = {}   
+        self.formdata = request.POST 
 
     @property
     def snippets(self):
@@ -228,7 +230,7 @@ class TemplateAPI(object):
         macro_template = get_template(self.generic_layout_fn)
         return macro_template
 
-    formfields_fn = 'karl.views:templates/formfields.pt'
+    formfields_fn = 'opencore.views:templates/formfields.pt'
     @property
     def formfields(self):
         macro_template = get_template(self.formfields_fn)

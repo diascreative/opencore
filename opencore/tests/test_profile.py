@@ -1,4 +1,5 @@
 import unittest
+from repoze.bfg import testing
 
 class ProfileTests(unittest.TestCase):
 
@@ -104,34 +105,11 @@ class ProfileTests(unittest.TestCase):
 
     def test_website_websites_new_instance(self):
         inst = self._makeOne()
-        self.assertEqual(inst.website, '')
         self.assertEqual(list(inst.websites), [])
 
     def test_websites_as_empty_list(self):
         inst = self._makeOne(websites=[])
-        self.assertEqual(inst.website, '')
         self.assertEqual(inst.websites, [])
-
-    def test_website_not_settable(self):
-        inst = self._makeOne()
-        try:
-            inst.website = 'http://example.com/'
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError('website should not be settable.')
-
-    def test_old_website_gets_included_in_websites(self):
-        inst = self._makeOne()
-        inst.__dict__['website'] = 'http://example.com/'
-        self.assertEqual(list(inst.websites), ['http://example.com/'])
-
-    def test_seting_websites_clears_old_website(self):
-        inst = self._makeOne()
-        inst.__dict__['website'] = 'http://example.com/'
-        inst.websites = ['http://another.example.com/',
-                         'http://yetanother.example.com/']
-        self.failIf('website' in inst.__dict__)
 
 class ProfilesFolderTests(unittest.TestCase):
 
@@ -242,3 +220,49 @@ class Test_profile_textindexdata(unittest.TestCase):
         profile = DummyModel(firstname=FIRSTNAME.encode('latin1'))
         callable = self._callFUT(profile)
         self.assertEqual(callable(), FIRSTNAME)
+        
+class TestProfileCategoryGetter(unittest.TestCase):
+
+    def _makeFolder(self, mapping):
+        class DummyFolder(dict):
+            pass
+        return DummyFolder(mapping)
+    
+   
+
+    def test_non_profile(self):
+        from opencore.profile import ProfileCategoryGetter
+        getter = ProfileCategoryGetter('office')
+        obj = testing.DummyModel()
+        obj.categories = {'office': ['slc']}
+        self.assertEqual(getter(obj, 0), 0)
+
+    def test_success(self):
+        from opencore.profile import ProfileCategoryGetter
+        getter = ProfileCategoryGetter('office')
+        obj = _makeProfile()
+        obj.categories = {'office': ['slc']}
+        self.assertEqual(getter(obj, 0), ['slc'])
+
+    def test_empty_category(self):
+        from opencore.profile import ProfileCategoryGetter
+        getter = ProfileCategoryGetter('office')
+        obj = _makeProfile()
+        obj.categories = {'office': []}
+        self.assertEqual(getter(obj, 0), 0)
+
+    def test_no_categories(self):
+        from opencore.profile import ProfileCategoryGetter
+        getter = ProfileCategoryGetter('office')
+        obj = _makeProfile()
+        obj.categories = {}
+        self.assertEqual(getter(obj, 0), 0)
+        
+def _makeProfile(**kw):
+    from zope.interface import implements
+    from opencore.interfaces import IProfile
+    
+    class DummyProfile(testing.DummyModel):
+        implements(IProfile)
+    
+    return DummyProfile(**kw)

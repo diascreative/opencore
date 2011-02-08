@@ -39,6 +39,9 @@ from textwrap import dedent
 from PIL import Image
 from webob import Response
 import transaction
+import logging
+
+log = logging.getLogger(__name__)
 
 _convert_to_dashes = re.compile(r"""[\s/:"']""") # ' damn you emacs
 _safe_char_check = re.compile(r"[\w.-]+$")
@@ -270,41 +273,43 @@ def photo_from_filestore_view(context, request, form_id):
     return r
 
 def handle_photo_upload(context, form):
-    upload = form.get("photo", None)
-    #if upload is not None and upload.file is not None:
-    if upload is not None and upload != '' and upload.file is not None:
-        request = get_current_request()
-        userid = authenticated_userid(request)
-        upload_file = upload.file
-        if hasattr(upload, 'type'):
-            upload_type = upload.type # FieldStorage
-        else:
-            upload_type = upload.mimetype # Formish File object
-        assert upload_type
-
-        photo = create_content(
-            ICommunityFile,
-            title='Photo of ' + context.title,
-            stream=upload_file,
-            mimetype=upload_type,
-            filename=basename_of_filepath(upload.filename),
-            creator=userid,
-        )
-        if not photo.is_image:
-            transaction.get().doom()
-            raise Invalid(
-                {'photo': 'Uploaded file is not a valid image.'}
+    upload_map = form.get("photo", None)
+    
+    if upload_map is not None:
+        if upload_map['file'] is not None and upload_map['file'] != '':
+            upload = upload_map['file']
+           
+            request = get_current_request()
+            userid = authenticated_userid(request)
+            upload_file = upload.file
+            if hasattr(upload, 'type'):
+                upload_type = upload.type # FieldStorage
+            else:
+                upload_type = upload.mimetype # Formish File object
+            assert upload_type
+    
+            photo = create_content(
+                ICommunityFile,
+                title='Photo of ' + context.title,
+                stream=upload_file,
+                mimetype=upload_type,
+                filename=basename_of_filepath(upload.filename),
+                creator=userid,
             )
-        if 'photo' in context:
-            del context['photo']
-        context['photo'] = photo
-        check_upload_size(context, photo, 'photo')
+            if not photo.is_image:
+                transaction.get().doom()
+                raise Invalid(
+                    {'photo': 'Uploaded file is not a valid image.'}
+                )
+            if 'photo' in context:
+                del context['photo']
+            context['photo'] = photo
+            check_upload_size(context, photo, 'photo')
 
-    # Handle delete photo (ignore if photo also uploaded)
-    elif (form.get("photo_delete", False) or
-          (upload and upload.metadata.get("remove", False))):
-        if 'photo' in context:
-            del context['photo']
+        elif (upload_map.get('delete'), False):    
+            if 'photo' in context:
+                log.debug('deleting photo.')
+                del context['photo']
 
 class Invalid(Exception):
     def __init__(self, error_dict):

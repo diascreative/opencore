@@ -1,4 +1,3 @@
-
 from repoze.bfg.url import model_url
 
 class ToolFactory(object):

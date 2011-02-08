@@ -466,6 +466,11 @@ class IPeopleCategoryItem(Interface):
     description = Attribute(
         "An XHTML block that describes the category value")
 
+class ISocial(Interface):
+    """Interface to support social network linkage."""
+    id = Attribute(
+        "Social network user id.")
+         
 class IPeopleSection(IFolder):
     """Section of the people directory.
 

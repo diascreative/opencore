@@ -333,7 +333,7 @@ class DummyFolderCustomizer(DummyAdapter):
     markers = []
 
 class DummyLayoutProvider(DummyAdapter):
-    template_fn = 'karl.views:templates/community_layout.fn'
+    template_fn = 'opencore.views:templates/community_layout.fn'
 
     def __call__(self, default):
         renderer = registerDummyRenderer(self.template_fn)
@@ -373,18 +373,18 @@ class DummySessions(dict):
         return self[name]
 
 def registerLayoutProvider():
-    from karl.views.interfaces import ILayoutProvider
+    from opencore.views.interfaces import ILayoutProvider
     registerAdapter(DummyLayoutProvider,
                     (Interface, Interface),
                     ILayoutProvider)
 
 def registerTagbox():
-    from karl.models.interfaces import ITagQuery
+    from opencore.interfaces import ITagQuery
     registerAdapter(DummyTagQuery, (Interface, Interface),
                     ITagQuery)
 
 def registerAddables():
-    from karl.views.interfaces import IFolderAddables
+    from opencore.views.interfaces import IFolderAddables
     registerAdapter(DummyFolderAddables, (Interface, Interface),
                     IFolderAddables)
 
@@ -392,11 +392,11 @@ def registerKarlDates():
     d1 = 'Wednesday, January 28, 2009 08:32 AM'
     def dummy(date, flavor):
         return d1
-    from karl.utilities.interfaces import IKarlDates
+    from opencore.utilities.interfaces import IKarlDates
     registerUtility(dummy, IKarlDates)
 
 def registerCatalogSearch():
-    from karl.models.interfaces import ICatalogSearch
+    from opencore.interfaces import ICatalogSearch
     registerAdapter(DummySearchAdapter, (Interface, Interface),
                     ICatalogSearch)
     registerAdapter(DummySearchAdapter, (Interface,),

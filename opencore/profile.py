@@ -1,5 +1,6 @@
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
+from persistent import Persistent
 from BTrees.OOBTree import OOBTree
 from zope.interface import implementer
 from zope.interface import implements
@@ -10,6 +11,9 @@ from opencore.consts import countries
 from opencore.interfaces import IProfile
 from opencore.interfaces import IProfiles
 from opencore.interfaces import ITextIndexData
+from opencore.interfaces import IPeopleCategory
+from opencore.interfaces import IPeopleCategoryItem
+from opencore.interfaces import ISocial
 
 
 class Profile(Folder):
@@ -18,32 +22,8 @@ class Profile(Folder):
 
     alert_attachments = 'link'
     fax = '' # BBB
-    _websites = ()
+    websites = ()
     last_login_time = None # BBB
-
-    def _get_website(self):
-        old_ws = self.__dict__.get('website')
-        if old_ws is not None:
-            return old_ws
-        return self._websites and self._websites[0] or ''
-
-    website = property(_get_website,)
-
-    def _get_websites(self):
-        self._p_activate()
-        if '_websites' in self.__dict__:
-            return self._websites
-        old_ws = self.__dict__.get('website')
-        if old_ws is not None:
-            return (old_ws,)
-        return ()
-
-    def _set_websites(self, value):
-        self._websites = value # coerce / normalize?
-        if 'website' in self.__dict__:
-            del self.__dict__['website']
-
-    websites = property(_get_websites, _set_websites)
 
     def __init__(self,
                  firstname = '',
@@ -175,3 +155,51 @@ def profile_textindexdata(profile):
             text.append(unicode(v))
     text = '\n'.join(text)
     return lambda: text
+
+class ProfileCategoryGetter:
+    """Gets category values from profiles.
+
+    Limited to a particular category key.
+    """
+
+    def __init__(self, catid):
+        self.catid = catid
+
+    def __call__(self, obj, default):
+        if not IProfile.providedBy(obj):
+            return default
+        categories = getattr(obj, 'categories', None)
+        if not categories:
+            return default
+        values = categories.get(self.catid)
+        if not values:
+            return default
+        return values
+
+social_category =  ProfileCategoryGetter('social')
+   
+class PeopleCategory(Folder):
+    implements(IPeopleCategory)
+    is_ordered = False
+
+    def __init__(self, title):
+        super(PeopleCategory, self).__init__()
+        self.title = title
+
+
+class PeopleCategoryItem(Persistent):
+    implements(IPeopleCategoryItem)
+    is_ordered = False
+    sync_id = None # normally set by GSA sync.
+
+    def __init__(self, title, description=u''):
+        self.title = title
+        self.description = description  # HTML blob    
+        
+
+class SocialPeopleCategoryItem(PeopleCategoryItem):
+    implements(ISocial)
+    
+    def __init__(self, id, title, description=u''):
+        PeopleCategoryItem.__init__(self, title, description)
+        self.id = id    
