@@ -21,6 +21,7 @@ from opencore.utils import find_interface
 from opencore.utils import get_layout_provider
 from opencore.views.utils import fetch_attachments
 from opencore.interfaces import IProfile
+from opencore.interfaces import ICommentsFolder
 
 log = logging.getLogger(__name__)
 
@@ -120,6 +121,7 @@ class AddCommentController(object):
         creator = authenticated_userid(request)
         log.debug('add_comment.html converted: %s, ctx: %s' % (str(converted),
                                                             self.context))
+        # todo: replace with new comment utility
         comment = create_content(
             IComment,
             'Re: %s' % parent.title,
@@ -127,8 +129,13 @@ class AddCommentController(object):
             extract_description(converted['add_comment']),
             creator,
             )
-        next_id = parent['comments'].next_id
-        parent['comments'][next_id] = comment
+        
+        if not 'comments' in parent.keys():
+            parent['comments'] = create_content(ICommentsFolder)
+        comments = parent['comments']
+        
+        next_id = comments.next_id
+        comments[next_id] = comment
        
         if support_attachments(comment):
             upload_attachments(converted['attachments'], comment,

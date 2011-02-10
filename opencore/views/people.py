@@ -86,7 +86,7 @@ def show_profiles_view(context, request):
 
 def show_profile_view(context, request):
     """Show a profile with actions if the current user"""
-    page_title = 'View Profile HCD'
+    page_title = 'View Profile'
     api = TemplateAPI(context, request, page_title)
     
     # Create display values from model object

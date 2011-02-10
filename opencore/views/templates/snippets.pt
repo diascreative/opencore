@@ -498,7 +498,7 @@
        <div class="blogComment">
 
         <div class="commentManagement">
-          <a href="#" class="quo-paste">quote</a>
+          <!--<a href="#" class="quo-paste">quote</a>-->
           <tal:ifeditable
              tal:condition="comment['edit_url'] is not None">
             | <a class="k3_edit_comment"
@@ -799,7 +799,7 @@ You are currently accessing KARL with Internet Explorer 6. This is an old browse
           <a href="${api.app_url}/contentfeeds.html">Feeds</a>
         </li>
         <li id="header-communities">
-          <a href="${api.app_url}/communities">Communities</a>
+          <a href="${api.app_url}/${api.communities_name}">${api.communities_name.upper()}</a>
         </li>
         <li id="header-people">
           <a href="${api.people_url}">People</a>

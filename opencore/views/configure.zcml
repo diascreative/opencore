@@ -310,19 +310,93 @@
   />
 -->
   <!-- /stop global tagging related views -->
-    <view
+  
+  
+  <!-- communities -->
+  
+  <view
     name="all_communities.html"
     for="opencore.interfaces.ICommunities"
     view=".communities.show_all_communities_view"
     renderer="templates/communities.pt"
-    permission="view"
-  />
+    permission="view"/>
+    
   <view
     for="opencore.interfaces.ICommunities"
     view=".communities.show_communities_view"
     renderer="templates/communities.pt"
     permission="view"
   />
+    
+   <view
+    for="opencore.interfaces.ICommunity"
+    view=".community.redirect_community_view"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="view.html"
+    view=".community.show_community_view"
+    renderer="templates/community.pt"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="recent_items.html"
+    view=".community.community_recent_items_ajax_view"
+    renderer="templates/community_items_ajax.pt"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="members.html"
+    view=".community.community_members_ajax_view"
+    renderer="templates/community_items_ajax.pt"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="related.html"
+    view=".community.related_communities_ajax_view"
+    renderer="templates/community_items_ajax.pt"
+    permission="view"/>
+<!--
+  <view
+    for="opencore.interfaces.ICommunity"
+    view=".atom.community_atom_view"
+    name="atom.xml"
+    permission="view"/>
+-->
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="delete.html"
+    view=".community.delete_community_view"
+    permission="delete community"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="searchresults.html"
+    renderer="templates/searchresults.pt"
+    view=".search.searchresults_view"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="join.html"
+    view=".community.join_community_view"
+    permission="view"/>
+
+  <adapter
+    for="opencore.interfaces.ICommunity
+         repoze.bfg.interfaces.IRequest"
+    provides=".interfaces.ISidebar"
+    factory=".community.CommunitySidebar"
+  />
+  
+  
+  
+  
+  
   
 <!--
 

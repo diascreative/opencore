@@ -274,7 +274,12 @@ class TemplateAPI(object):
         # this installation's people directory application.
         people_path = get_setting(self.context, 'people_path', 'people')
         return self.app_url + "/" + people_path
-
+    
+    @property
+    def communities_name(self):
+        from opencore.utils import find_site
+        return find_site(self.context).communities_name
+       
     @property
     def tag_users(self):
         """Data for the tagbox display"""

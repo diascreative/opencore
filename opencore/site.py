@@ -112,19 +112,6 @@ def get_title(object, default):
 def get_name(object, default):
     return getattr(object, '__name__', default)
 
-def get_title_firstletter(object, default):
-    title = get_title(object, default)
-    if title:
-        try:
-            title = title[0]
-        except TypeError:
-            return default
-        try:
-            return title.upper()
-        except AttributeError:
-            return default
-    return default
-
 def get_interfaces(object, default):
     # we unwind all derived and immediate interfaces using spec.flattened()
     # (providedBy would just give us the immediate interfaces)
@@ -290,7 +277,6 @@ class Site(Folder):
         indexes = {
             'name': CatalogFieldIndex(get_name),
             'title': CatalogFieldIndex(get_title), # used as sort index
-            'titlestartswith': CatalogFieldIndex(get_title_firstletter),
             'interfaces': CatalogKeywordIndex(get_interfaces),
             'texts': CatalogTextIndex(get_textrepr),
             'path': CatalogPathIndex2(get_path, attr_discriminator=get_acl),
