@@ -11,6 +11,8 @@ from formencode.foreach import ForEach
 from formencode.compound import All, Pipe
 from formencode.variabledecode import NestedVariables
 from formencode.schema import SimpleFormValidator
+from lxml.html import clean
+from BeautifulSoup import BeautifulSoup
 from webob.multidict import MultiDict
 from opencore.consts import countries
 import logging
@@ -101,6 +103,28 @@ class PrefixedUnicodeString(UnicodeString):
             val = self.prefix + val
         return val
 
+class SafeInput(FancyValidator):
+    """ Sanitize input text
+    """
+    
+    def _to_python(self, value, state):
+        value = UnicodeString()._to_python(value, state)
+
+        # - clean up the html
+        value = clean.clean_html(value)
+
+        # - extract just the text
+        # XXX might remove this later, we shall use just lxml to sanitize
+        #     input. However, since extracting only the text from elements is
+        #     easier in BeautifulSoup, that's what I use. After we decide on
+        #     what elements we should allow/disallow, we can switch to lxml.
+        #       - lonetwin
+        soup = BeautifulSoup(value)
+        value = soup.findAll(text=True)
+        value = '\n'.join(value)
+
+        return value
+    
 class CommunityPreferenceSchema(PrefixSchema):
     community = UnicodeString()
     preference = OneOf(['immediately', 'digest', 'never'])

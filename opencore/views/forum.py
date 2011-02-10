@@ -1,22 +1,4 @@
-# Copyright (C) 2008-2009 Open Society Institute
-#               Thomas Moroz: tmoroz@sorosny.org
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License Version 2 as published
-# by the Free Software Foundation.  You may not use, modify or distribute
-# this program under any other version of the GNU General Public License.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
 import datetime
-
 from webob.exc import HTTPFound
 
 from zope.component import getMultiAdapter
@@ -30,11 +12,13 @@ from repoze.bfg.traversal import model_path
 from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import effective_principals
 from repoze.bfg.security import has_permission
+from repoze.bfg.view import bfg_view
 
 from repoze.lemonade.content import create_content
 
 from opencore.content.interfaces import IForum
 from opencore.content.interfaces import IForumTopic
+from opencore.content.interfaces import IForumsFolder
 
 from opencore.events import ObjectModifiedEvent
 from opencore.events import ObjectWillBeModifiedEvent
@@ -58,12 +42,8 @@ from opencore.views.utils import make_unique_name
 from opencore.views.tags import set_tags
 from opencore.views.tags import get_tags_client_data
 from opencore.views.interfaces import IBylineInfo
-
-#from karl.content.views.commenting import AddCommentFormController
-#from karl.content.views.utils import extract_description
-
-#from karl.content.views.utils import upload_attachments
-#from karl.content.views.utils import fetch_attachments
+from opencore.views.utils import fetch_attachments
+from opencore.views.utils import upload_attachments
 
 def titlesort(one, two):
     return cmp(one.title, two.title)
@@ -76,6 +56,8 @@ class ShowForumsView(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        layout_provider = get_layout_provider(self.context, self.request)
+        self.layout = layout_provider('generic')
 
     def __call__(self):
         context = self.context
@@ -125,8 +107,11 @@ class ShowForumsView(object):
             api=api,
             actions=actions,
             forum_data = forum_data,
+            layout = self.layout
             )
 
+ 
+@bfg_view(for_=IForumsFolder, permission='view')
 def show_forums_view(context, request):
     return ShowForumsView(context, request)()
 
@@ -185,172 +170,7 @@ def show_forum_view(context, request):
         layout=layout,
         )
 
-"""tags_field = schemaish.Sequence(schemaish.String())
-text_field = schemaish.String()
-security_field = schemaish.String(
-    description=('Items marked as private can only be seen by '
-                 'members of this community.'))
-attachments_field = schemaish.Sequence(schemaish.File(),
-    title='Attachments',
-    )
-
-title_field = schemaish.String(
-    validator=validator.All(
-        validator.Length(max=100),
-        validator.Required(),
-        )
-    )
-description_field = schemaish.String(
-    validator=validator.Length(max=500),
-    description=("This description will appear in search "
-                 "results and on the community listing page. Please "
-                 "limit your description to 100 words or less.")
-    )
-
-class AddForumFormController(object):
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.workflow = get_workflow(IForum, 'security', self.context)
-
-    def _get_security_states(self):
-        return get_security_states(self.workflow, None, self.request)
-
-    def form_defaults(self):
-        defaults = {
-            'title':'',
-            'description':''}
-
-        if self.workflow is not None:
-            defaults['security_state'] = self.workflow.initial_state
-        return defaults
-
-    def form_fields(self):
-        fields = []
-        fields.append(('title', title_field))
-        fields.append(('description', description_field))
-        security_states = self._get_security_states()
-        if security_states:
-            fields.append(('security_state', security_field))
-        return fields
-
-    def form_widgets(self, fields):
-        widgets = {
-            'title':formish.Input(empty=''),
-            'description':formish.TextArea(cols=60, rows=10, empty=''),
-            }
-        security_states = self._get_security_states()
-        schema = dict(fields)
-        if 'security_state' in schema:
-            security_states = self._get_security_states()
-            widgets['security_state'] = formish.RadioChoice(
-                options=[ (s['name'], s['title']) for s in security_states],
-                none_option=None)
-        return widgets
-
-    def __call__(self):
-        api = TemplateAPI(self.context, self.request, 'Add Forum')
-        return {'api':api, 'actions':()}
-
-    def handle_cancel(self):
-        return HTTPFound(location=model_url(self.context, self.request))
-
-    def handle_submit(self, converted):
-        request = self.request
-        context = self.context
-        workflow = self.workflow
-
-        forum = create_content(IForum,
-            converted['title'],
-            converted['description'],
-            authenticated_userid(request),
-            )
-
-        name = make_unique_name(context, converted['title'])
-        context[name] = forum
-
-        # Set up workflow
-        if workflow is not None:
-            workflow.initialize(forum)
-            if 'security_state' in converted:
-                workflow.transition_to_state(forum, request,
-                                             converted['security_state'])
-
-        location = model_url(forum, request)
-        return HTTPFound(location=location)
-
-class EditForumFormController(object):
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.workflow = get_workflow(IForum, 'security', context)
-
-    def _get_security_states(self):
-        return get_security_states(self.workflow, self.context, self.request)
-
-    def form_defaults(self):
-        defaults = {
-            'title':self.context.title,
-            'description':self.context.description}
-
-        if self.workflow is not None:
-            defaults['security_state'] = self.workflow.state_of(self.context)
-        return defaults
-
-    def form_fields(self):
-        fields = []
-        fields.append(('title', title_field))
-        fields.append(('description', description_field))
-        security_states = self._get_security_states()
-        if security_states:
-            fields.append(('security_state', security_field))
-        return fields
-
-    def form_widgets(self, fields):
-        widgets = {
-            'title':formish.Input(empty=''),
-            'description':formish.TextArea(cols=60, rows=10, empty=''),
-            }
-        security_states = self._get_security_states()
-        schema = dict(fields)
-        if 'security_state' in schema:
-            security_states = self._get_security_states()
-            widgets['security_state'] = formish.RadioChoice(
-                options=[ (s['name'], s['title']) for s in security_states],
-                none_option=None)
-        return widgets
-
-    def __call__(self):
-        page_title = 'Edit %s' % self.context.title
-        api = TemplateAPI(self.context, self.request, page_title)
-        return {'api':api, 'actions':()}
-
-    def handle_cancel(self):
-        return HTTPFound(location=model_url(self.context, self.request))
-
-    def handle_submit(self, converted):
-        context = self.context
-        request = self.request
-        workflow = self.workflow
-        # *will be* modified event
-        objectEventNotify(ObjectWillBeModifiedEvent(context))
-        if workflow is not None:
-            if 'security_state' in converted:
-                workflow.transition_to_state(context, request,
-                                             converted['security_state'])
-
-        context.title = converted['title']
-        context.description = converted['description']
-
-        # Modified
-        context.modified_by = authenticated_userid(request)
-        objectEventNotify(ObjectModifiedEvent(context))
-
-        location = model_url(context, request,
-                             query={'status_message':'Forum Edited'})
-        return HTTPFound(location=location)
-"""
-
+@bfg_view(for_=IForumTopic, permission='view')  
 def show_forum_topic_view(context, request):
     post_url = model_url(context, request, "comments", "add_comment.html")
     appdates = getUtility(IAppDates)
@@ -425,7 +245,7 @@ def show_forum_topic_view(context, request):
     else:
         attachments = ()
 
-    # manually construct formish comment form
+    '''# manually construct formish comment form
     controller = AddCommentFormController(context['comments'], request)
     form_schema = schemaish.Structure()
     form_fields = controller.form_fields()
@@ -446,7 +266,7 @@ def show_forum_topic_view(context, request):
 
     widgets = controller.form_widgets(form_fields)
     for name, widget in widgets.items():
-        comment_form[name].widget = widget
+        comment_form[name].widget = widget'''
 
     # enable imagedrawer for adding forum replies (comments)
     api.karl_client_data['text'] = dict(
@@ -465,7 +285,7 @@ def show_forum_topic_view(context, request):
         head_data=convert_to_script(client_json_data),
         backto=backto,
         layout=layout,
-        comment_form=comment_form,
+        comment_form={},
         )
 
 

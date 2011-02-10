@@ -808,6 +808,27 @@ You are currently accessing KARL with Internet Explorer 6. This is an old browse
           <a href="${api.app_url}/tagcloud.html">Tags</a>
         </li>
     </ul>
+      
+    <!-- openideo additions below -->
+      
+    <metal:comment_form define-macro="comment_form">
+            <form tal:define="my_url my_url|api.here_url" action="${my_url}comment.html" id="comment-form" method="post">
+                <div tal:condition="api.userid" class="textarea">
+                    <div class="top"></div>
+                    <div class="mid">
+                        <div class="text-left-bar" tal:content="structure api.render_form_widget('textarea', 'comment.text', '')">
+                    </div>
+                    </div>
+                    <div class="bot"></div>
+                </div>
+                <div class="submit-button">
+                    <!--
+                    <div tal:content="structure api.render_form_widget('terms-and-conditions', 'comment.accepted_tnc', 'True')" tal:omit-tag=""></div>
+                    -->
+                    <input type="submit" class="button post-comment" value="post comment" />
+                </div>
+            </form>
+    </metal:comment_form>
     
     <metal:fblike define-macro="fblike">
         <div class="facebook-container">
@@ -841,7 +862,7 @@ You are currently accessing KARL with Internet Explorer 6. This is an old browse
             <div id="activities-feed"></div>
     </metal:home-activities-feed>
     
-    <!-- openideo additions below -->
+  
      <metal:submit-buttons define-macro="submit-buttons">
         <div class="form-buttons">
             <div class="button-container">

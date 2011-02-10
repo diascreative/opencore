@@ -52,6 +52,13 @@
     name="acl_tree.html"
     permission="administer"
   />
+  
+   <view
+    for="opencore.interfaces.ICommunityContent"
+    name="delete.html"
+    view=".resource.delete_resource_view"
+    permission="delete"
+    renderer="templates/delete_resource.pt"/>
 
 
   <!-- Publish static resources in a versioned path under /static/ -->
@@ -61,12 +68,14 @@
     path="/static*subpath"
     view_for=".site.StaticRootFactory"
     view=".site.versioning_static_view"
-    factory=".site.StaticRootFactory"
-  />
+    factory=".site.StaticRootFactory"/>
 
-
-  <!--
-   todo: include when we have a .people 
+  <!-- profile -->
+  <view
+    for="opencore.interfaces.IProfiles"
+    view=".people.show_profiles_view"
+    permission="view"/>
+    
   <view
     for="opencore.interfaces.IProfile"
     view=".people.show_profile_view"
@@ -76,13 +85,26 @@
     for="opencore.interfaces.IProfile"
     view=".people.profile_thumbnail"
     name="profile_thumbnail"
-    permission="view"
-    />
-   -->
- 
- 
-
-
+    permission="view"/>
+    
+  <view
+    for="opencore.interfaces.IProfile"
+    view=".people.EditProfileFormController"
+    name="edit_profile.html"
+    permission="edit"/>
+    
+  <view
+    for="opencore.interfaces.IProfile"
+    view=".people.AdminEditProfileFormController"
+    name="admin_edit_profile.html"
+    permission="administer"/>
+  
+  <view
+    for="opencore.interfaces.IProfile"
+    view=".people.recent_content_view"
+    name="recent_content.html"
+    permission="view"/>
+  
   <!-- Redirect requests to site root, to correct URL -->
  <!-- <view
     for="opencore.interfaces.ISite"
@@ -131,6 +153,33 @@
     permission="view"
   />
   
+  
+   
+  <adapter
+      for="opencore.interfaces.ICommunityContent
+           repoze.bfg.interfaces.IRequest"
+      provides=".interfaces.IBylineInfo"
+      factory=".adapters.BylineInfo"/>
+  
+  <!-- comments -->
+  <view
+    name="comment.html"  
+    view=".commenting.AddCommentController"
+    permission="comment"/>
+  
+   <view
+    for="opencore.interfaces.ICommentsFolder"
+    view=".commenting.redirect_comments_view"
+    permission="view"
+  />
+
+  <view
+    for="opencore.interfaces.IComment"
+    view=".commenting.show_comment_view"
+    permission="view"
+  />
+  
+     
   <!-- feeds -->
   
   <view
@@ -225,6 +274,8 @@
     permission="view"
     name="taglisting.html"
   />
+  
+  
 <!--
   <view
     for="karl.models.interfaces.IProfile"

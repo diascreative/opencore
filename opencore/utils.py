@@ -158,3 +158,13 @@ def get_user_bookmarks(context, userid, filter_community=True):
         listings = [l for l in listings if community == find_community(l) ]
 
     return listings
+
+def debugsearch(context, **kw):
+    searcher = ICatalogSearch(context)
+    kw['use_cache'] = False
+    num, docids, resolver = searcher(**kw)
+    L = []
+    for docid in docids:
+        L.append(resolver(docid))
+    return num, L
+

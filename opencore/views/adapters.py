@@ -1,16 +1,24 @@
+from zope.component import getUtility
+from zope.interface import implements
+
 from repoze.bfg.chameleon_zpt import render_template
 from repoze.bfg.chameleon_zpt import get_template
+from repoze.bfg.url import model_url
 from repoze.lemonade.listitem import get_listitems
 
 from opencore.interfaces import ISite
 from opencore.interfaces import IToolFactory
 from opencore.utils import find_interface
+from opencore.utils import find_profiles
 from opencore.views.interfaces import IFooter
 from opencore.views.interfaces import IToolAddables
 from opencore.views.interfaces import IFolderAddables
 from opencore.views.interfaces import ILayoutProvider
+from opencore.views.interfaces import IBylineInfo
+from opencore.utilities.interfaces import IAppDates
 from opencore.content.interfaces import IForum
-from zope.interface import implements
+
+
 
 class DefaultToolAddables(object):
     implements(IToolAddables)
@@ -171,3 +179,38 @@ class DefaultLayoutProvider(object):
             layout = self.generic_layout
 
         return layout'''
+
+class BylineInfo(object):
+    """ Adapter to grab resource info for the byline in ZPT """
+    implements(IBylineInfo)
+    _author_url = None
+    _author_name = None
+    _posted_date = None
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.profile = find_profiles(context).get(context.creator)
+
+    @property
+    def author_url(self):
+        if self._author_url is None:
+            self._author_url = model_url(self.profile, self.request)
+        return self._author_url
+
+
+    @property
+    def author_name(self):
+        if self._author_name is None:
+            if self.profile:
+                self._author_name = self.profile.title
+            else:
+                self._author_name = None
+        return self._author_name
+
+    @property
+    def posted_date(self):
+        if self._posted_date is None:
+            kd = getUtility(IAppDates)
+            self._posted_date = kd(self.context.created, 'longform')
+        return self._posted_date
