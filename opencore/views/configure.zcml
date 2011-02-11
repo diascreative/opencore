@@ -361,11 +361,11 @@
     renderer="templates/community_items_ajax.pt"
     permission="view"/>
 
-  <!--view
+  <view
     for="opencore.models.interfaces.ICommunity"
     view=".atom.community_atom_view"
     name="atom.xml"
-    permission="view"/-->
+    permission="view"/>
 
   <view
     for="opencore.models.interfaces.ICommunity"

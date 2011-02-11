@@ -12,7 +12,7 @@ from opencore.views.community import get_recent_items_batch
 from opencore.views.interfaces import IAtomFeed
 from opencore.views.interfaces import IAtomEntry
 from opencore.views.utils import convert_entities
-from opencore.interfaces import ICommunity
+from opencore.models.interfaces import ICommunity
 
 def format_datetime(d):
     formatted = d.strftime("%Y-%m-%dT%H:%M:%S")
