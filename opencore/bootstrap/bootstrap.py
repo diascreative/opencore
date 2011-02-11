@@ -7,9 +7,9 @@ from repoze.lemonade.content import create_content
 
 from opencore.bootstrap.interfaces import IInitialData
 from opencore.bootstrap.data import DefaultInitialData
-from opencore.contentfeeds import SiteEvents
-from opencore.interfaces import IProfile
-from opencore.site import Site
+from opencore.models.contentfeeds import SiteEvents
+from opencore.models.interfaces import IProfile
+from opencore.models.site import Site
 from opencore.security.policy import to_profile_active
 import logging
 

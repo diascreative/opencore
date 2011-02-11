@@ -1,9 +1,8 @@
 <configure xmlns="http://namespaces.repoze.org/bfg">
   <include package="repoze.bfg.includes" />
-  <include package="opencore" />
+  <include package="opencore.models" />
   <include package="opencore.security"/>
   <include package="opencore.tagging"/>
   <include package="opencore.utilities"/>
-  <include package="opencore.content.models" />
   <include package="opencore.views" />
 </configure>

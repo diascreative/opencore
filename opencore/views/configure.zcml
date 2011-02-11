@@ -10,7 +10,7 @@
      context=".validation.ValidationError"/>
      
   <view
-    for="opencore.content.interfaces.ICommunityFile"
+    for="opencore.models.interfaces.ICommunityFile"
     view=".files.download_file_view"
     name="dl"
     permission="view"
@@ -18,7 +18,7 @@
   
    
   <view
-    for="opencore.content.interfaces.IImage"
+    for="opencore.models.interfaces.IImage"
     view=".files.thumbnail_view"
     name="thumb"
     permission="view"
@@ -27,13 +27,13 @@
 
             
  <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     name="login.html"
     view=".login.login_view"
   />
 
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     name="logout.html"
     view=".login.logout_view"
   />
@@ -54,7 +54,7 @@
   />
   
    <view
-    for="opencore.interfaces.ICommunityContent"
+    for="opencore.models.interfaces.ICommunityContent"
     name="delete.html"
     view=".resource.delete_resource_view"
     permission="delete"
@@ -72,48 +72,48 @@
 
   <!-- profile -->
   <view
-    for="opencore.interfaces.IProfiles"
+    for="opencore.models.interfaces.IProfiles"
     view=".people.show_profiles_view"
     permission="view"/>
     
   <view
-    for="opencore.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".people.show_profile_view"
     permission="view"/>
 
   <view
-    for="opencore.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".people.profile_thumbnail"
     name="profile_thumbnail"
     permission="view"/>
     
   <view
-    for="opencore.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".people.EditProfileFormController"
     name="edit_profile.html"
     permission="edit"/>
     
   <view
-    for="opencore.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".people.AdminEditProfileFormController"
     name="admin_edit_profile.html"
     permission="administer"/>
   
   <view
-    for="opencore.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".people.recent_content_view"
     name="recent_content.html"
     permission="view"/>
   
   <!-- Redirect requests to site root, to correct URL -->
  <!-- <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".site.site_view"
     permission="view"
   />-->
 
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".search.advancedsearch_view"
     renderer="templates/advancedsearch.pt"
     permission="view"
@@ -121,7 +121,7 @@
   />
 
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".search.searchresults_view"
     renderer="templates/searchresults.pt"
     permission="view"
@@ -130,25 +130,25 @@
   
   <!-- forums -->
   <view
-    for="opencore.content.interfaces.IForumsFolder"
+    for="opencore.models.interfaces.IForumsFolder"
     view=".forum.show_forums_view"
     permission="view"
   />
 
   <view
-    for="opencore.content.interfaces.IForum"
+    for="opencore.models.interfaces.IForum"
     view=".forum.show_forum_view"
     permission="view"
   />
   <view
-    for="opencore.content.interfaces.IForum"
+    for="opencore.models.interfaces.IForum"
     name="delete.html"
     view="opencore.views.resource.delete_resource_view"
     permission="delete"
     renderer="opencore.views:templates/delete_resource.pt"
   />
   <view
-    for="opencore.content.interfaces.IForumTopic"
+    for="opencore.models.interfaces.IForumTopic"
     view=".forum.show_forum_topic_view"
     permission="view"
   />
@@ -156,7 +156,7 @@
   
    
   <adapter
-      for="opencore.interfaces.ICommunityContent
+      for="opencore.models.interfaces.ICommunityContent
            repoze.bfg.interfaces.IRequest"
       provides=".interfaces.IBylineInfo"
       factory=".adapters.BylineInfo"/>
@@ -168,13 +168,13 @@
     permission="comment"/>
   
    <view
-    for="opencore.interfaces.ICommentsFolder"
+    for="opencore.models.interfaces.ICommentsFolder"
     view=".commenting.redirect_comments_view"
     permission="view"
   />
 
   <view
-    for="opencore.interfaces.IComment"
+    for="opencore.models.interfaces.IComment"
     view=".commenting.show_comment_view"
     permission="view"
   />
@@ -183,7 +183,7 @@
   <!-- feeds -->
   
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".contentfeeds.show_feeds_view"
     renderer="templates/contentfeeds.pt"
     permission="view"
@@ -192,7 +192,7 @@
 
  
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     view=".contentfeeds.community_feed_view"
     renderer="templates/contentfeeds.pt"
     permission="view"
@@ -200,7 +200,7 @@
     />
 
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".contentfeeds.newest_feed_items"
     permission="view"
     name="newest_feed_items.json"
@@ -208,7 +208,7 @@
     />
 
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".contentfeeds.older_feed_items"
     permission="view"
     name="older_feed_items.json"
@@ -219,7 +219,7 @@
 
   <!-- This view gets a tag and returns a view on it -->
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".tags.showtag_view"
     renderer="templates/showtag.pt"
     permission="view"
@@ -227,7 +227,7 @@
   />
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     view=".tags.community_showtag_view"
     renderer="templates/community_showtag.pt"
     permission="view"
@@ -235,7 +235,7 @@
   />
 
   <view
-    for="opencore.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".tags.profile_showtag_view"
     renderer="templates/profile_showtag.pt"
     permission="view"
@@ -244,7 +244,7 @@
 
   <!-- Tag cloud, listing, users -->
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".tags.tag_cloud_view"
     renderer="templates/tagcloud.pt"
     permission="view"
@@ -252,7 +252,7 @@
   />
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     view=".tags.community_tag_cloud_view"
     renderer="templates/community_tagcloud.pt"
     permission="view"
@@ -260,7 +260,7 @@
   />
 
   <view
-    for="opencore.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".tags.tag_listing_view"
     renderer="templates/taglisting.pt"
     permission="view"
@@ -268,7 +268,7 @@
   />
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     view=".tags.community_tag_listing_view"
     renderer="templates/community_taglisting.pt"
     permission="view"
@@ -316,84 +316,84 @@
   
   <view
     name="all_communities.html"
-    for="opencore.interfaces.ICommunities"
+    for="opencore.models.interfaces.ICommunities"
     view=".communities.show_all_communities_view"
     renderer="templates/communities.pt"
     permission="view"/>
     
   <view
-    for="opencore.interfaces.ICommunities"
+    for="opencore.models.interfaces.ICommunities"
     view=".communities.show_communities_view"
     renderer="templates/communities.pt"
     permission="view"
   />
     
    <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     view=".community.redirect_community_view"
     permission="view"/>
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="view.html"
     view=".community.show_community_view"
     renderer="templates/community.pt"
     permission="view"/>
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="recent_items.html"
     view=".community.community_recent_items_ajax_view"
     renderer="templates/community_items_ajax.pt"
     permission="view"/>
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="members.html"
     view=".community.community_members_ajax_view"
     renderer="templates/community_items_ajax.pt"
     permission="view"/>
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="related.html"
     view=".community.related_communities_ajax_view"
     renderer="templates/community_items_ajax.pt"
     permission="view"/>
 
-  <view
-    for="opencore.interfaces.ICommunity"
+  <!--view
+    for="opencore.models.interfaces.ICommunity"
     view=".atom.community_atom_view"
     name="atom.xml"
-    permission="view"/>
+    permission="view"/-->
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="delete.html"
     view=".community.delete_community_view"
     permission="delete community"/>
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="searchresults.html"
     renderer="templates/searchresults.pt"
     view=".search.searchresults_view"
     permission="view"/>
 
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="edit.html"
     view=".community.EditCommunityFormController"
     permission="moderate"/>
     
   <view
-    for="opencore.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     name="join.html"
     view=".community.join_community_view"
     permission="view"/>
 
   <adapter
-    for="opencore.interfaces.ICommunity
+    for="opencore.models.interfaces.ICommunity
          repoze.bfg.interfaces.IRequest"
     provides=".interfaces.ISidebar"
     factory=".community.CommunitySidebar"

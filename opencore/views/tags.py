@@ -14,7 +14,7 @@ from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
 
-from opencore.interfaces import ITagQuery
+from opencore.models.interfaces import ITagQuery
 
 from opencore.utils import find_catalog
 from opencore.utils import find_profiles

@@ -23,8 +23,8 @@ class UpdateFeedsTests(unittest.TestCase):
         # first update will create container and get feeds
         site = {}
         from repoze.lemonade.testing import registerContentFactory
-        from opencore.interfaces import IFeedsContainer
-        from opencore.interfaces import IFeed
+        from opencore.models.interfaces import IFeedsContainer
+        from opencore.models.interfaces import IFeed
         from repoze.bfg.testing import DummyModel
         registerContentFactory(DummyModel, IFeedsContainer)
         registerContentFactory(DummyFeed, IFeed)
@@ -166,8 +166,8 @@ class UpdateFeedsTests(unittest.TestCase):
         # first update will create container and get feeds
         site = {}
         from repoze.lemonade.testing import registerContentFactory
-        from opencore.interfaces import IFeedsContainer
-        from opencore.interfaces import IFeed
+        from opencore.models.interfaces import IFeedsContainer
+        from opencore.models.interfaces import IFeed
         from repoze.bfg.testing import DummyModel
         registerContentFactory(DummyModel, IFeedsContainer)
         registerContentFactory(DummyFeed, IFeed)

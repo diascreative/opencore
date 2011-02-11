@@ -3,7 +3,7 @@
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
 from repoze.bfg.url import urlencode
-from opencore.interfaces import ICatalogSearch
+from opencore.models.interfaces import ICatalogSearch
 from opencore.utils import find_catalog
 
 

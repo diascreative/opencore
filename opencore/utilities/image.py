@@ -3,8 +3,8 @@ import re
 from repoze.bfg.security import effective_principals
 from repoze.bfg.url import model_url
 
-from opencore.content.interfaces import ICommunityFile
-from opencore.content.interfaces import IImage
+from opencore.models.interfaces import ICommunityFile
+from opencore.models.interfaces import IImage
 from opencore.utils import find_tempfolder
 from opencore.views.batch import get_catalog_batch
 from opencore.views.utils import make_name

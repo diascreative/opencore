@@ -17,7 +17,7 @@ class TestLiveSearchGroup(unittest.TestCase):
 
     def _register(self, batch):
         from zope.interface import Interface
-        from opencore.interfaces import ICatalogSearch
+        from opencore.models.interfaces import ICatalogSearch
         searchkw = {}
         def dummy_catalog_search(context):
             def resolver(x):

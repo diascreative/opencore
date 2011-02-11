@@ -2,7 +2,7 @@
 
 from openhcd.scripting import get_default_config
 from openhcd.scripting import open_root
-from opencore.catalog import reindex_catalog
+from opencore.models.catalog import reindex_catalog
 from optparse import OptionParser
 import re
 

@@ -15,7 +15,7 @@ class TestGetCatalogBatch(unittest.TestCase):
 
     def _register(self, batch):
         from zope.interface import Interface
-        from opencore.interfaces import ICatalogSearch
+        from opencore.models.interfaces import ICatalogSearch
         searchkw = {}
         def dummy_catalog_search(context):
             def resolver(x):
@@ -217,7 +217,7 @@ class TestGetCatalogBatchGrid(unittest.TestCase):
 
     def _register(self, batch):
         from zope.interface import Interface
-        from opencore.interfaces import ICatalogSearch
+        from opencore.models.interfaces import ICatalogSearch
         searchkw = {}
         def dummy_catalog_search(context):
             def resolver(x):
@@ -358,7 +358,7 @@ class TestGetContainerBatch(unittest.TestCase):
         container['a'] = testing.DummyModel()
         container['b'] = testing.DummyModel()
         from zope.interface import directlyProvides
-        from opencore.interfaces import IComment
+        from opencore.models.interfaces import IComment
         directlyProvides(container['b'], IComment)
         container['c'] = testing.DummyModel()
         request = testing.DummyRequest()

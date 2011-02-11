@@ -6,8 +6,7 @@ from repoze.bfg.chameleon_zpt import get_template
 from repoze.bfg.url import model_url
 from repoze.lemonade.listitem import get_listitems
 
-from opencore.interfaces import ISite
-from opencore.interfaces import IToolFactory
+from opencore.models.interfaces import IToolFactory
 from opencore.utils import find_interface
 from opencore.utils import find_profiles
 from opencore.views.interfaces import IFooter
@@ -16,7 +15,7 @@ from opencore.views.interfaces import IFolderAddables
 from opencore.views.interfaces import ILayoutProvider
 from opencore.views.interfaces import IBylineInfo
 from opencore.utilities.interfaces import IAppDates
-from opencore.content.interfaces import IForum
+from opencore.models.interfaces import IForum
 
 
 

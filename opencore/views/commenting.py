@@ -8,20 +8,20 @@ from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
 from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.lemonade.content import create_content
-from opencore.interfaces import IComment
-from opencore.content.interfaces import IForumTopic
+from opencore.models.interfaces import IComment
+from opencore.models.interfaces import IForumTopic
 from opencore.views.validation import SafeInput
 from opencore.views.utils import extract_description
 from opencore.views.utils import upload_attachments
 from opencore.views.api import TemplateAPI
 from opencore.views.interfaces import IBylineInfo
-from opencore.content.interfaces import IBlogEntry
+from opencore.models.interfaces import IBlogEntry
 from opencore.utils import support_attachments
 from opencore.utils import find_interface
 from opencore.utils import get_layout_provider
 from opencore.views.utils import fetch_attachments
-from opencore.interfaces import IProfile
-from opencore.interfaces import ICommentsFolder
+from opencore.models.interfaces import IProfile
+from opencore.models.interfaces import ICommentsFolder
 
 log = logging.getLogger(__name__)
 
