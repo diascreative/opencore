@@ -1,0 +1,316 @@
+<configure xmlns="http://namespaces.repoze.org/bfg"
+    xmlns:lemonade="http://namespaces.repoze.org/lemonade">
+
+  <include package="repoze.lemonade.includes" file="meta.zcml" />
+
+   <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           repoze.folder.interfaces.IObjectWillBeRemovedEvent"
+      handler=".subscribers.handle_content_removed"/>
+
+  <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           repoze.folder.interfaces.IObjectAddedEvent"
+      handler=".subscribers.index_content"/>
+<!--
+  <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           repoze.folder.interfaces.IObjectAddedEvent"
+      handler=".contentfeeds.user_added_content"/>
+-->
+  <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           repoze.folder.interfaces.IObjectWillBeAddedEvent"
+      handler=".subscribers.set_created"/>
+
+  <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           opencore.interfaces.IObjectModifiedEvent"
+      handler=".subscribers.set_modified"/>
+<!--
+  <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           opencore.interfaces.IObjectModifiedEvent"
+      handler=".contentfeeds.user_modified_content"/>
+-->
+  <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           opencore.interfaces.IObjectModifiedEvent"
+      handler=".subscribers.reindex_content"/>
+
+  <subscriber
+      for="repoze.lemonade.interfaces.IContent
+           opencore.interfaces.IObjectModifiedEvent"
+      handler=".subscribers.set_modified"/>
+
+  <subscriber
+      for=".interfaces.ICommunity
+           repoze.folder.interfaces.IObjectWillBeRemovedEvent"
+      handler=".subscribers.delete_community"/>
+  
+
+<!--
+  <subscriber
+      for=".interfaces.IUserAddedGroup"
+      handler=".subscribers.reindex_profile_after_group_change"/>
+
+  <subscriber
+      for=".interfaces.IUserAddedGroup"
+      handler=".contentfeeds.user_joined_community"/>
+
+ 
+  <subscriber
+      for=".interfaces.IUserRemovedGroup"
+      handler=".contentfeeds.user_left_community"/>
+
+  <subscriber
+      for=".tagging.interfaces.ITagAddedEvent"
+      handler=".contentfeeds.user_tagged_content"/>
+-->
+ 
+  <subscriber
+      for=".interfaces.ICatalogQueryEvent"
+      handler=".subscribers.log_query"/>
+
+   <subscriber
+      for=".interfaces.IProfile
+           opencore.interfaces.IObjectModifiedEvent"
+      handler=".subscribers.reindex_content"/>
+<!--  
+   No need to re-index the peoples catalog as we are not using it
+   todo: remove these    
+  <subscriber
+      for=".interfaces.IProfile
+           repoze.folder.interfaces.IObjectAddedEvent"
+      handler=".subscribers.profile_added"/>
+
+  <subscriber
+      for=".interfaces.IProfile
+           repoze.folder.interfaces.IObjectWillBeRemovedEvent"
+      handler=".subscribers.profile_removed"/>
+
+  <subscriber
+      for=".interfaces.IProfile
+           opencore.interfaces.IObjectModifiedEvent"
+      handler=".subscribers.profile_added"/>
+-->
+ 
+  <lemonade:content
+      factory=".community.Community"
+      type=".interfaces.ICommunity"
+      />
+
+  <lemonade:content
+      factory=".profile.Profile"
+      type=".interfaces.IProfile"
+      />
+
+  <adapter
+    for=".interfaces.ICommunity
+          repoze.bfg.interfaces.IRequest"
+    provides=".interfaces.ICommunityInfo"
+    factory=".adapters.CommunityInfo"
+  />
+
+  <!-- XXX Multi-adapter with IRequest not really necessary.
+           This should be deprecated, with registration immediately
+           following being the preferred way to get a CatalogSearch. -->
+  <adapter
+    for="zope.interface.Interface
+         repoze.bfg.interfaces.IRequest"
+    provides=".interfaces.ICatalogSearch"
+    factory=".adapters.CatalogSearch"
+  />
+
+  <adapter
+    for="zope.interface.Interface"
+    provides=".interfaces.ICatalogSearch"
+    factory=".adapters.CatalogSearch"
+    />
+
+  <adapter
+    for="zope.interface.Interface
+         repoze.bfg.interfaces.IRequest"
+    provides=".interfaces.ITagQuery"
+    factory=".adapters.TagQuery"
+  />
+
+  <adapter
+    for="repoze.lemonade.interfaces.IContent
+          repoze.bfg.interfaces.IRequest"
+    provides=".interfaces.IGridEntryInfo"
+    factory=".adapters.GridEntryInfo"
+  />
+
+  <utility
+    provides=".interfaces.ICatalogSearchCache"
+    component=".catalog.cache"
+  />
+
+ 
+  <lemonade:content
+      factory=".site.Site"
+      type=".interfaces.ISite"
+      />
+
+  <lemonade:content
+      factory=".community.CommunitiesFolder"
+      type=".interfaces.ICommunities"
+      />
+
+  <lemonade:content
+      factory=".profile.ProfilesFolder"
+      type=".interfaces.IProfiles"
+      />
+  
+  <!-- not sure its necessary to content create this? 
+       but used in comment utility
+  -->    
+  <lemonade:content
+    factory="opencore.models.commenting.CommentsFolder"
+    type="opencore.models.interfaces.ICommentsFolder"/>   
+
+<!--
+  <lemonade:content
+      factory=".feedstorage.FeedsContainer"
+      type=".interfaces.IFeedsContainer"
+      />
+
+  <lemonade:content
+      factory=".feedstorage.Feed"
+      type=".interfaces.IFeed"
+      />
+-->
+
+  <!-- default tools available to communities (IToolFactories) -->
+
+  
+  <lemonade:listitem
+     component=".forum.forums_tool_factory"
+     provides="opencore.models.interfaces.IToolFactory"
+     name="forums"
+     title="Forums"
+     description="Forums tool"
+     sort_key="50"
+  />
+     
+  <lemonade:listitem
+     component=".blog.blog_tool_factory"
+     provides="opencore.models.interfaces.IToolFactory"
+     name="blog"
+     title="Blog"
+     description="Blog tool"
+     sort_key="10"
+     />
+
+
+
+  <lemonade:listitem
+     component=".files.files_tool_factory"
+     provides="opencore.models.interfaces.IToolFactory"
+     name="files"
+     title="Files"
+     description="Files tool"
+     sort_key="40"
+     />
+
+ 
+
+  <!-- default content registrations -->
+  
+   <lemonade:content
+      factory=".forum.ForumsFolder"
+      type="opencore.models.interfaces.IForumsFolder"
+      />
+
+  <lemonade:content
+      factory=".forum.Forum"
+      type="opencore.models.interfaces.IForum"
+      />
+
+  <lemonade:content
+      factory=".forum.ForumTopic"
+      type="opencore.models.interfaces.IForumTopic"
+      />
+  
+
+  <lemonade:content
+      factory=".blog.Blog"
+      type="opencore.models.interfaces.IBlog"
+      />
+
+  <lemonade:content
+      factory=".blog.BlogEntry"
+      type="opencore.models.interfaces.IBlogEntry"
+      />
+   
+
+
+
+  <lemonade:content
+      factory=".files.CommunityRootFolder"
+      type="opencore.models.interfaces.ICommunityRootFolder"
+      />
+    
+  <lemonade:content
+      factory=".files.CommunityFolder"
+      type="opencore.models.interfaces.ICommunityFolder"
+      />
+
+  <lemonade:content
+      factory=".files.CommunityFile"
+      type="opencore.models.interfaces.ICommunityFile"
+      />
+
+  <lemonade:content
+      factory=".references.ReferenceManual"
+      type="opencore.models.interfaces.IReferenceManual"
+      />
+    
+  <lemonade:content
+      factory=".references.ReferenceSection"
+      type="opencore.models.interfaces.IReferenceSection"
+      />
+    
+  <adapter
+      for="opencore.models.interfaces.ICommunityFile"
+      provides="opencore.models.interfaces.ITextIndexData"
+      factory=".adapters.FileTextIndexData"
+     />
+
+  <adapter
+      for="opencore.models.interfaces.IBlogEntry"
+      provides="opencore.models.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndTextIndexData"
+     />
+
+
+  <adapter
+      for="opencore.models.interfaces.IReferenceManual"
+      provides="opencore.models.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndDescriptionIndexData"
+     />
+
+  <adapter
+      for="opencore.models.interfaces.IReferenceSection"
+      provides="opencore.models.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndDescriptionIndexData"
+     />
+
+
+
+  <adapter
+      for="opencore.models.interfaces.IComment"
+      provides="opencore.models.interfaces.ITextIndexData"
+      factory=".adapters.TitleAndTextIndexData"
+     />
+
+
+
+  <lemonade:content
+      factory=".commenting.Comment"
+      type="opencore.models.interfaces.IComment"
+      />
+
+
+</configure>

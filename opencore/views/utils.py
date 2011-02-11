@@ -1,11 +1,9 @@
 """Useful functions that appear in several places in the UI"""
 import os
 import re
-from cStringIO import StringIO
 from itertools import islice
 
 from zope.component import getMultiAdapter
-from zope.component import queryMultiAdapter
 
 from repoze.bfg.security import authenticated_userid
 from repoze.bfg.threadlocal import get_current_request
@@ -17,12 +15,11 @@ from opencore.utils import find_profiles
 from opencore.utils import find_site
 from opencore.utils import find_users
 from opencore.utils import get_setting
-from opencore.content.interfaces import ICommunityFile
+from opencore.models.interfaces import ICommunityFile
 from opencore.views.interfaces import IFileInfo
 
 from simplejson import JSONEncoder
 from textwrap import dedent
-from PIL import Image
 from lxml.etree import XMLSyntaxError
 from lxml.html import document_fromstring
 from webob import Response

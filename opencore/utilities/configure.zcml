@@ -21,7 +21,7 @@
 
   <lemonade:listitem
     component=".groupsearch.people_group_search"
-    provides="opencore.interfaces.IGroupSearchFactory"
+    provides="opencore.models.interfaces.IGroupSearchFactory"
     name="People"
     title="People"
     description="People group"
@@ -30,7 +30,7 @@
 
   <lemonade:listitem
     component=".groupsearch.pages_group_search"
-    provides="opencore.interfaces.IGroupSearchFactory"
+    provides="opencore.models.interfaces.IGroupSearchFactory"
     name="Pages"
     title="Pages"
     description="Pages group"
@@ -39,7 +39,7 @@
 
   <lemonade:listitem
     component=".groupsearch.posts_group_search"
-    provides="opencore.interfaces.IGroupSearchFactory"
+    provides="opencore.models.interfaces.IGroupSearchFactory"
     name="Posts"
     title="Posts"
     description="Posts group"
@@ -48,7 +48,7 @@
 
   <lemonade:listitem
     component=".groupsearch.files_group_search"
-    provides="opencore.interfaces.IGroupSearchFactory"
+    provides="opencore.models.interfaces.IGroupSearchFactory"
     name="Files"
     title="Files"
     description="Files group"
@@ -57,7 +57,7 @@
 
   <lemonade:listitem
     component=".groupsearch.others_group_search"
-    provides="opencore.interfaces.IGroupSearchFactory"
+    provides="opencore.models.interfaces.IGroupSearchFactory"
     name="Others"
     title="Others"
     description="Others group"

@@ -1,9 +1,9 @@
 """Site and community search views"""
 
-from opencore.interfaces import ICatalogSearch
-from opencore.interfaces import ICommunity
-from opencore.interfaces import IGroupSearchFactory
-from opencore.interfaces import IProfile
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import IGroupSearchFactory
+from opencore.models.interfaces import IProfile
 from opencore.utils import coarse_datetime_repr
 from opencore.utils import get_content_type_name
 from opencore.views.api import TemplateAPI

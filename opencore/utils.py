@@ -1,20 +1,3 @@
-# Copyright (C) 2008-2009 Open Society Institute
-#               Thomas Moroz: tmoroz@sorosny.org
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License Version 2 as published
-# by the Free Software Foundation.  You may not use, modify or distribute
-# this program under any other version of the GNU General Public License.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
 import calendar
 import copy
 
@@ -27,10 +10,10 @@ from repoze.bfg.traversal import find_root
 from repoze.bfg.traversal import find_interface
 from repoze.lemonade.content import get_content_type
 
-from opencore.interfaces import ICatalogSearch
-from opencore.interfaces import ICommunity
-from opencore.interfaces import ISite
-from opencore.interfaces import IAttachmentPolicy
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import ISite
+from opencore.models.interfaces import IAttachmentPolicy
 from opencore.views.interfaces import IFolderAddables
 from opencore.views.interfaces import ILayoutProvider
 
@@ -73,14 +56,14 @@ def get_content_type_name(resource):
     content_iface = get_content_type(resource)
     return content_iface.getTaggedValue('name')
 
-def debugsearch(context, **kw):
-    searcher = ICatalogSearch(context)
-    kw['use_cache'] = False
-    num, docids, resolver = searcher(**kw)
-    L = []
-    for docid in docids:
-        L.append(resolver(docid))
-    return num, L
+# def debugsearch(context, **kw):
+#     searcher = ICatalogSearch(context)
+#     kw['use_cache'] = False
+#     num, docids, resolver = searcher(**kw)
+#     L = []
+#     for docid in docids:
+#         L.append(resolver(docid))
+#     return num, L
 
 def get_session(context, request):
     site = find_site(context)

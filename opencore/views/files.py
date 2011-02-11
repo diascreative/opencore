@@ -1,5 +1,5 @@
 from webob import Response
-from opencore.content.interfaces import IImage
+from opencore.models.interfaces import IImage
 
 def download_file_view(context, request):
     # To view image-ish files in-line, use thumbnail_view.

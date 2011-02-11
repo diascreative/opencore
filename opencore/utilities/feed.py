@@ -4,8 +4,8 @@
 
 import codecs
 from ConfigParser import ConfigParser
-from opencore.interfaces import IFeed
-from opencore.interfaces import IFeedsContainer
+from opencore.models.interfaces import IFeed
+from opencore.models.interfaces import IFeedsContainer
 from repoze.lemonade.content import create_content
 import feedparser
 import sys

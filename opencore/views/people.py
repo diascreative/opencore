@@ -4,7 +4,6 @@ from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import effective_principals
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
-from repoze.bfg.view import bfg_view
 from zope.component import getMultiAdapter
 from zope.component.event import objectEventNotify
 import formencode
@@ -13,19 +12,16 @@ from webob import Response
 from opencore.events import ObjectWillBeModifiedEvent
 from opencore.events import ObjectModifiedEvent
 from opencore.consts import countries
-from opencore.interfaces import ICatalogSearch
-from opencore.interfaces import IGridEntryInfo
-from opencore.interfaces import IContent
-from opencore.interfaces import IProfile
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import IGridEntryInfo
+from opencore.models.interfaces import IContent
+from opencore.models.interfaces import IProfile
 from opencore.utilities.image import thumb_url
 from opencore.utils import find_communities
 from opencore.utils import find_tags
 from opencore.utils import find_users
 from opencore.utils import get_layout_provider
 from opencore.utils import get_setting
-from opencore.utilities.image import thumb_url
-
-from opencore.views.api import xhtml
 
 from opencore.views.communities import get_preferred_communities
 from opencore.views.communities import get_my_communities
@@ -34,9 +30,6 @@ from opencore.views.utils import convert_to_script
 from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import Invalid
 from opencore.views.api import TemplateAPI
-from opencore.interfaces import IProfile
-from opencore.interfaces import IProfiles
-from opencore.consts import countries
 from opencore.views.batch import get_catalog_batch
 from opencore.views.validation import SchemaFile
 from opencore.views.validation import EditProfileSchema

@@ -238,7 +238,7 @@ class TestEditProfileFormController(unittest.TestCase):
                 'http://example.com/admin_edit_profile.html')"""
 
     def test_handle_submit_normal_defaults(self):
-        from opencore.content.interfaces import ICommunityFile
+        from opencore.models.interfaces import ICommunityFile
         from opencore.testing import DummyUpload
         from repoze.lemonade.interfaces import IContentFactory
         testing.registerAdapter(lambda *arg: DummyImageFile, (ICommunityFile,),
@@ -264,7 +264,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(self.context['photo'].data, one_pixel_jpeg)
 
     def test_handle_submit_bad_upload(self):
-        from opencore.content.interfaces import ICommunityFile
+        from opencore.models.interfaces import ICommunityFile
         from opencore.testing import DummyUpload
         from repoze.lemonade.interfaces import IContentFactory
         testing.registerAdapter(lambda *arg: DummyImageFile, (ICommunityFile,),
@@ -747,11 +747,11 @@ class ShowProfileTests(unittest.TestCase):
                 docids = [doc1, None, doc2]
                 return len(docids), docids, lambda docid: docid
             return search
-        from opencore.interfaces import ICatalogSearch
+        from opencore.models.interfaces import ICatalogSearch
         from repoze.bfg.testing import registerAdapter
         from zope.interface import Interface
         registerAdapter(searcher, (Interface,), ICatalogSearch)
-        from opencore.interfaces import IGridEntryInfo
+        from opencore.models.interfaces import IGridEntryInfo
         testing.registerAdapter(DummyGridEntryAdapter, (Interface, Interface),
                                 IGridEntryInfo)
 
@@ -828,7 +828,7 @@ class ProfileThumbnailTests(unittest.TestCase):
 
     def test_w_photo(self):
         from zope.interface import directlyProvides
-        from opencore.content.interfaces import IImage
+        from opencore.models.interfaces import IImage
         context = testing.DummyModel()
         photo = context['photo'] = testing.DummyModel()
         directlyProvides(photo, IImage)
@@ -871,11 +871,11 @@ class RecentContentTests(unittest.TestCase):
                 docids = [doc1, None, doc2]
                 return len(docids), docids, lambda docid: docid
             return search
-        from opencore.interfaces import ICatalogSearch
+        from opencore.models.interfaces import ICatalogSearch
         from repoze.bfg.testing import registerAdapter
         from zope.interface import Interface
         registerAdapter(searcher, (Interface), ICatalogSearch)
-        from opencore.interfaces import IGridEntryInfo
+        from opencore.models.interfaces import IGridEntryInfo
         testing.registerAdapter(DummyGridEntryAdapter, (Interface, Interface),
                                 IGridEntryInfo)
 
@@ -984,7 +984,7 @@ class ManageCommunitiesTests(unittest.TestCase):
         request = testing.DummyRequest(
             url="http://example.com/profiles/a/manage_communities.html")
 
-        from opencore.interfaces import IProfile
+        from opencore.models.interfaces import IProfile
         request.params["form.submitted"] = "submit"
         request.params["alerts_pref_community1"] = str(IProfile.ALERT_NEVER)
         request.params["alerts_pref_community2"] = str(IProfile.ALERT_DIGEST)
@@ -1064,9 +1064,9 @@ class ShowProfilesViewTests(unittest.TestCase):
 
     def test_it(self):
         from zope.interface import Interface
-        from opencore.interfaces import ICatalogSearch
-        from opencore.interfaces import ILetterManager
-        from opencore.adapters import CatalogSearch
+        from opencore.models.interfaces import ICatalogSearch
+        from opencore.models.interfaces import ILetterManager
+        from opencore.models.adapters import CatalogSearch
         catalog = opentesting.DummyCatalog({1:'/foo', 2:'/bar'})
         testing.registerAdapter(CatalogSearch, (Interface), ICatalogSearch)
         context = testing.DummyModel()

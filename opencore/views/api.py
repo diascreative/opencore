@@ -28,12 +28,12 @@ from opencore.utils import get_user_bookmarks
 from opencore.views.utils import convert_to_script
 from opencore.views.utils import get_user_home
 
-from opencore.interfaces import ICommunityContent
-from opencore.interfaces import ICommunity
-from opencore.interfaces import ICommunityInfo
-from opencore.interfaces import ICatalogSearch
-from opencore.interfaces import IGridEntryInfo
-from opencore.interfaces import ITagQuery
+from opencore.models.interfaces import ICommunityContent
+from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import ICommunityInfo
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import IGridEntryInfo
+from opencore.models.interfaces import ITagQuery
 from opencore.views.adapters import DefaultFooter
 from opencore.views.interfaces import IFooter
 from opencore.views.interfaces import ISidebar

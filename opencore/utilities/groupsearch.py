@@ -4,14 +4,14 @@ from zope.interface import implements
 from repoze.bfg.security import effective_principals
 from repoze.bfg.traversal import model_path
 
-from opencore.interfaces import ICatalogSearch
-from opencore.interfaces import IGroupSearchFactory
-from opencore.interfaces import IGroupSearch
-from opencore.interfaces import IPeople
-from opencore.interfaces import IPosts
-from opencore.interfaces import IFiles
-from opencore.interfaces import IPages
-from opencore.interfaces import IOthers
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import IGroupSearchFactory
+from opencore.models.interfaces import IGroupSearch
+from opencore.models.interfaces import IPeople
+from opencore.models.interfaces import IPosts
+from opencore.models.interfaces import IFiles
+from opencore.models.interfaces import IPages
+from opencore.models.interfaces import IOthers
 
 from opencore.views.batch import get_catalog_batch_grid
 

@@ -23,12 +23,12 @@ from repoze.sendmail.interfaces import IMailDelivery
 from opencore.events import ObjectWillBeModifiedEvent
 from opencore.events import ObjectModifiedEvent
 
-from opencore.interfaces import ICatalogSearch
-from opencore.interfaces import ICommunity
-from opencore.interfaces import ICommunityContent
-from opencore.interfaces import IGridEntryInfo
-from opencore.interfaces import IProfile
-from opencore.interfaces import ITagQuery
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import ICommunityContent
+from opencore.models.interfaces import IGridEntryInfo
+from opencore.models.interfaces import IProfile
+from opencore.models.interfaces import ITagQuery
 
 from opencore.utils import get_layout_provider
 from opencore.utils import find_profiles

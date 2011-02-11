@@ -16,15 +16,15 @@ from repoze.bfg.view import bfg_view
 
 from repoze.lemonade.content import create_content
 
-from opencore.content.interfaces import IForum
-from opencore.content.interfaces import IForumTopic
-from opencore.content.interfaces import IForumsFolder
+from opencore.models.interfaces import IForum
+from opencore.models.interfaces import IForumTopic
+from opencore.models.interfaces import IForumsFolder
 
 from opencore.events import ObjectModifiedEvent
 from opencore.events import ObjectWillBeModifiedEvent
 
-from opencore.interfaces import IComment
-from opencore.interfaces import ICatalogSearch
+from opencore.models.interfaces import IComment
+from opencore.models.interfaces import ICatalogSearch
 
 from opencore.utils import get_layout_provider
 from opencore.utils import find_interface

@@ -8,8 +8,8 @@ from repoze.bfg.testing import registerAdapter
 from repoze.bfg.testing import registerDummyRenderer
 from repoze.bfg.testing import registerUtility
 
-from opencore.interfaces import ICommunity
-from opencore.interfaces import IProfile
+from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import IProfile
 
 class DummyCatalog(dict):
     def __init__(self, *maps):
@@ -379,7 +379,7 @@ def registerLayoutProvider():
                     ILayoutProvider)
 
 def registerTagbox():
-    from opencore.interfaces import ITagQuery
+    from opencore.models.interfaces import ITagQuery
     registerAdapter(DummyTagQuery, (Interface, Interface),
                     ITagQuery)
 
@@ -396,7 +396,7 @@ def registerKarlDates():
     registerUtility(dummy, IKarlDates)
 
 def registerCatalogSearch():
-    from opencore.interfaces import ICatalogSearch
+    from opencore.models.interfaces import ICatalogSearch
     registerAdapter(DummySearchAdapter, (Interface, Interface),
                     ICatalogSearch)
     registerAdapter(DummySearchAdapter, (Interface,),

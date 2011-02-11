@@ -10,8 +10,8 @@ from webob.exc import HTTPFound
 from zope.component import getMultiAdapter
 from zope.index.text.parsetree import ParseError
 
-from opencore.interfaces import ICommunityInfo
-from opencore.interfaces import ICommunity
+from opencore.models.interfaces import ICommunityInfo
+from opencore.models.interfaces import ICommunity
 from opencore.views.api import TemplateAPI
 from opencore.utils import coarse_datetime_repr
 from opencore.utils import find_communities
