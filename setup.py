@@ -26,7 +26,7 @@ requires = [
     'repoze.lemonade',
     'repoze.monty',
     'repoze.retry',
-    'repoze.sendmail',
+    'repoze.sendmail  >= 2.2',
     'repoze.session',
     'repoze.tm2',
     'repoze.who',
