@@ -1,24 +1,11 @@
-# Copyright (C) 2008-2009 Open Society Institute
-#               Thomas Moroz: tmoroz@sorosny.org
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License Version 2 as published
-# by the Free Software Foundation.  You may not use, modify or distribute
-# this program under any other version of the GNU General Public License.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-
-"""Useful functions that appear in several places in the KARL UI"""
+"""Useful functions that appear in several places in the UI"""
 import os
 import re
 from cStringIO import StringIO
+from itertools import islice
+
+from zope.component import getMultiAdapter
+from zope.component import queryMultiAdapter
 
 from repoze.bfg.security import authenticated_userid
 from repoze.bfg.threadlocal import get_current_request
@@ -31,14 +18,18 @@ from opencore.utils import find_site
 from opencore.utils import find_users
 from opencore.utils import get_setting
 from opencore.content.interfaces import ICommunityFile
-
-#from karl.views.forms.filestore import get_filestore
+from opencore.views.interfaces import IFileInfo
 
 from simplejson import JSONEncoder
 from textwrap import dedent
 from PIL import Image
+from lxml.etree import XMLSyntaxError
+from lxml.html import document_fromstring
 from webob import Response
 import transaction
+import logging
+
+log = logging.getLogger(__name__)
 
 _convert_to_dashes = re.compile(r"""[\s/:"']""") # ' damn you emacs
 _safe_char_check = re.compile(r"[\w.-]+$")
@@ -270,41 +261,43 @@ def photo_from_filestore_view(context, request, form_id):
     return r
 
 def handle_photo_upload(context, form):
-    upload = form.get("photo", None)
-    #if upload is not None and upload.file is not None:
-    if upload is not None and upload != '' and upload.file is not None:
-        request = get_current_request()
-        userid = authenticated_userid(request)
-        upload_file = upload.file
-        if hasattr(upload, 'type'):
-            upload_type = upload.type # FieldStorage
-        else:
-            upload_type = upload.mimetype # Formish File object
-        assert upload_type
-
-        photo = create_content(
-            ICommunityFile,
-            title='Photo of ' + context.title,
-            stream=upload_file,
-            mimetype=upload_type,
-            filename=basename_of_filepath(upload.filename),
-            creator=userid,
-        )
-        if not photo.is_image:
-            transaction.get().doom()
-            raise Invalid(
-                {'photo': 'Uploaded file is not a valid image.'}
+    upload_map = form.get("photo", None)
+    
+    if upload_map is not None:
+        if upload_map['file'] is not None and upload_map['file'] != '':
+            upload = upload_map['file']
+           
+            request = get_current_request()
+            userid = authenticated_userid(request)
+            upload_file = upload.file
+            if hasattr(upload, 'type'):
+                upload_type = upload.type # FieldStorage
+            else:
+                upload_type = upload.mimetype # Formish File object
+            assert upload_type
+    
+            photo = create_content(
+                ICommunityFile,
+                title='Photo of ' + context.title,
+                stream=upload_file,
+                mimetype=upload_type,
+                filename=basename_of_filepath(upload.filename),
+                creator=userid,
             )
-        if 'photo' in context:
-            del context['photo']
-        context['photo'] = photo
-        check_upload_size(context, photo, 'photo')
+            if not photo.is_image:
+                transaction.get().doom()
+                raise Invalid(
+                    {'photo': 'Uploaded file is not a valid image.'}
+                )
+            if 'photo' in context:
+                del context['photo']
+            context['photo'] = photo
+            check_upload_size(context, photo, 'photo')
 
-    # Handle delete photo (ignore if photo also uploaded)
-    elif (form.get("photo_delete", False) or
-          (upload and upload.metadata.get("remove", False))):
-        if 'photo' in context:
-            del context['photo']
+        elif (upload_map.get('delete'), False):    
+            if 'photo' in context:
+                log.debug('deleting photo.')
+                del context['photo']
 
 class Invalid(Exception):
     def __init__(self, error_dict):
@@ -590,3 +583,105 @@ def convert_entities(s):
 
     return _entity_re.sub(convert, s)
 
+# Table mapping mime types sent by IE to standard types
+ie_types = {
+    "image/x-png": "image/png",
+    "image/pjpeg": "image/jpeg",
+}
+
+
+def get_upload_mimetype(upload):
+    mimetype = getattr(upload, 'mimetype', None)
+    if mimetype is None:
+        mimetype = getattr(upload, 'type', None)
+    mimetype = ie_types.get(mimetype, mimetype)
+    if mimetype in (
+            'application/x-download',
+            'application/x-application',
+            'application/binary',
+            'application/octet-stream',
+            ):
+        # The browser sent a meaningless file type.  Firefox on Ubuntu
+        # does this to some people:
+        #  https://bugs.launchpad.net/ubuntu/+source/firefox-3.0/+bug/84880
+        # Try to guess a more sensible mime type from the filename.
+        guessed_type, _ = mimetypes.guess_type(upload.filename)
+        if guessed_type:
+            mimetype = guessed_type
+    return mimetype
+
+
+def fetch_attachments(attachments_folder, request):
+    return [getMultiAdapter((attachment, request), IFileInfo)
+                   for attachment in attachments_folder.values()]
+
+def upload_attachments(attachments, folder, creator, request):
+    """ This creates *and removes* attachments based on information
+    retrieved from a form"""
+    for attachment in attachments:
+        if attachment.filename:
+            mimetype = get_upload_mimetype(attachment)
+            filename = make_unique_name(
+                folder,
+                basename_of_filepath(attachment.filename)
+                )
+            folder[filename] = obj = create_content(
+                ICommunityFile,
+                title = filename,
+                stream = attachment.file,
+                mimetype = mimetype,
+                filename = filename,
+                creator = creator,
+                )
+            max_size = int(get_setting(folder, 'upload_limit', 0))
+            if max_size and obj.size > max_size:
+                msg = 'File size exceeds upload limit of %d.' % max_size
+                raise ValueError(msg)
+        else:
+            meta = attachment.metadata
+            if meta.get('remove') and meta.get('default'):
+                name = meta['default']
+                if name in folder:
+                    ob = folder[name]
+                    if has_permission('delete', ob, request):
+                        del folder[name]
+                        
+_WIKI_WORDS = re.compile(r'[(][(]([^)]+)[)][)]')
+
+def _crack_words(text):
+    text = text.strip()
+    text = _WIKI_WORDS.sub(r'\1', text)
+    for word in text.split():
+        yield word.strip()
+
+def _crack_html_words(htmlstring):
+    # Yield words from markup.
+    try:
+        d = document_fromstring(htmlstring)
+    except XMLSyntaxError:
+        return
+    for element in d.iter():
+        text = element.text or ''
+        for word in _crack_words(text):
+            yield word
+        tail = element.tail or ''
+        for word in _crack_words(tail):
+            yield word
+
+def extract_description(htmlstring):
+    """ Get a summary-style description from the HTML in text field """
+    # Lots of resources don't have a user-visible description field,
+    # which is good, as it is one less field for authors to be
+    # confronted with.  We still need a description to show in blog
+    # listing and search results, for example.  So extract a
+    # description from the HTML text.
+
+    summary_limit = 50 # number of "words"
+
+    words = list(islice(_crack_html_words(htmlstring), summary_limit + 1))
+    summary_list = words[0:summary_limit]
+    summary = " ".join(summary_list)
+    if len(words) > summary_limit:
+        summary = summary + "..."
+
+    return summary                        

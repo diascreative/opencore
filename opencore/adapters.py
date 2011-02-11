@@ -31,6 +31,7 @@ from repoze.sendmail.interfaces import IMailDelivery
 from zope.component import getUtility
 from zope.component import queryUtility
 from zope.interface import implements
+from zope.component.event import objectEventNotify
 
 from opencore.interfaces import ICatalogSearch
 from opencore.interfaces import IComment
@@ -46,7 +47,6 @@ from opencore.utils import find_profiles
 from opencore.utils import find_tags
 from opencore.utils import get_content_type_name
 from opencore.utils import get_setting
-
 
 class CatalogSearch(object):
     """ Centralize policies about searching """
@@ -344,5 +344,3 @@ class CommunityInfo(object):
     def moderator(self):
         username = authenticated_userid(self.request)
         return username in self.context.moderator_names
-
-

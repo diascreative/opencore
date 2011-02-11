@@ -12,21 +12,22 @@
     <h1 metal:use-macro="api.snippets.macros['page_title']"/>
 
     <div metal:use-macro="api.snippets.macros['byline']"/>
-
-    <div metal:use-macro="api.snippets.macros['list_tags']"/>
-
-    <div class="kbody"
-	 tal:condition="api.context.text">
+    
+    <div class="kbody" tal:condition="api.context.text != u''">
       <span tal:replace="structure api.context.text"/>
     </div>
 
-    <div class="l-spacer"></div>
-            <h3 id="comments-header">Comments</h3>
-            <metal:resources use-macro="api.snippets.macros['comment_form']"/>
-            <div id="comments">
-            <div metal:use-macro="api.snippets.macros['show_attachments']"/>
-            <div metal:use-macro="api.snippets.macros['show_comments']"/>
-     </div>
+    <div class="blogAttachments" tal:repeat="attachment attachments">
+      <div class="Attachment">
+        <span>
+          <img alt="[icon]"
+               src="${api.static_url}/images/${attachment.mimeinfo.small_icon_name}"
+               title="${attachment.title}" />
+           <a href="${attachment.url}/dl">${attachment.title}</a>
+        </span>
+      </div>
+    </div>
+
   </div>
 
 </html>

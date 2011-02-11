@@ -1,10 +1,17 @@
 from repoze.bfg.chameleon_zpt import render_template_to_response
+from repoze.bfg.chameleon_zpt import render_template
 from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import effective_principals
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
+from repoze.bfg.view import bfg_view
 from zope.component import getMultiAdapter
-
+from zope.component.event import objectEventNotify
+import formencode
+from webob.exc import HTTPFound
+from webob import Response
+from opencore.events import ObjectWillBeModifiedEvent
+from opencore.events import ObjectModifiedEvent
 from opencore.consts import countries
 from opencore.interfaces import ICatalogSearch
 from opencore.interfaces import IGridEntryInfo
@@ -16,28 +23,29 @@ from opencore.utils import find_tags
 from opencore.utils import find_users
 from opencore.utils import get_layout_provider
 from opencore.utils import get_setting
+from opencore.utilities.image import thumb_url
 
 from opencore.views.api import xhtml
 
-'''from karl.views.batch import get_catalog_batch
-from karl.views.login import logout_view
-from karl.views.resetpassword import request_password_reset
-from karl.views.utils import Invalid
-from karl.views.utils import handle_photo_upload
-from karl.views.utils import photo_from_filestore_view
-from karl.views.forms import widgets as karlwidgets
-from karl.views.forms import validators as karlvalidators
-from karl.views.forms.filestore import get_filestore'''
 from opencore.views.communities import get_preferred_communities
 from opencore.views.communities import get_my_communities
 from opencore.views.tags import get_tags_client_data
 from opencore.views.utils import convert_to_script
+from opencore.views.utils import handle_photo_upload
+from opencore.views.utils import Invalid
 from opencore.views.api import TemplateAPI
-from opencore.utilities.image import thumb_url
+from opencore.interfaces import IProfile
+from opencore.interfaces import IProfiles
+from opencore.consts import countries
+from opencore.views.batch import get_catalog_batch
+from opencore.views.validation import SchemaFile
+from opencore.views.validation import EditProfileSchema
+from opencore.views.validation import add_dict_prefix
+from opencore.views.validation import ValidationError
+import logging
 
-
+log = logging.getLogger(__name__)
 PROFILE_THUMB_SIZE = (75, 100)
-
 _MIN_PW_LENGTH = None
 
 def min_pw_length():
@@ -46,12 +54,41 @@ def min_pw_length():
         _MIN_PW_LENGTH = get_setting(None, 'min_pw_length', 8)
     return _MIN_PW_LENGTH
 
+def show_profiles_view(context, request):
+    system_name = get_setting(context, 'system_name', 'OpenCore')
+    page_title = '%s Profiles' % system_name
+    api = TemplateAPI(context, request, page_title)
+
+    # Grab the data for the two listings, main communities and portlet
+    search = ICatalogSearch(context)
+
+    query = dict(sort_index='title', interfaces=[IProfile], limit=5)
+
+    titlestartswith = request.params.get('titlestartswith')
+    if titlestartswith:
+        query['titlestartswith'] = (titlestartswith, titlestartswith)
+
+    num, docids, resolver = search(**query)
+
+    profiles = []
+    for docid in docids:
+        model = resolver(docid)
+        if model is None:
+            continue
+        profiles.append(model)
+
+    return render_template_to_response(
+        'templates/profiles.pt',
+        api=api,
+        profiles=profiles,
+        )
+
 
 def show_profile_view(context, request):
     """Show a profile with actions if the current user"""
     page_title = 'View Profile'
     api = TemplateAPI(context, request, page_title)
-
+    
     # Create display values from model object
     profile = {}
     for name in [name for name in context.__dict__.keys()
@@ -92,7 +129,7 @@ def show_profile_view(context, request):
     photo = context.get('photo')
     display_photo = {}
     if photo is not None:
-        display_photo["url"] = api.static_url + thumb_url(photo, request, PROFILE_THUMB_SIZE)
+        display_photo["url"] = thumb_url(photo, request, PROFILE_THUMB_SIZE)
     else:
         display_photo["url"] = api.static_url + "/images/defaultUser.gif"
     profile["photo"] = display_photo
@@ -164,7 +201,7 @@ def show_profile_view(context, request):
             continue
         adapted = getMultiAdapter((item, request), IGridEntryInfo)
         recent_items.append(adapted)
-
+   
     return render_template_to_response(
         'templates/profile.pt',
         api=api,
@@ -176,7 +213,7 @@ def show_profile_view(context, request):
         my_communities=my_communities,
         preferred_communities=preferred_communities,
         tags=tags,
-        recent_items=recent_items,
+        recent_items=recent_items
         )
 
 def profile_thumbnail(context, request):
@@ -199,3 +236,268 @@ def get_profile_actions(profile, request):
         actions.append(('Manage Communities', 'manage_communities.html'))
         actions.append(('Manage Tags', 'manage_tags.html'))
     return actions
+
+class EditProfileFormController(object):
+    """
+    Controller for the profile edit form.  Also the base class
+    for the controllers for the admin profile edit and add user forms.
+    """
+    simple_field_names = [
+        "firstname",
+        "lastname",
+        "email",
+        "phone",
+        "extension",
+        "fax",
+        "department",
+        "position",
+        "organization",
+        "location",
+        "country",
+        "websites",
+        "languages",
+        "office",
+        "room_no",
+        "biography",
+    ]
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        #self.filestore = get_filestore(context, request, 'edit-profile')
+        self.page_title = "Edit %s" % context.title
+        self.api = TemplateAPI(self.context, self.request, self.page_title)
+        layout_provider = get_layout_provider(self.context, self.request)
+        self.layout = layout_provider('generic')
+        self.form_title = 'Edit Profile'
+        self.prefix = 'profile.'
+        
+        photo = context.get('photo')
+        if photo is not None:
+            photo = SchemaFile(None, photo.__name__, photo.mimetype)
+        self.photo = photo
+
+    def form_defaults(self):
+        context = self.context
+        defaults = {'firstname': context.firstname,
+                    'lastname': context.lastname,
+                    'email': context.email,
+                    'phone': context.phone,
+                    'extension': context.extension,
+                    'fax': context.fax,
+                    'department': context.department,
+                    'position': context.position,
+                    'organization': context.organization,
+                    'location': context.location,
+                    'country': context.country,
+                    'websites': context.websites,
+                    'languages': context.languages,
+                    'photo': self.photo,
+                    'biography': context.biography,
+                    }
+        return defaults
+
+    def __call__(self):
+               
+        self.api.formdata = add_dict_prefix(self.prefix, self.form_defaults())
+        log.debug('api.formdata: %s' % str(self.api.formdata))
+       
+        if self.api.user_is_admin:
+            log.debug('user_is_admin so redirecting to admin_edit_profile.html.')
+            return HTTPFound(location=model_url(self.context,
+                self.request, 'admin_edit_profile.html'))
+
+        if self.request.method == 'POST':
+            post_data = self.request.POST
+            log.debug('request.POST: %s' % post_data)
+            try:
+                # validate and convert
+                self.api.formdata = EditProfileSchema.to_python(post_data, state=None, prefix='profile.')
+            except formencode.Invalid, e:
+                self.api.formdata = post_data
+                raise ValidationError(self, **e.error_dict)
+            else:
+                return self.handle_submit(self.api.formdata)
+        
+        return self.make_response()
+        
+    def make_response(self):
+        result = render_template(
+                       'templates/edit_profile.pt',
+                       api=self.api, actions=(), layout=self.layout,
+                       form_title=self.form_title, include_blurb=True,
+                       countries=[('', 'Select your Country')] + countries,
+                       challenges=[],
+                       preferences= ['immediately', 'digest', 'never'],
+                       defaults=[])     
+        return Response(body=result, content_type='text/html')               
+       
+    def handle_submit(self, converted):
+        context = self.context
+        request = self.request
+        log.debug('handle_submit: %s' % str(converted))
+        objectEventNotify(ObjectWillBeModifiedEvent(context))
+        # Handle the easy ones
+        for name in self.simple_field_names:
+            if name in converted:
+                 log.debug('setting profile.%s=%s' % (name, converted.get(name)))
+                 setattr(context, name, converted.get(name))
+            else:
+                log.warn('profile attribute name=%s was not included in form post data?' % name)     
+        # Handle the picture and clear the temporary filestore
+        try:
+            handle_photo_upload(context, converted)
+        except Invalid, e:
+            raise ValidationError(self, **e.error_dict)
+        context.modified_by = authenticated_userid(request)
+        # Emit a modified event for recataloging
+        objectEventNotify(ObjectModifiedEvent(context))
+        # Whew, we made it!
+        path = model_url(context, request)
+        msg = '?status_message=Profile%20edited'
+        return HTTPFound(location=path+msg)
+    
+class AdminEditProfileFormController(EditProfileFormController):
+    """
+    Extends the default profile edit controller w/ all of the extra
+    logic that the admin form requires.
+    """
+    simple_field_names = EditProfileFormController.simple_field_names
+    simple_field_names = simple_field_names + ['home_path']
+
+    def __init__(self, context, request):
+        super(AdminEditProfileFormController, self).__init__(context, request)
+        self.users = find_users(context)
+        self.userid = context.__name__
+        self.user = self.users.get_by_id(self.userid)
+        if self.user is not None:
+            self.is_active = True
+            self.user_groups = set(self.user['groups'])
+            self.group_options = get_group_options(self.context)
+        else:
+            self.is_active = False
+        self.form_title = 'Edit User and Profile Information'    
+  
+    def form_defaults(self):
+        defaults = super(AdminEditProfileFormController, self).form_defaults()
+        context = self.context
+        if self.user is not None:
+            defaults.update({'login': self.user['login'],
+                             'groups': self.user_groups,
+                             'password': ''})
+        defaults['home_path'] = context.home_path
+        return defaults
+     
+    def __call__(self):
+               
+        self.api.formdata = add_dict_prefix(self.prefix, self.form_defaults())
+        log.debug('api.formdata: %s' % str(self.api.formdata))
+       
+        if self.request.method == 'POST':
+            post_data = self.request.POST
+            log.debug('AdminEditProfileFormController request.POST: %s' % post_data)
+            try:
+                # validate and convert
+                self.api.formdata = EditProfileSchema.to_python(post_data, state=None, prefix='profile.')
+            except formencode.Invalid, e:
+                self.api.formdata = post_data
+                raise ValidationError(self, **e.error_dict)
+            else:
+                return self.handle_submit(self.api.formdata)
+        
+        return self.make_response()
+    
+    def make_response(self):
+        result = render_template(
+                       'templates/edit_profile.pt',
+                       api=self.api, actions=(), layout=self.layout,
+                       form_title=self.form_title, include_blurb=False,
+                       admin_edit=True,  is_active=self.is_active, 
+                       countries=[('', 'Select your Country')] + countries,
+                       challenges=[],
+                       preferences= ['immediately', 'digest', 'never'],
+                       defaults=[])     
+        return Response(body=result, content_type='text/html')   
+    
+    def handle_submit(self, converted):
+        context = self.context
+        request = self.request
+        users = self.users
+        userid = self.userid
+        user = self.user
+        '''if user is not None:
+            # todo: login is not in the converted map, investigate use of this admin edit form
+            login = converted.get('login')
+            login_changed = users.get_by_login(login) != user
+            if (login_changed and
+                (users.get_by_id(login) is not None or
+                 users.get_by_login(login) is not None or
+                 login in context)):
+                msg = "Login '%s' is already in use" % login
+                raise ValidationError(login=msg)
+        objectEventNotify(ObjectWillBeModifiedEvent(context))
+        if user is not None:
+            # Set new login
+            try:
+                users.change_login(userid, converted['login'])
+            except ValueError, e:
+                raise ValidationError(login=str(e))
+            # Set group memberships
+            user_groups = self.user_groups
+            chosen_groups = set(converted['groups'])
+            for group, group_title in self.group_options:
+                if group in chosen_groups and group not in user_groups:
+                    users.add_user_to_group(userid, group)
+                if group in user_groups and group not in chosen_groups:
+                    users.remove_user_from_group(userid, group)
+            # Edit password
+            if converted.get('password', None):
+                users.change_password(userid, converted['password'])'''
+        # Handle the easy ones
+        for name in self.simple_field_names:
+            setattr(context, name, converted.get(name))
+        # Handle the picture and clear the temporary filestore
+        try:
+            handle_photo_upload(context, converted)
+        except Invalid, e:
+            raise ValidationError(self, **e.error_dict)
+        #self.filestore.clear()
+        context.modified_by = authenticated_userid(request)
+        # Emit a modified event for recataloging
+        objectEventNotify(ObjectModifiedEvent(context))
+        # Whew, we made it!
+        path = model_url(context, request)
+        msg = '?status_message=User%20edited'
+        return HTTPFound(location=path+msg)    
+
+def get_group_options(context):
+    group_options = []
+    for group in get_setting(context, "selectable_groups").split():
+        if group.startswith('group.'):
+            title = group[6:]
+        else:
+            title = group
+        group_options.append((group, title))
+    return group_options
+
+
+def recent_content_view(context, request):
+    batch = get_catalog_batch(context, request,
+        sort_index='creation_date', reverse=True,
+        interfaces=[IContent], creator=context.__name__,
+        allowed={'query': effective_principals(request), 'operator': 'or'},
+        )
+
+    recent_items = []
+    for item in batch['entries']:
+        adapted = getMultiAdapter((item, request), IGridEntryInfo)
+        recent_items.append(adapted)
+
+    page_title = "Content Added Recently by %s" % context.title
+    api = TemplateAPI(context, request, page_title)
+    return render_template_to_response(
+        'templates/profile_recent_content.pt',
+        api=api,
+        batch_info=batch,
+        recent_items=recent_items,
+        )

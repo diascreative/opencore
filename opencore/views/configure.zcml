@@ -6,12 +6,17 @@
      context="repoze.bfg.exceptions.Forbidden"/>
  
   <view
+     view=".validation.validation_error_handler"
+     context=".validation.ValidationError"/>
+     
+  <view
     for="opencore.content.interfaces.ICommunityFile"
     view=".files.download_file_view"
     name="dl"
     permission="view"
   />
   
+   
   <view
     for="opencore.content.interfaces.IImage"
     view=".files.thumbnail_view"
@@ -47,6 +52,13 @@
     name="acl_tree.html"
     permission="administer"
   />
+  
+   <view
+    for="opencore.interfaces.ICommunityContent"
+    name="delete.html"
+    view=".resource.delete_resource_view"
+    permission="delete"
+    renderer="templates/delete_resource.pt"/>
 
 
   <!-- Publish static resources in a versioned path under /static/ -->
@@ -56,28 +68,43 @@
     path="/static*subpath"
     view_for=".site.StaticRootFactory"
     view=".site.versioning_static_view"
-    factory=".site.StaticRootFactory"
-  />
+    factory=".site.StaticRootFactory"/>
 
-
- 
-<view
+  <!-- profile -->
+  <view
+    for="opencore.interfaces.IProfiles"
+    view=".people.show_profiles_view"
+    permission="view"/>
+    
+  <view
     for="opencore.interfaces.IProfile"
     view=".people.show_profile_view"
-    permission="view"
-    />
+    permission="view"/>
 
   <view
     for="opencore.interfaces.IProfile"
     view=".people.profile_thumbnail"
     name="profile_thumbnail"
-    permission="view"
-    />
-
- 
- 
-
-
+    permission="view"/>
+    
+  <view
+    for="opencore.interfaces.IProfile"
+    view=".people.EditProfileFormController"
+    name="edit_profile.html"
+    permission="edit"/>
+    
+  <view
+    for="opencore.interfaces.IProfile"
+    view=".people.AdminEditProfileFormController"
+    name="admin_edit_profile.html"
+    permission="administer"/>
+  
+  <view
+    for="opencore.interfaces.IProfile"
+    view=".people.recent_content_view"
+    name="recent_content.html"
+    permission="view"/>
+  
   <!-- Redirect requests to site root, to correct URL -->
  <!-- <view
     for="opencore.interfaces.ISite"
@@ -126,6 +153,33 @@
     permission="view"
   />
   
+  
+   
+  <adapter
+      for="opencore.interfaces.ICommunityContent
+           repoze.bfg.interfaces.IRequest"
+      provides=".interfaces.IBylineInfo"
+      factory=".adapters.BylineInfo"/>
+  
+  <!-- comments -->
+  <view
+    name="comment.html"  
+    view=".commenting.AddCommentController"
+    permission="comment"/>
+  
+   <view
+    for="opencore.interfaces.ICommentsFolder"
+    view=".commenting.redirect_comments_view"
+    permission="view"
+  />
+
+  <view
+    for="opencore.interfaces.IComment"
+    view=".commenting.show_comment_view"
+    permission="view"
+  />
+  
+     
   <!-- feeds -->
   
   <view
@@ -220,6 +274,8 @@
     permission="view"
     name="taglisting.html"
   />
+  
+  
 <!--
   <view
     for="karl.models.interfaces.IProfile"
@@ -254,19 +310,93 @@
   />
 -->
   <!-- /stop global tagging related views -->
-    <view
+  
+  
+  <!-- communities -->
+  
+  <view
     name="all_communities.html"
     for="opencore.interfaces.ICommunities"
     view=".communities.show_all_communities_view"
     renderer="templates/communities.pt"
-    permission="view"
-  />
+    permission="view"/>
+    
   <view
     for="opencore.interfaces.ICommunities"
     view=".communities.show_communities_view"
     renderer="templates/communities.pt"
     permission="view"
   />
+    
+   <view
+    for="opencore.interfaces.ICommunity"
+    view=".community.redirect_community_view"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="view.html"
+    view=".community.show_community_view"
+    renderer="templates/community.pt"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="recent_items.html"
+    view=".community.community_recent_items_ajax_view"
+    renderer="templates/community_items_ajax.pt"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="members.html"
+    view=".community.community_members_ajax_view"
+    renderer="templates/community_items_ajax.pt"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="related.html"
+    view=".community.related_communities_ajax_view"
+    renderer="templates/community_items_ajax.pt"
+    permission="view"/>
+<!--
+  <view
+    for="opencore.interfaces.ICommunity"
+    view=".atom.community_atom_view"
+    name="atom.xml"
+    permission="view"/>
+-->
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="delete.html"
+    view=".community.delete_community_view"
+    permission="delete community"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="searchresults.html"
+    renderer="templates/searchresults.pt"
+    view=".search.searchresults_view"
+    permission="view"/>
+
+  <view
+    for="opencore.interfaces.ICommunity"
+    name="join.html"
+    view=".community.join_community_view"
+    permission="view"/>
+
+  <adapter
+    for="opencore.interfaces.ICommunity
+         repoze.bfg.interfaces.IRequest"
+    provides=".interfaces.ISidebar"
+    factory=".community.CommunitySidebar"
+  />
+  
+  
+  
+  
+  
   
 <!--
 

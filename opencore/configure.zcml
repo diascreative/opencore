@@ -162,6 +162,13 @@
       factory=".profile.ProfilesFolder"
       type=".interfaces.IProfiles"
       />
+  
+  <!-- not sure its necessary to content create this? 
+       but used in comment utility
+  -->    
+  <lemonade:content
+    factory="opencore.content.models.commenting.CommentsFolder"
+    type="opencore.interfaces.ICommentsFolder"/>   
 
 <!--
   <lemonade:content

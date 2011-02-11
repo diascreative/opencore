@@ -138,7 +138,6 @@ class SiteTests(unittest.TestCase):
         site = self._makeOne()
         for index_name, type_name in (('name', 'CatalogFieldIndex'),
                                       ('title', 'CatalogFieldIndex'),
-                                      ('titlestartswith', 'CatalogFieldIndex'),
                                       ('interfaces', 'CatalogKeywordIndex'),
                                       ('texts', 'CatalogTextIndex'),
                                       ('path', 'CatalogPathIndex2'),
@@ -307,34 +306,6 @@ class TestGetInterfaces(unittest.TestCase):
         alsoProvides(context, Dummy2)
         result = self._callFUT(context, None)
         self.assertEqual(sorted(result), [Dummy1, Dummy2, Interface])
-
-class TestGetTitleFirstletter(unittest.TestCase):
-    def _callFUT(self, object, default):
-        from opencore.site import get_title_firstletter
-        return get_title_firstletter(object, default)
-
-    def test_withtitle(self):
-        context = testing.DummyModel()
-        context.title = 'AB'
-        result = self._callFUT(context, None)
-        self.assertEqual(result, 'A')
-
-    def test_notitle(self):
-        context = testing.DummyModel()
-        result = self._callFUT(context, None)
-        self.assertEqual(result, None)
-
-    def test_list_title(self):
-        context = testing.DummyModel()
-        context.title = [None]
-        result = self._callFUT(context, None)
-        self.assertEqual(result, None)
-
-    def test_int_title(self):
-        context = testing.DummyModel()
-        context.title = 1
-        result = self._callFUT(context, None)
-        self.assertEqual(result, None)
 
 class TestGetName(unittest.TestCase):
     def _callFUT(self, object, default):

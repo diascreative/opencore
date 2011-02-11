@@ -122,6 +122,16 @@ jQuery(document).ready(function($) {
           <a href="${api.here_url}recent_content.html"
           >More Content Added Recently</a>
         </p>
+        
+         <div class="l-spacer"></div>
+         <h3 id="comments-header">Comments</h3>
+         <metal:resources use-macro="api.snippets.macros['comment_form']"/>
+         <div id="comments">
+         <!--
+            <div metal:use-macro="api.snippets.macros['show_attachments']"/>
+            <div metal:use-macro="api.snippets.macros['show_comments']"/>
+            -->
+         </div>
 
       </div>
     </div>
