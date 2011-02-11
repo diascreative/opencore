@@ -352,7 +352,6 @@ class EditCommunityFormController(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.workflow = get_workflow(ICommunity, 'security', context)
         self.available_tools = get_available_tools(context, request)
         self.tools = [ (x['name'], x['title']) for x in self.available_tools ]
         selected_tools = []
@@ -407,7 +406,10 @@ class EditCommunityFormController(object):
     def __call__(self):
         page_title = 'Edit %s' % self.context.title
         api = TemplateAPI(self.context, self.request, page_title)
-        return {'api':api, 'actions':()}
+        return render_template_to_response(
+          'templates/community_edit_form.pt',
+           api=api,
+           actions=())
 
     def handle_cancel(self):
         return HTTPFound(location=model_url(self.context, self.request))
