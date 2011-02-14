@@ -49,6 +49,11 @@
       handler=".subscribers.delete_community"/>
   
 
+  <!-- tagging -->
+  <subscriber
+      for="opencore.tagging.interfaces.ITagAddedEvent"
+      handler=".contentfeeds.user_tagged_content"/>
+      
 <!--
   <subscriber
       for=".interfaces.IUserAddedGroup"
@@ -62,10 +67,6 @@
   <subscriber
       for=".interfaces.IUserRemovedGroup"
       handler=".contentfeeds.user_left_community"/>
-
-  <subscriber
-      for=".tagging.interfaces.ITagAddedEvent"
-      handler=".contentfeeds.user_tagged_content"/>
 -->
  
   <subscriber
@@ -76,30 +77,7 @@
       for=".interfaces.IProfile
            opencore.interfaces.IObjectModifiedEvent"
       handler=".subscribers.reindex_content"/>
-<!--  
-   No need to re-index the peoples catalog as we are not using it
-   todo: remove these    
-  <subscriber
-      for=".interfaces.IProfile
-           repoze.folder.interfaces.IObjectAddedEvent"
-      handler=".subscribers.profile_added"/>
-
-  <subscriber
-      for=".interfaces.IProfile
-           repoze.folder.interfaces.IObjectWillBeRemovedEvent"
-      handler=".subscribers.profile_removed"/>
-
-  <subscriber
-      for=".interfaces.IProfile
-           opencore.interfaces.IObjectModifiedEvent"
-      handler=".subscribers.profile_added"/>
--->
  
-  <lemonade:content
-      factory=".community.Community"
-      type=".interfaces.ICommunity"
-      />
-
   <lemonade:content
       factory=".profile.Profile"
       type=".interfaces.IProfile"

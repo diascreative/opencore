@@ -1,0 +1,10 @@
+<configure xmlns="http://namespaces.repoze.org/bfg"
+    xmlns:lemonade="http://namespaces.repoze.org/lemonade">
+
+  <include package="repoze.lemonade.includes" file="meta.zcml" />
+  
+  <lemonade:content
+      factory="opencore.models.community.Community"
+      type="opencore.models.interfaces.ICommunity"/>
+
+</configure>

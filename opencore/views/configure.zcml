@@ -275,6 +275,25 @@
     name="taglisting.html"
   />
   
+   <view
+    for="opencore.models.interfaces.ISite"
+    view=".tags.jquery_tag_search_view"
+    permission="view"
+    name="jquery_tag_search"
+  />
+  
+  <view
+    for="*"
+    view=".tags.jquery_tag_add_view"
+    permission="view"
+    name="jquery_tag_add"/>
+    
+  <view
+    for="*"
+    view=".tags.jquery_tag_del_view"
+    permission="view"
+    name="jquery_tag_del"/>
+  
   
 <!--
   <view

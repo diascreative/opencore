@@ -1,7 +1,7 @@
 <configure xmlns="http://namespaces.repoze.org/bfg">
   <!--
-    This config file is used when Karl is being run without a customization
-    package and includes some declarations we would normally leave up to a
+    This config file is used when OpenCore is being run without a customization
+    package (app) and includes some declarations we would normally leave up to a
     customization package to include or not, to make customization and override
     of default behavior a little easier.
   -->
@@ -9,7 +9,7 @@
   <!-- Standard core includes -->
   <include package="opencore.includes" file="configure.zcml" />
 
-  <!-- Usually left to customization packages 
-  <include package="opencore.includes" file="workflow.zcml" />
-  -->
+  <!-- Usually left to customization packages --> 
+  <include package="opencore.includes" file="content_overrides.zcml" />
+  
 </configure>
