@@ -260,6 +260,13 @@
     permission="view"
     name="showtag"
   />
+  
+   <!-- XXX This accompanies site.py and stays in opencore.views -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".search.jquery_livesearch_view"
+    permission="view"
+    name="jquery_livesearch"/>
 
   <!-- Tag cloud, listing, users -->
   <view
