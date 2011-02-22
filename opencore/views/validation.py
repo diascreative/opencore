@@ -3,11 +3,13 @@ from webob import Response
 from formencode import Invalid
 from formencode import Schema
 from formencode.validators import FormValidator, FancyValidator
-from formencode.validators import DateConverter, TimeConverter
+from formencode.validators import DateConverter
 from formencode.validators import UnicodeString, OneOf, Email, StringBoolean
 from formencode.validators import FieldStorageUploadConverter
 from formencode.validators import FieldsMatch, RequireIfPresent, RequireIfMissing
+from formencode.validators import URL, StringBool 
 from formencode.foreach import ForEach
+from formencode.validators import Regex
 from formencode.compound import All, Pipe
 from formencode.variabledecode import NestedVariables
 from formencode.schema import SimpleFormValidator
@@ -41,6 +43,11 @@ class ValidationError(Exception):
     Exception raised in views for validation errors.
     '''
     def __init__(self, controller, **errors):
+        '''
+        @param controller: view controller
+        @param errors: error_dict normally from a formencode.Invalid 
+        error dictionary raised from a compound validator (schema).
+        '''
         self.errors = errors
         self.controller = controller
 
@@ -53,7 +60,10 @@ def validation_error_handler(exc, request):
     '''
     try:
         controller = exc.controller
-        form_errors = add_dict_prefix(controller.prefix, exc.errors)
+        if 'prefix' in controller.__dict__:
+            form_errors = add_dict_prefix(controller.prefix, exc.errors)
+        else:
+            form_errors = exc.errors  
         log.error('failed_validation handler: %s' % str(form_errors))
         controller.api.formerrors.update(form_errors)
         return exc.controller.make_response()
@@ -134,41 +144,116 @@ class State(object):
         for k,value in kw.items():
             setattr(self, k, value)
 
-class WebSitesSchema(FancyValidator):
+class WebSitesValidator(FancyValidator):
     delimiter = '\r\n'
+     
+    def _to_python(self, value, state):
+        log.debug('WebSitesValidator._to_python value: %s' % value)
+        return tuple([URL(add_http=True).to_python(v.strip()) for v in value.strip(self.delimiter).split(self.delimiter)])
+
+               
+class EmailAddressesValidator(FancyValidator):
+    delimiter = '\r\n'
+
+    def _to_python(self, value, state):
+        log.debug('EmailAddressesValidator._to_python value: %s' % value)
+        return tuple([v for v in value.strip(self.delimiter).split(self.delimiter)]) 
+  
+    def validate_python(self, value, state): 
+        log.debug('EmailAddressesValidator.validate_python value: %s' % str(value))
+        for eaddress in value:
+            Email(not_empty=self.not_empty).to_python(eaddress) 
+
+class NewMemberValidator(FancyValidator):
+    messages={
+            'empty' : "Please enter a username",
+            'invalid' : '%(username)s is not a valid profile'
+    }
+  
+    def validate_python(self, value, state): 
+        # value is either an existing user name or list of user names 
+        log.debug('NewMemberValidator.validate_python value: %s' % str(value))
+        users = []
+        if isinstance(value, list) or isinstance(value, tuple):
+            state.user_type = 'users'
+            users = value
+        else:
+            state.user_type = 'user'
+            users.append(value)
+                
+        for user in users:
+            if user not in state.users:
+                print 'user=%s' % str(user)
+                raise Invalid(self.message('invalid', state, username=user), value, state)
+       
+       
+class InviteMemberSchema(Schema):
+    # This schema accepts missing form submissions for both users and 
+    # email_address. The controller checks if they are both missing
+    # and raises an error against email_addresses.
+    allow_extra_fields = True # to deal with the 'submit' field
+    users = NewMemberValidator(not_empty=False, if_missing=None)  
+    email_addresses = EmailAddressesValidator(not_empty=False, if_missing=None)    
+    text = UnicodeString()  
+
+class SignupMemberSchema(Schema):
+    allow_extra_fields = True # to deal with the 'submit' field
+    email_address = Email(not_empty=True)    
+    
+class UserNameValidator(FancyValidator):
+    not_empty=True
+    messages={
+            'empty' : "Please enter a username",
+            'invalid' : 'Username must contain only letters, numbers, and dashes',
+            'taken'   : 'Username %(username)s is already taken'
+    }
     
     def _to_python(self, value, state):
-        return tuple([URL(add_http=True).to_python(v.strip()) for v in value.strip(self.delimiter).split(self.delimiter)])
-        
-   
+        log.debug('UserNameValidator._to_python value: %s' % value)
+        return Regex(r'^[\w-]+$', strip=True).to_python(value, state).lower() 
     
-        
-from formencode.validators import URL, Set            
+    def validate_python(self, value, state): 
+        # value is either an existing user name or list of user names 
+        log.debug('UserNameValidator.validate_python value: %s' % value)
+        if value in state.users:
+            raise Invalid(self.message('taken', state, username=value), value, state)
+  
+class AcceptInvitationSchema(Schema):
+    allow_extra_fields = True
+    
+    username = UserNameValidator()
+    password = UnicodeString(not_empty=True)
+    password_confirm = UnicodeString(not_empty=True)
+    firstname = UnicodeString()
+    lastname = UnicodeString()
+    country = OneOf(countries.as_dict.keys(),
+                    not_empty=True)
+    
+    dob = DateConverter(month_style='dd/mm/yyyy')
+    gender = OneOf(('','male','female'))
+    terms = StringBoolean()
+    
+    chained_validators = [
+        FieldsMatch(
+           'password', 'password_confirm',
+            messages = {'invalidNoMatch': 'Your passwords did not match'}
+        ),
+    ]
+    
+       
 class EditProfileSchema(PrefixSchema):
     firstname = UnicodeString()
     lastname = UnicodeString()
     position = UnicodeString()
     organization = UnicodeString()
-    websites = WebSitesSchema()    
+    websites = WebSitesValidator()    
     
     description = UnicodeString()
     #twitter = PrefixedUnicodeString(prefix='@')
     #facebook = UnicodeString() # todo: link
     
-    email = Email(
-        not_empty=True,
-        messages = {
-            'empty':"Please enter a valid email address",
-            'badDomain':"Please enter a valid email address",
-            'badUsername':"Please enter a valid email address",
-            'noAt':"Please enter a valid email address",
-            }
-        )
-
+    email = Email(not_empty=True)
     country = OneOf(countries.as_dict.keys())
-
-    #avatar = FileUpload()
-
     password = UnicodeString()
     password_confirm = UnicodeString()
 

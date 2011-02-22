@@ -50,7 +50,7 @@ def titlesort(one, two):
 
 class ShowForumsView(object):
     _admin_actions = [
-        ('Add Forum', 'add_forum.html'),
+       # ('Add Forum', 'add_forum.html'),
         ]
 
     def __init__(self, context, request):
@@ -121,12 +121,12 @@ def show_forum_view(context, request):
     api = TemplateAPI(context, request, page_title)
 
     actions = []
-    if has_permission('create', context, request):
+    '''if has_permission('create', context, request):
         actions.append(('Add Forum Topic', 'add_forum_topic.html'))
     if has_permission('edit', context, request):
         actions.append(('Edit', 'edit.html'))
     if has_permission('delete', context, request):
-        actions.append(('Delete', 'delete.html'))
+        actions.append(('Delete', 'delete.html'))'''
 
     profiles = find_profiles(context)
     appdates = getUtility(IAppDates)
@@ -287,215 +287,6 @@ def show_forum_topic_view(context, request):
         layout=layout,
         comment_form={},
         )
-
-
-class AddForumTopicFormController(object):
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.workflow = get_workflow(IForumTopic, 'security', context)
-        self.filestore = get_filestore(context, request, 'add-forumtopic')
-
-    def _get_security_states(self):
-        return get_security_states(self.workflow, None, self.request)
-
-    def form_defaults(self):
-        defaults = {
-            'title':'',
-            'tags':[],
-            'text':'',
-            'attachments':[],
-            }
-
-        if self.workflow is not None:
-            defaults['security_state'] = self.workflow.initial_state
-        return defaults
-
-    def form_fields(self):
-        fields = []
-        title_field = schemaish.String(
-            validator=validator.All(
-                validator.Length(max=100),
-                validator.Required(),
-                )
-            )
-        fields.append(('title', title_field))
-        fields.append(('tags', tags_field))
-        fields.append(('text', text_field))
-        fields.append(('attachments', attachments_field))
-        security_states = self._get_security_states()
-        if security_states:
-            fields.append(('security_state', security_field))
-        return fields
-
-    def form_widgets(self, fields):
-        widgets = {
-            'title':formish.Input(empty=''),
-            'tags':karlwidgets.TagsAddWidget(),
-            'text':karlwidgets.RichTextWidget(empty=''),
-            'attachments': karlwidgets.AttachmentsSequence(sortable=False,
-                                                           min_start_fields=0),
-            'attachments.*':karlwidgets.FileUpload2(filestore=self.filestore),
-            }
-        security_states = self._get_security_states()
-        schema = dict(fields)
-        if 'security_state' in schema:
-            security_states = self._get_security_states()
-            widgets['security_state'] = formish.RadioChoice(
-                options=[ (s['name'], s['title']) for s in security_states],
-                none_option=None)
-        return widgets
-
-    def __call__(self):
-        layout_provider = get_layout_provider(self.context, self.request)
-        layout = layout_provider('community')
-        api = TemplateAPI(self.context, self.request, 'Add Forum Topic')
-        api.karl_client_data['text'] = dict(
-                enable_imagedrawer_upload = True,
-                )
-        return {'api':api, 'actions':(), 'layout':layout}
-
-    def handle_cancel(self):
-        return HTTPFound(location=model_url(self.context, self.request))
-
-    def handle_submit(self, converted):
-        context = self.context
-        request = self.request
-        workflow = self.workflow
-
-        name = make_unique_name(context, converted['title'])
-        creator = authenticated_userid(request)
-
-        topic = create_content(IForumTopic,
-            converted['title'],
-            converted['text'],
-            creator,
-            )
-
-        topic.description = extract_description(converted['text'])
-        context[name] = topic
-
-        # Set up workflow
-        if workflow is not None:
-            workflow.initialize(topic)
-            if 'security_state' in converted:
-                workflow.transition_to_state(topic, request,
-                                             converted['security_state'])
-
-        # Tags and attachments
-        set_tags(context, request, converted['tags'])
-        if support_attachments(topic):
-            upload_attachments(converted['attachments'], topic['attachments'],
-                               creator, request)
-
-        location = model_url(topic, request)
-        return HTTPFound(location=location)
-
-class EditForumTopicFormController(object):
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.workflow = get_workflow(IForumTopic, 'security', context)
-        self.filestore = get_filestore(context, request, 'edit-forumtopic')
-
-    def _get_security_states(self):
-        return get_security_states(self.workflow, self.context, self.request)
-
-    def form_defaults(self):
-        attachments = [SchemaFile(None, x.__name__, x.mimetype)
-                       for x in self.context['attachments'].values()]
-        defaults = {
-            'title':self.context.title,
-            'tags':[], # initial values supplied by widget
-            'text':self.context.text,
-            'attachments':attachments,
-            }
-
-        if self.workflow is not None:
-            defaults['security_state'] = self.workflow.state_of(self.context)
-        return defaults
-
-    def form_fields(self):
-        fields = []
-        title_field = schemaish.String(
-            validator=validator.All(
-                validator.Length(max=100),
-                validator.Required(),
-                )
-            )
-        fields.append(('title', title_field))
-        fields.append(('tags', tags_field))
-        fields.append(('text', text_field))
-        fields.append(('attachments', attachments_field))
-        security_states = self._get_security_states()
-        if security_states:
-            fields.append(('security_state', security_field))
-        return fields
-
-    def form_widgets(self, fields):
-        tagdata = get_tags_client_data(self.context, self.request)
-        widgets = {
-            'title':formish.Input(empty=''),
-            'tags':karlwidgets.TagsEditWidget(tagdata=tagdata),
-            'text':karlwidgets.RichTextWidget(empty=''),
-            'attachments': karlwidgets.AttachmentsSequence(sortable=False,
-                                                           min_start_fields=0),
-            'attachments.*':karlwidgets.FileUpload2(filestore=self.filestore),
-            }
-        security_states = self._get_security_states()
-        schema = dict(fields)
-        if 'security_state' in schema:
-            security_states = self._get_security_states()
-            widgets['security_state'] = formish.RadioChoice(
-                options=[ (s['name'], s['title']) for s in security_states],
-                none_option=None)
-        return widgets
-
-    def __call__(self):
-        layout_provider = get_layout_provider(self.context, self.request)
-        layout = layout_provider('community')
-        page_title = 'Edit %s' % self.context.title
-        api = TemplateAPI(self.context, self.request, page_title)
-        api.karl_client_data['text'] = dict(
-                enable_imagedrawer_upload = True,
-                )
-        return {'api':api, 'actions':(), 'layout':layout}
-
-    def handle_cancel(self):
-        return HTTPFound(location=model_url(self.context, self.request))
-
-    def handle_submit(self, converted):
-        context = self.context
-        request = self.request
-        workflow = self.workflow
-
-        # *will be* modified event
-        objectEventNotify(ObjectWillBeModifiedEvent(context))
-        if workflow is not None:
-            if 'security_state' in converted:
-                workflow.transition_to_state(context, request,
-                                             converted['security_state'])
-
-        context.title = converted['title']
-        context.text = converted['text']
-        context.description = extract_description(converted['text'])
-
-        # Save the tags on it
-        set_tags(context, request, converted['tags'])
-
-        # Save new attachments
-        creator = authenticated_userid(request)
-        if support_attachments(context):
-            upload_attachments(converted['attachments'], context['attachments'],
-                               creator, request)
-
-        # Modified
-        context.modified_by = authenticated_userid(request)
-        objectEventNotify(ObjectModifiedEvent(context))
-
-        location = model_url(context, request,
-                             query={'status_message':'Forum Topic Edited'})
-        return HTTPFound(location=location)
 
 def number_of_topics(forum):
     return len(forum)

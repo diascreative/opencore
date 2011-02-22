@@ -521,7 +521,7 @@ $.widget('ui.karltagbox', $.extend({}, $.ui.autobox3.prototype, {
             if ($("> *", this.container).length > 0) {
                 // Select the first element
                 this.selected = 0;
-                this._select();
+                //this._select();
             }
         }
     },
@@ -559,8 +559,10 @@ $.widget('ui.karlmemberbox', $.extend({}, $.ui.karltagbox.prototype, {
         getBoxFromSelection: function() {
             // Is there an active object?
             var record = this.active && this.active[0] && $.data(this.active[0], "originalObject");
+            //Karl.log('getBoxFromSelection record=%o, this=%o', record, this);
             if (! record) {
                 // Prevent it from happen.
+                //Karl.log('!record this=%o', this);
                 return;
             }
             return {

@@ -182,36 +182,7 @@ def related_communities_ajax_view(context, request):
 
     return {'items': related}
 
-
-'''security_field = schemaish.String(
-    description=('Items marked as private can only be seen by '
-                 'members of this community.'))
-
-tags_field = schemaish.Sequence(schemaish.String())
-
-description_field = schemaish.String(
-    description=('This description will appear in search results and '
-                 'on the community listing page.  Please limit your '
-                 'description to 100 words or less'),
-    validator=validator.All(validator.Length(max=500),
-                                    validator.Required())
-    )
-
-text_field =  schemaish.String(
-    description=('This text will appear on the Overview page for this '
-                 'community.  You can use this to describe the '
-                 'community or to make a special announcement.'))
-
-tools_field = schemaish.Sequence(
-    attr=schemaish.String(),
-    description = 'Select which tools to enable on this community.')
-
-default_tool_field = schemaish.String(
-    description=(
-        'This is the first page people see when they view this '
-        'community.'))'''
-
-def shared_fields():
+'''def shared_fields():
     return [
         ('tags', tags_field),
         ('description', description_field),
@@ -225,7 +196,7 @@ def shared_widgets(context):
         'description': formish.TextArea(cols=60, rows=10, empty=''),
         'text':karlwidgets.RichTextWidget(empty=''),
         'tools':formish.CheckboxMultiChoice(options=context.tools)
-        }
+        }'''
 
 def get_available_tools(context, request):
     available_tools = []
@@ -234,7 +205,7 @@ def get_available_tools(context, request):
         default=DefaultToolAddables(context, request))()
     return available_tools
 
-class AddCommunityFormController(object):
+'''class AddCommunityFormController(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
@@ -452,7 +423,7 @@ class EditCommunityFormController(object):
         return HTTPFound(location=location)
 
     def _get_security_states(self):
-        return get_security_states(self.workflow, self.context, self.request)
+        return get_security_states(self.workflow, self.context, self.request)'''
 
 def join_community_view(context, request):
     """ User sends an email to community moderator(s) asking to join

@@ -7,6 +7,7 @@ from repoze.bfg.security import Everyone
 from repoze.bfg.security import AllPermissionsList
 from repoze.bfg.traversal import model_path
 from repoze.who.plugins.zodb.users import Users
+from repoze.folder.interfaces import IFolder
 import logging
 
 log = logging.getLogger(__name__)
@@ -101,6 +102,22 @@ def find_users(root):
         return Users()
     return root[zodb_root].users  
 
+'''
+openideos user acl
+def set_user_profile_acl(obj, event):
+    acl  = []
+    acl.append((Allow, 'group.KarlUserAdmin', ADMINISTRATOR_PERMS))
+    acl.append((Allow, 'group.KarlAdmin', ADMINISTRATOR_PERMS))
+    acl.append((Allow, obj.creator, CREATOR_PERMS))
+    acl.append((Allow, Authenticated, MEMBER_PERMS))
+    acl.append((Allow, Everyone, GUEST_PERMS))
+    
+    added, removed = acl_diff(obj, acl)
+    if added or removed:
+        obj.__acl__ = acl
+        if hasattr(obj, 'docid'):
+            _reindex(obj)'''
+            
 def to_profile_active(ob):
     from opencore.utils import find_users
     from opencore.views.communities import get_community_groups
@@ -126,15 +143,17 @@ def to_profile_active(ob):
     if added or removed:
         ob.__acl__ = acl
         log.info('profile (%s) to-active, added: %s, removed: %s' % (model_path(ob), added, removed))
+    if ob.security_state == 'inactive':
+        ob.security_state = 'active'    
+        log.info('profile (%s) security_state changed to %s' % (model_path(ob), ob.security_state))
     #_reindex(ob)
-    #_reindex_peopledir(ob)
-
 
 def to_profile_inactive(ob):
     acl  = [
         (Allow, 'system.Authenticated', ('view_only',)),
         (Allow, 'group.KarlUserAdmin', ADMINISTRATOR_PERMS + ('view_only',)),
         (Allow, 'group.KarlAdmin', ADMINISTRATOR_PERMS + ('view_only',)),
+        (Allow, ob.creator, GUEST_PERMS + ('view_only',)),
         NO_INHERIT,
     ]
     msg = None
@@ -142,7 +161,19 @@ def to_profile_inactive(ob):
     if added or removed:
         ob.__acl__ = acl
         log.info('profile (%s) to-inactive, added: %s, removed: %s' % (model_path(ob), added, removed))
+    ob.security_state = 'inactive'
+    log.info('profile (%s) security_state changed to %s' % (model_path(ob), ob.security_state))    
     #_reindex(ob)
-    #_reindex_peopledir(ob)
-  
 
+
+def postorder(startnode):
+    def visit(node):
+        if IFolder.providedBy(node):
+            for child in node.values():
+                for result in visit(child):
+                    yield result
+                    # attempt to not run out of memory
+        yield node
+        if hasattr(node, '_p_deactivate'):
+            node._p_deactivate()
+    return visit(startnode)

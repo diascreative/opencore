@@ -1,0 +1,60 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal"
+     xmlns:fb="http://www.facebook.com/2008/fbml"
+     metal:use-macro="api.generic_layout">
+
+  <div metal:fill-slot="content">
+
+    <tal:block condition="api.userid is not None">
+
+      <p>You cannot sign up while logged in. Please 
+	<a href="${api.app_url}/logout">log out</a> first. </p>
+
+      <form xml:id="contentform"></form>
+
+    </tal:block>
+
+    <tal:block condition="api.userid is None">
+    <div class="content-2-3">
+        <div class="top"></div>
+        <div class="mid">
+            <h3>Join Up</h3><div class="spacer"></div>
+            <form id="signup" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix 'signup.'">
+                <metal:resources use-macro="api.snippets.macros['sign_up_form']"/>
+    
+                <div tal:content="structure api.render_form_widget('select_list', 'signup.country', 'Country', choices=countries)"></div>
+
+                <div class="l-spacer"></div>
+                <p class="terms-label">
+                    <input type="checkbox" class="checkbox" name="signup.terms" value="I accept the OPEN IDEO Terms and conditions" />
+                    I accept <a href="/terms/ajax.html" class="terms-conditions-link">Terms of Use</a>.
+                </p>
+                
+                <div class="admin-help">* required fields</div>
+            
+                <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
+            </form>
+        </div>
+        <div class="bot"></div>
+    </div>
+
+    <div class="side-bar">
+        <div class="top"></div>
+        <div class="mid">
+            <p>Login using your Facebook account</p>
+            <a href="${api.fbauth_url()}">
+                <img id="fb_login_image" src="http://static.ak.fbcdn.net/images/fbconnect/login-buttons/connect_light_medium_long.gif" alt="Connect" />
+            </a>
+
+            <div class="spacer"></div>
+            <p>Login using your Openideo account</p>
+            <a href="${api.login_url}" class="trigger-slider" rel="log-in-form">Login</a><br />
+        </div>
+        <div class="bot"></div>
+    </div>
+
+    </tal:block>
+
+  </div>
+</div>

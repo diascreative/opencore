@@ -99,7 +99,7 @@ class IMembers(IFolder):
     taggedValue('name', 'Members')
 
 class IInvitation(Interface):
-    """ Persistent object with information for joining KARL """
+    """ Persistent object with information for joining """
     taggedValue('name', 'Invitation')
 
     email = Attribute(u'Email address for the person being invited')
@@ -289,9 +289,6 @@ class ITagQuery(Interface):
     """Centralize policies about listing tag information"""
 
     tagusers = Attribute("List the taguser information on a resource")
-
-class ILetterManager(Interface):
-    """ Adapter to manage community and profile letter box info """
 
 class ICatalogSearchCache(Interface):
     """ Utility which provides a cache for catalog searches """

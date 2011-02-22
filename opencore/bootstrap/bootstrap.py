@@ -71,7 +71,6 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
                                          lastname=lastname,
                                          email=email,
                                          )
-        log.info('activating profile (%s)' % login)
         to_profile_active(profile)
         
         

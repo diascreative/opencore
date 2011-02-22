@@ -1,0 +1,35 @@
+<div xmlns="http://www.w3.org/1999/xhtml" 
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal"
+     metal:use-macro="api.community_layout.macros['master']">
+
+  <div metal:fill-slot="content">
+
+    <div metal:use-macro="api.snippets.macros['status_message']"/>
+    <div metal:use-macro="api.snippets.macros['error_message']"/>
+    <div metal:use-macro="api.snippets.macros['actions_box']"/>
+    <h1>${api.page_title}</h1>
+    <p tal:content="page_description|''"/>
+    
+    
+    
+    
+    <form id="member_invite_new" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
+    
+      <div id="users--field" class="field users type-sequence type-container widget-input">
+      <!-- field/main.html -->
+      <label for="users">Users</label>
+    
+      <div class="inputs"><span>
+      <!-- widgets/KarlUserProfileLookup/widget.html -->
+      <input id="membersearch-input" type="text" name="users" value="" />
+      </span></div>
+      </div>
+      <div tal:content="structure api.render_form_widget('textarea', 'email_addresses', 'Email Addresses')"></div>
+      <div tal:content="structure api.render_form_widget('textarea', 'text', 'Text')"></div>
+      <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
+    </form>
+  </div>
+  
+</div>
+

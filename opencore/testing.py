@@ -92,7 +92,13 @@ class DummyProfile(DummyModel):
             setattr(self, item[0], item[1])
         self._alert_prefs = {}
         self._pending_alerts = []
-
+        if 'security_state' not in kw:
+            self.security_state = 'active'
+      
+    @property
+    def creator(self):
+        return self.__name__
+    
     @property
     def email(self):
         return "%s@x.org" % self.__name__

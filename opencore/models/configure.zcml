@@ -79,9 +79,12 @@
       handler=".subscribers.reindex_content"/>
  
   <lemonade:content
-      factory=".profile.Profile"
-      type=".interfaces.IProfile"
-      />
+    factory=".profile.Profile"
+    type=".interfaces.IProfile"/>
+      
+  <lemonade:content
+    factory=".members.Invitation"
+    type="opencore.models.interfaces.IInvitation"/>
 
   <adapter
     for=".interfaces.ICommunity

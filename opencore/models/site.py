@@ -262,6 +262,7 @@ class Site(Folder):
         self.sessions = SessionDataManager(3600, 5)
         self.filestore = PersistentMapping()
         self.list_aliases = OOBTree()
+        self['signup'] = Folder()
 
     def update_indexes(self):
         """ Ensure that we have indexes matching what the application needs.

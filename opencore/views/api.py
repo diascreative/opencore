@@ -131,7 +131,8 @@ class TemplateAPI(object):
         # from openideo     
         self.formerrors = {}   
         self.formdata = request.POST 
-
+        self.app_config = settings
+        
     @property
     def snippets(self):
         if self._snippets is None:
@@ -164,13 +165,6 @@ class TemplateAPI(object):
             if self._identity:
                 self._isStaff = gn in self._identity.get('groups')
         return self._isStaff
-
-    '''@property
-    def current_intranet(self):
-        """The footer needs to know what intranet the curr url is in"""
-        if self._current_intranet is None:
-            self._current_intranet = find_intranet(self.context)
-        return self._current_intranet'''
 
     def __getitem__(self, key):
         if key == 'form_field_templates':
@@ -500,6 +494,19 @@ class TemplateAPI(object):
                                                      default_list=default_list,
                                                      error=error,
                                                      api=self,))    
+    def fbappId(self):
+        """ Returns the appId for the facebook connect application.
+        """
+        return self.app_config.get('facebook_app_id')
+    
+    def fbauth_url(self):
+        """ Returns the url for authentication via facebook.
+        """
+        from opencore.utils import FacebookAPI
+        appid = self.fbappId()
+        redirect_to = 'http://localhost:6543/fbconnect.html'
+        #redirect_to = self.app_url + '/fbconnect.html'
+        return FacebookAPI(appid, redirect_to).get_login_url()
         
     def get_url(self, ob):
         """ Returns the model url for `ob`

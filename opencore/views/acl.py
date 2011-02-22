@@ -9,6 +9,7 @@ from repoze.lemonade.content import get_content_type
 from repoze.lemonade.content import is_content
 
 from opencore.security.policy import NO_INHERIT
+from opencore.security.policy import postorder
 from opencore.utils import find_catalog
 
 COMMA_WS = re.compile(r'[\s,]+')
@@ -61,7 +62,6 @@ def edit_acl_view(context, request):
     acl = acl + epilog
 
     if acl != original_acl:
-        #context.__custom_acl__ = acl # added so we can find customized obs later
         context.__acl__ = acl
         catalog = find_catalog(context)
         if catalog is not None:

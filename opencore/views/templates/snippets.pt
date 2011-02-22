@@ -873,5 +873,49 @@ You are currently accessing KARL with Internet Explorer 6. This is an old browse
             </div>
         </div>
     </metal:submit-buttons>
+    
+      <metal:join_form define-macro="join_form">
+            <h3>Join Up</h3>
+            <p>By joining OpenIDEO, you'll get access to Open Planet Ideas and other challenges.</p>
+            <p>First please read our <a href="/terms/ajax.html" class="terms-conditions-link">Terms of Use</a>.</p>
+
+            <form action="/signup.html" id="sign-up-form" method="post">
+            <div class="column first-col">
+                <p>Create a new account:</p>
+                <metal:resources use-macro="api.snippets.macros['sign_up_form']"/>
+            </div>
+            
+            <div class="column second-col">
+                <div class="l-spacer"></div><div class="l-spacer"></div>
+                <p class="terms-label">
+                    <input type="checkbox" class="checkbox" name="signup.terms" value="I accept the OPEN IDEO Terms and conditions" />
+                    I accept <a href="/terms/ajax.html" class="terms-conditions-link">Terms of Use</a>.
+                    <div class="admin-help">* required fields</div>
+                </p>
+            
+                <input type="submit" name="join" value="Create account" class="join-button" />
+                
+                <div class="l-spacer"></div>
+
+                <p>Or use your Facebook account to login:</p>
+                <a href="${api.fbauth_url()}" class="facebook-trace">
+                    <img id="fb_login_image" src="http://static.ak.fbcdn.net/images/fbconnect/login-buttons/connect_light_medium_long.gif" alt="Connect" />
+                </a>
+            </div>
+            </form>
+    </metal:join_form>
+
+    <metal:sign_up_form define-macro="sign_up_form">
+            <div tal:replace="structure api.render_form_widget('input_username', 'username', 'Username', compulsory=True)"></div>
+            <div tal:replace="structure api.render_form_widget('password', 'password', 'Password', compulsory=True)"></div>
+            <div tal:replace="structure api.render_form_widget('password_2', 'password_confirm', 'Confirm Password', compulsory=True)"></div>
+            <div tal:replace="structure api.render_form_widget('input', 'firstname', 'First name', compulsory=True)"></div>
+            <div tal:replace="structure api.render_form_widget('input', 'lastname', 'Last name')"></div>
+            <div tal:replace="structure api.render_form_widget('input', 'email', 'Email address', compulsory=True)"></div>
+            <div tal:content="structure api.render_form_widget('select_list', 'country', 'Country', choices=countries,compulsory=1)"></div>
+            <div tal:content="structure api.render_form_widget('date','dob','Date of Birth (dd/mm/yyyy)',default='')"></div>
+            <div tal:content="structure api.render_form_widget('select_list','gender','Gender',choices=[('','select gender'),('female','female'),('male','male')])"></div>
+            <input type="hidden" name="terms" value="True" id="signup.terms" />
+    </metal:sign_up_form>
   </body>
 </html>

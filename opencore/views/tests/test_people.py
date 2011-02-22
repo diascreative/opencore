@@ -1065,7 +1065,6 @@ class ShowProfilesViewTests(unittest.TestCase):
     def test_it(self):
         from zope.interface import Interface
         from opencore.models.interfaces import ICatalogSearch
-        from opencore.models.interfaces import ILetterManager
         from opencore.models.adapters import CatalogSearch
         catalog = opentesting.DummyCatalog({1:'/foo', 2:'/bar'})
         testing.registerAdapter(CatalogSearch, (Interface), ICatalogSearch)

@@ -104,7 +104,26 @@
     view=".people.recent_content_view"
     name="recent_content.html"
     permission="view"/>
-  
+    
+  <view
+    for="opencore.models.interfaces.IProfile"
+    name="deactivate.html"
+    view=".people.deactivate_profile_view"
+    permission="administer"
+    renderer="templates/deactivate_profile.pt"/>
+
+  <view
+    for="opencore.models.interfaces.IProfile"
+    name="reactivate.html"
+    view=".people.reactivate_profile_view"
+    permission="administer"
+    renderer="templates/reactivate_profile.pt"/>
+    
+  <view  
+    for="opencore.models.interfaces.ISite"
+     view=".people.ResetConfirmController"
+     name="reset_confirm.html"/>
+ 
   <!-- Redirect requests to site root, to correct URL -->
  <!-- <view
     for="opencore.models.interfaces.ISite"
@@ -399,11 +418,11 @@
     view=".search.searchresults_view"
     permission="view"/>
 
-  <view
+ <!-- <view
     for="opencore.models.interfaces.ICommunity"
     name="edit.html"
     view=".community.EditCommunityFormController"
-    permission="moderate"/>
+    permission="moderate"/>-->
     
   <view
     for="opencore.models.interfaces.ICommunity"
@@ -415,20 +434,46 @@
     for="opencore.models.interfaces.ICommunity
          repoze.bfg.interfaces.IRequest"
     provides=".interfaces.ISidebar"
-    factory=".community.CommunitySidebar"
-  />
-    
-  
-  
-  
-  
-  
-<!--
-
+    factory=".community.CommunitySidebar"/>
  
+   <view
+     for="opencore.models.interfaces.IMembers"
+     view=".members.show_members_view"
+     permission="view"/>
+
+  <view
+    for="opencore.models.interfaces.IMembers"
+    view=".members.jquery_member_search_view"
+    permission="moderate"
+    name="jquery_member_search"/>
+  
+  <!-- InviteNewUsers handles both new and existing user membership -->  
+  <view
+    for="opencore.models.interfaces.IMembers"
+    view=".members.InviteNewUsersController"
+    name="invite_new.html"
+    permission="moderate"/>
+        
+  <view   
+     for="opencore.models.interfaces.IMembers"
+     view=".members.ManageMembersController"
+     permission="moderate"
+     name="manage.html"/>
+  
+   <view   
+     for="opencore.models.interfaces.IInvitation"
+     view=".members.AcceptInvitationController"
+     renderer="templates/accept_invitation.pt"/>
+     
+   <view   
+     for="repoze.folder.interfaces.IFolder"
+     view=".members.JoinNewUsersController"
+     name="join.html"
+     permission="moderate"/>   
+     
   <view
     name="active_communities.html"
-    for="karl.models.interfaces.ICommunities"
+    for="opencore.models.interfaces.ICommunities"
     view=".communities.show_active_communities_view"
     renderer="templates/communities.pt"
     permission="view"
@@ -437,7 +482,7 @@
 
   <view
     name="jquery_set_preferred.html"
-    for="karl.models.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".communities.jquery_set_preferred_view"
     renderer="templates/list_communities.pt"
     permission="view"
@@ -445,7 +490,7 @@
 
   <view
     name="jquery_clear_preferred.html"
-    for="karl.models.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".communities.jquery_clear_preferred_view"
     renderer="templates/list_communities.pt"
     permission="view"
@@ -453,7 +498,7 @@
 
   <view
     name="jquery_list_preferred.html"
-    for="karl.models.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".communities.jquery_list_preferred_view"
     renderer="templates/list_communities.pt"
     permission="view"
@@ -461,7 +506,7 @@
 
   <view
     name="jquery_edit_preferred.html"
-    for="karl.models.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".communities.jquery_edit_preferred_view"
     renderer="templates/edit_communities.pt"
     permission="view"
@@ -469,14 +514,11 @@
 
   <view
     name="jquery_list_my_communities.html"
-    for="karl.models.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".communities.jquery_list_my_communities_view"
     renderer="templates/list_communities.pt"
     permission="view"
   />
--->
- 
-
 
 </configure>
 

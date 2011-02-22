@@ -9,9 +9,19 @@ persistent content, such as invitations.
 
 from zope.interface import implements
 from repoze.folder import Folder
+from persistent import Persistent
 
 from opencore.models.interfaces import IMembers
+from opencore.models.interfaces import IInvitation
 
+class Invitation(Persistent):
+    implements(IInvitation)
+
+    def __init__(self, email, message):
+        Persistent.__init__(self)
+        self.email = unicode(email)
+        self.message = unicode(message)
+        
 class Members(Folder):
     implements(IMembers)
 

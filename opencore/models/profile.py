@@ -45,6 +45,8 @@ class Profile(Folder):
                  data=None,
                  home_path=None,
                  preferred_communities = None,
+                 dob = None,
+                 gender = ''
                 ):
         super(Profile, self).__init__(data)
         self.firstname = firstname
@@ -74,6 +76,12 @@ class Profile(Folder):
         self.password_reset_time = None
         self.preferred_communities = preferred_communities
         self.last_login_time = None
+        # states are 
+        # 1. inactive - user has become inactive rather than deleted from the system. 
+        # 2. active   - registered with a invite email which creates the profile
+        self.security_state = 'active'
+        self.dob = dob
+        self.gender = gender
 
     @property
     def creator(self):
