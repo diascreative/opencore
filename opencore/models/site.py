@@ -39,6 +39,7 @@ from opencore.models.interfaces import IUserRemoved
 from opencore.models.interfaces import IUserRemovedGroup
 from opencore.tagging import Tags
 from opencore.tagging.index import TagIndex
+from opencore.tagging.index import add_topic
 from opencore.utils import coarse_datetime_repr
 import logging
 
@@ -272,7 +273,7 @@ class Site(Folder):
 
         Extensions can arrange to get their own indexes added by registering
         named utilities for the
-        :interface:`karl.models.interfaces.IIndexFactory` interface:  each
+        :interface:`opencore.models.interfaces.IIndexFactory` interface:  each
         such interface will be called to create a new (or overwritten) index.
         """
         indexes = {
@@ -293,6 +294,7 @@ class Site(Folder):
             'modified_by': CatalogFieldIndex(get_modified_by),
             'email': CatalogFieldIndex(get_email),
             'tags': TagIndex(self),
+            'topics': TagIndex(self, add_topic),
             'lastfirst': CatalogFieldIndex(get_lastfirst),
             'member_name': CatalogTextIndex(get_member_name),
             'virtual':CatalogFieldIndex(get_virtual),

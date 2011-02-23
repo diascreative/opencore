@@ -2,7 +2,12 @@ import BTrees
 from zope.interface import implements
 from repoze.catalog.interfaces import ICatalogIndex
 
+def filter_topic(query):
+    return [tag for tag in query if not tag.startswith('topic.')]
 
+def add_topic(query):
+    return ['topic.'+tag for tag in query] 
+    
 class TagIndex(object):
     """ An index that defers to the tagging engine.
 
@@ -13,8 +18,9 @@ class TagIndex(object):
     implements(ICatalogIndex)
     family = BTrees.family32
 
-    def __init__(self, site):
+    def __init__(self, site, tagsearch=None):
         self.site = site
+        self.tagsearch = tagsearch or filter_topic 
 
     def index_doc(self, docid, value):
         # the tagging engine handles this
@@ -51,6 +57,8 @@ class TagIndex(object):
         if isinstance(query, basestring):
             query = [query]
 
+        query = self.tagsearch(query)
+               
         if operator == 'or':
             res = self.site.tags.getItems(
                 tags=query, users=users, community=community)
@@ -68,3 +76,4 @@ class TagIndex(object):
                 'operators, not `%s`.' % operator)
 
         return self.family.IF.Set(res)
+    

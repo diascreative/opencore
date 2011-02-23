@@ -34,6 +34,19 @@
             </label>
         </div>
       </fieldset>
+      
+     <fieldset>
+    <label>Topics</label>
+      <div class="fieldHelp"></div>
+        <div tal:repeat="typ topic_choices">
+            <input type="checkbox" name="topics"
+                tal:attributes="value typ[1]; id 'topic-' + typ[1]" />
+            <label tal:attributes="for 'topic-' + typ[1]"
+                tal:content="typ[0]">
+                Event
+            </label>
+        </div>
+      </fieldset>
 
       <fieldset>
         <label>Tags</label>

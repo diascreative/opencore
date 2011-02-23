@@ -143,10 +143,27 @@ def debugsearch(context, **kw):
     return num, L
 
 def list_indexes(context):
+    from opencore.tagging.index import TagIndex
+    from repoze.catalog.indexes.text import CatalogTextIndex
+    from repoze.bfg.traversal import find_model
+    
     catalog = find_catalog(context)
     for name, index in catalog.items():
         try:
-            print name, list_index(index)
+            if isinstance(index, TagIndex):
+                tags = find_site(context).tags
+                taglist = list(tags._tagid_to_obj.items())
+                print name, (len(taglist), taglist)
+            elif isinstance(index, CatalogTextIndex):    
+                docids = index.index._docwords
+                objs = []
+                for docid in docids:
+                   path = catalog.document_map.address_for_docid(docid)
+                   context = find_model(context, path)
+                   objs.append(context)
+                print name, (len(objs), objs)   
+            else:    
+                print name, list_index(index)
         except Exception, e:
             print e    
 
@@ -154,64 +171,3 @@ def list_index(index):
     index_keys = list(index._fwd_index.keys())
     return len(index_keys), index_keys
             
-
-from urlparse import urlparse, urlunparse
-from urllib import urlencode, urlopen
-try: #pragma NO COVERAGE
-    from urlparse import parse_qs
-except ImportError: #pragma NO COVERAGE
-    from cgi import parse_qs
-class FacebookAPI:
-    """
-    Provides a limited set of convience functions for interacting with
-    Facebook.
-    """
-
-    def __init__(self, appid, redirect_to, secret=''):
-        self.appid  = appid
-        self.redirect_to = redirect_to
-        self.secret = secret
-
-        # defaults
-        self.graph_url = "https://graph.facebook.com"
-
-    def get_login_url(self):
-        request_url = "%s/oauth/authorize" % self.graph_url
-        query_params = urlencode({'client_id'    : self.appid,
-                                  'redirect_uri' : self.redirect_to,
-                                  # stuff we need access to besides what is
-                                  # publicly accessible
-                                  'scope'        : 'email'
-                                  })
-
-        return "%s?%s" % (request_url, query_params)
-
-    def get_token(self, code, urlopen=urlopen):
-        if not self.secret:
-            raise Exception("App secret key missing")
-
-        request_url  = "%s/oauth/access_token" % self.graph_url
-        query_params = urlencode({'client_id'     : self.appid,
-                                  'redirect_uri'  : self.redirect_to,
-                                  'client_secret' : self.secret,
-                                  'code'          : code})
-        response = urlopen("%s?%s" % (request_url, query_params))
-        response = cgi.parse_qs(response.read())
-
-        access_token = response['access_token'][-1]
-
-        return access_token
-
-    def get_user(self, access_token, userid='me', urlopen=urlopen):
-        if not access_token:
-            # You will need to authenticate and recieve a 'code' to call get_token()
-            raise Exception("access token missing")
-
-        request_url  = "%s/%s" % (self.graph_url, userid)
-        query_params = urlencode({'access_token' : access_token})
-
-        response = urlopen("%s?%s" % (request_url, query_params)).read()
-        user_dict = json.loads(response)
-
-        return user_dict
-

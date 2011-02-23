@@ -494,20 +494,7 @@ class TemplateAPI(object):
                                                      default_list=default_list,
                                                      error=error,
                                                      api=self,))    
-    def fbappId(self):
-        """ Returns the appId for the facebook connect application.
-        """
-        return self.app_config.get('facebook_app_id')
-    
-    def fbauth_url(self):
-        """ Returns the url for authentication via facebook.
-        """
-        from opencore.utils import FacebookAPI
-        appid = self.fbappId()
-        redirect_to = 'http://localhost:6543/fbconnect.html'
-        #redirect_to = self.app_url + '/fbconnect.html'
-        return FacebookAPI(appid, redirect_to).get_login_url()
-        
+          
     def get_url(self, ob):
         """ Returns the model url for `ob`
         """

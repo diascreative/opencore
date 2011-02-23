@@ -1,13 +1,5 @@
 """Site and community search views"""
-
-from opencore.models.interfaces import ICatalogSearch
-from opencore.models.interfaces import ICommunity
-from opencore.models.interfaces import IGroupSearchFactory
-from opencore.models.interfaces import IProfile
-from opencore.utils import coarse_datetime_repr
-from opencore.utils import get_content_type_name
-from opencore.views.api import TemplateAPI
-from opencore.views.batch import get_catalog_batch_grid
+import logging
 from repoze.bfg.security import effective_principals
 from repoze.bfg.traversal import model_path
 from repoze.bfg.url import model_url
@@ -21,6 +13,28 @@ from zope.component import queryUtility
 from zope.index.text.parsetree import ParseError
 import datetime
 
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import IGroupSearchFactory
+from opencore.models.interfaces import IProfile
+from opencore.utils import coarse_datetime_repr
+from opencore.utils import get_content_type_name
+from opencore.utils import get_setting
+from opencore.views.api import TemplateAPI
+from opencore.views.batch import get_catalog_batch_grid
+
+log = logging.getLogger(__name__)
+
+def get_topic_options(context):
+    topic_options = []
+    topic_line = get_setting(context, "topics")
+    if not topic_line:
+        return topic_options
+    
+    for topic in topic_line.split():
+        title = topic
+        topic_options.append((topic, title))
+    return topic_options
 
 def advancedsearch_view(context, request):
 
@@ -38,10 +52,11 @@ def advancedsearch_view(context, request):
 
     this_year = datetime.datetime.now().year
     year_choices = [str(i) for i in range(2007, this_year+1)]
-
+    topic_choices = get_topic_options(context)
     return dict(
         api=api,
         post_url=model_url(context, request, "searchresults.html"),
+        topic_choices=topic_choices,
         type_choices=type_choices,
         year_choices=year_choices,
         )
@@ -104,6 +119,14 @@ def make_query(context, request):
             'operator': 'or',
             }
         terms.extend(tags)
+        
+    topics = params.getall('topics')
+    if topics:
+        query['topics'] = {
+            'query': topics,
+            'operator': 'or',
+            }
+        terms.extend(topics)    
 
     year = params.get('year')
     if year:
@@ -128,6 +151,7 @@ def get_batch(context, request):
     if not kind:
         # Search form
         query, terms = make_query(context, request)
+        log.debug('query: %s' % query)
         if terms:
             context_path = model_path(context)
             if context_path and context_path != '/':

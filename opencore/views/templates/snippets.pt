@@ -873,7 +873,7 @@ You are currently accessing KARL with Internet Explorer 6. This is an old browse
             </div>
         </div>
     </metal:submit-buttons>
-    
+ <!--   
       <metal:join_form define-macro="join_form">
             <h3>Join Up</h3>
             <p>By joining OpenIDEO, you'll get access to Open Planet Ideas and other challenges.</p>
@@ -904,7 +904,7 @@ You are currently accessing KARL with Internet Explorer 6. This is an old browse
             </div>
             </form>
     </metal:join_form>
-
+-->
     <metal:sign_up_form define-macro="sign_up_form">
             <div tal:replace="structure api.render_form_widget('input_username', 'username', 'Username', compulsory=True)"></div>
             <div tal:replace="structure api.render_form_widget('password', 'password', 'Password', compulsory=True)"></div>

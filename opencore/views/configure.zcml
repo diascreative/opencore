@@ -321,9 +321,9 @@
     name="jquery_tag_del"/>
   
   
-<!--
+
   <view
-    for="karl.models.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".tags.profile_tag_listing_view"
     renderer="templates/profile_taglisting.pt"
     permission="view"
@@ -331,7 +331,7 @@
   />
 
   <view
-    for="karl.models.interfaces.ISite"
+    for="opencore.models.interfaces.ISite"
     view=".tags.tag_users_view"
     renderer="templates/tagusers.pt"
     permission="view"
@@ -339,7 +339,7 @@
   />
 
   <view
-    for="karl.models.interfaces.ICommunity"
+    for="opencore.models.interfaces.ICommunity"
     view=".tags.community_tag_users_view"
     renderer="templates/community_tagusers.pt"
     permission="view"
@@ -347,13 +347,13 @@
   />
 
   <view
-    for="karl.models.interfaces.IProfile"
+    for="opencore.models.interfaces.IProfile"
     view=".tags.manage_tags_view"
     renderer="templates/profile_tagedit.pt"
     permission="edit"
     name="manage_tags.html"
   />
--->
+
   <!-- /stop global tagging related views -->
   
   
