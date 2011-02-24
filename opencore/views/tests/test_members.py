@@ -393,7 +393,6 @@ class InviteNewUsersTests(unittest.TestCase):
         registerContentFactory(DummyProfiles, IProfiles)
         profiles = DummyProfiles()
         profiles['e'] = profile = oitesting.DummyProfile(security_state='inactive')
-        print 'profile.security_state=%s' % profile.security_state
         context['profiles'] = profiles
         mailer = self._registerMailer()
         registerCatalogSearch()

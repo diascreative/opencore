@@ -107,9 +107,13 @@ class ProfileTests(unittest.TestCase):
         inst = self._makeOne()
         self.assertEqual(list(inst.websites), [])
 
-    def test_websites_as_empty_list(self):
+    def test_websites_empty_list_to_tuple(self):
         inst = self._makeOne(websites=[])
-        self.assertEqual(inst.websites, [])
+        self.assertEqual(inst.websites, ())
+    
+    def test_websites_as_empty_tuple(self):
+        inst = self._makeOne(websites=())
+        self.assertEqual(inst.websites, ())    
 
 class ProfilesFolderTests(unittest.TestCase):
 

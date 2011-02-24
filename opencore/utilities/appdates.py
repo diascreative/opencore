@@ -1,5 +1,6 @@
 _FLAVOR_FORMATS = {
     'longform': '%A, %B %d, %Y %I:%M %p',
+    'shortform': '%d/%m/%Y'
     }
 
 def convert(date, flavor):

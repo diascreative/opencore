@@ -26,6 +26,7 @@
                 <div tal:content="structure api.render_form_widget('input', 'profile.position', 'Occupation')"></div>
                 <div tal:content="structure api.render_form_widget('input', 'profile.organization', 'Company')"></div>
                 <div tal:content="structure api.render_form_widget('textarea', 'profile.websites', 'Websites (please start urls with http://)', default='\r\n'.join(api.formdata.get('profile.websites', [])))"></div>
+                               
                 <!--
                 <div tal:content="structure api.render_form_widget('input', 'profile.twitter', 'Twitter Username')"></div>
                 <div tal:content="structure api.render_form_widget('input', 'profile.facebook', 'Facebook page')"></div>
@@ -40,30 +41,7 @@
                 <div metal:define-slot="expert_profile_fields" tal:omit-tag=""/>
 
                 <div class="l-spacer"></div>
-                
-                <label>Challenge email preferences</label>
-                <table>
-                    <tr>
-                        <th width="200"></th>
-                        <th></th>
-                        <th width="100">Immediately</th>
-                        <th width="100">Digest</th>
-                        <th width="100">Never</th>
-                    </tr>
-                    <tr tal:condition="len(challenges) == 0">
-                        <td colspan="4">You do not have any challenges yet</td>
-                    </tr>
-                    <tr tal:repeat="challenge challenges">
-                      <td>
-                        <div tal:content="structure api.render_form_widget('hidden', 'profile.alert_preferences--%d.challenge' % repeat.challenge.index, '', default=challenge[0])"></div>
-                        ${challenge[1]}
-                      </td>
-                      <td tal:content="structure api.render_form_widget('radio_list_table', 'profile.alert_preferences--%d.preference' % repeat.challenge.index, challenge[1], choices=preferences, default=challenge[2])"></td>
-                    </tr>
-                </table>
-
-
-                
+                              
                 <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
             </form>
         </div>

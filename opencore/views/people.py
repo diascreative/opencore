@@ -18,7 +18,7 @@ from repoze.sendmail.interfaces import IMailDelivery
 from zope.component import getMultiAdapter
 from zope.component import getUtility
 from zope.component.event import objectEventNotify
-import formencode
+from formencode import Invalid as FormEncodeInvalid
 from webob.exc import HTTPFound
 from webob import Response
 from opencore.events import ObjectWillBeModifiedEvent
@@ -51,6 +51,7 @@ from opencore.views.validation import SchemaFile
 from opencore.views.validation import EditProfileSchema
 from opencore.views.validation import add_dict_prefix
 from opencore.views.validation import ValidationError
+from opencore.utilities.interfaces import IAppDates
 
 
 log = logging.getLogger(__name__)
@@ -98,6 +99,7 @@ def show_profile_view(context, request):
     """Show a profile with actions if the current user"""
     page_title = 'View Profile'
     api = TemplateAPI(context, request, page_title)
+    appdates = getUtility(IAppDates)
     
     # Create display values from model object
     profile = {}
@@ -211,6 +213,46 @@ def show_profile_view(context, request):
             continue
         adapted = getMultiAdapter((item, request), IGridEntryInfo)
         recent_items.append(adapted)
+        
+    # Convert comments into a digestable form for the template
+   
+    comments = []
+    if context.get('comments', None):
+        profiles = find_profiles(context)
+        for comment in context['comments'].values():
+            creator_profile = profiles.get(comment.creator)
+            author_name = creator_profile.title
+            author_url = model_url(creator_profile, request)
+      
+            newc = {}
+            newc['id'] = comment.__name__
+            if has_permission('edit', comment, request):
+                newc['edit_url'] = model_url(comment, request, 'edit.html')
+                newc['delete_url'] = model_url(comment, request, 'delete.html')
+            else:
+                newc['edit_url'] = None
+                newc['delete_url'] = None
+        
+            # Display portrait
+            photo = creator_profile.get('photo')
+            photo_url = {}
+            if photo is not None:
+                photo_url = thumb_url(photo, request, PROFILE_THUMB_SIZE)
+            else:
+                photo_url = api.static_url + "/images/defaultUser.gif"
+            newc["portrait_url"] = photo_url
+        
+            newc['author_url'] = author_url
+            newc['author_name'] = author_name
+        
+            newc['date'] = appdates(comment.created, 'longform')
+            newc['timestamp'] = comment.created
+            newc['text'] = comment.text
+        
+            # Fetch the attachments info
+            newc['attachments'] = []#fetch_attachments(comment, request)
+            comments.append(newc)
+        comments.sort(key=lambda x: x['timestamp'])    
    
     return render_template_to_response(
         'templates/profile.pt',
@@ -223,8 +265,9 @@ def show_profile_view(context, request):
         my_communities=my_communities,
         preferred_communities=preferred_communities,
         tags=tags,
-        recent_items=recent_items
-        )
+        recent_items=recent_items,
+        comments=comments
+       )
 
 def profile_thumbnail(context, request):
     api = TemplateAPI(context, request, 'Profile thumbnail redirector')
@@ -239,7 +282,8 @@ def get_profile_actions(profile, request):
     actions = []
     same_user = (authenticated_userid(request) == profile.__name__)
     if has_permission('administer', profile, request):
-        actions.append(('Edit', 'admin_edit_profile.html'))
+        #actions.append(('Edit', 'admin_edit_profile.html'))
+        actions.append(('Edit', 'edit_profile.html'))
     elif same_user:
         actions.append(('Edit', 'edit_profile.html'))
     if same_user:
@@ -285,9 +329,12 @@ class EditProfileFormController(object):
         if photo is not None:
             photo = SchemaFile(None, photo.__name__, photo.mimetype)
         self.photo = photo
+        
+        
 
     def form_defaults(self):
         context = self.context
+        assert(context.websites != None)
         defaults = {'firstname': context.firstname,
                     'lastname': context.lastname,
                     'email': context.email,
@@ -311,10 +358,10 @@ class EditProfileFormController(object):
         self.api.formdata = add_dict_prefix(self.prefix, self.form_defaults())
         log.debug('api.formdata: %s' % str(self.api.formdata))
        
-        if self.api.user_is_admin:
+        '''if self.api.user_is_admin:
             log.debug('user_is_admin so redirecting to admin_edit_profile.html.')
             return HTTPFound(location=model_url(self.context,
-                self.request, 'admin_edit_profile.html'))
+                self.request, 'admin_edit_profile.html'))'''
 
         if self.request.method == 'POST':
             post_data = self.request.POST
@@ -322,7 +369,7 @@ class EditProfileFormController(object):
             try:
                 # validate and convert
                 self.api.formdata = EditProfileSchema.to_python(post_data, state=None, prefix='profile.')
-            except formencode.Invalid, e:
+            except FormEncodeInvalid, e:
                 self.api.formdata = post_data
                 raise ValidationError(self, **e.error_dict)
             else:
@@ -331,16 +378,14 @@ class EditProfileFormController(object):
         return self.make_response()
         
     def make_response(self):
-        result = render_template(
+        return render_template_to_response(
                        'templates/edit_profile.pt',
                        api=self.api, actions=(), layout=self.layout,
                        form_title=self.form_title, include_blurb=True,
                        countries=[('', 'Select your Country')] + countries,
-                       challenges=[],
                        preferences= ['immediately', 'digest', 'never'],
                        defaults=[])     
-        return Response(body=result, content_type='text/html')               
-       
+      
     def handle_submit(self, converted):
         context = self.context
         request = self.request
@@ -349,11 +394,15 @@ class EditProfileFormController(object):
         # Handle the easy ones
         for name in self.simple_field_names:
             if name in converted:
-                 log.debug('setting profile.%s=%s' % (name, converted.get(name)))
-                 setattr(context, name, converted.get(name))
+                if name == 'websites' and converted.get(name)==None:
+                    # maybe extend the form widget so it doesn't return an empty value 
+                    # which (formencode converts to None) for no input?
+                    converted[name] = ()
+                log.debug('setting profile.%s=%s' % (name, converted.get(name)))
+                setattr(context, name, converted.get(name))
             else:
                 log.warn('profile attribute name=%s was not included in form post data?' % name)     
-        # Handle the picture and clear the temporary filestore
+        # Handle the picture 
         try:
             handle_photo_upload(context, converted)
         except Invalid, e:
@@ -366,119 +415,6 @@ class EditProfileFormController(object):
         msg = '?status_message=Profile%20edited'
         return HTTPFound(location=path+msg)
     
-class AdminEditProfileFormController(EditProfileFormController):
-    """
-    Extends the default profile edit controller w/ all of the extra
-    logic that the admin form requires.
-    """
-    simple_field_names = EditProfileFormController.simple_field_names
-    simple_field_names = simple_field_names + ['home_path']
-
-    def __init__(self, context, request):
-        super(AdminEditProfileFormController, self).__init__(context, request)
-        self.users = find_users(context)
-        self.userid = context.__name__
-        self.user = self.users.get_by_id(self.userid)
-        if self.user is not None:
-            self.is_active = True
-            self.user_groups = set(self.user['groups'])
-            self.group_options = get_group_options(self.context)
-        else:
-            self.is_active = False
-        self.form_title = 'Edit User and Profile Information'    
-  
-    def form_defaults(self):
-        defaults = super(AdminEditProfileFormController, self).form_defaults()
-        context = self.context
-        if self.user is not None:
-            defaults.update({'login': self.user['login'],
-                             'groups': self.user_groups,
-                             'password': ''})
-        defaults['home_path'] = context.home_path
-        return defaults
-     
-    def __call__(self):
-               
-        self.api.formdata = add_dict_prefix(self.prefix, self.form_defaults())
-        log.debug('api.formdata: %s' % str(self.api.formdata))
-       
-        if self.request.method == 'POST':
-            post_data = self.request.POST
-            log.debug('AdminEditProfileFormController request.POST: %s' % post_data)
-            try:
-                # validate and convert
-                self.api.formdata = EditProfileSchema.to_python(post_data, state=None, prefix='profile.')
-            except formencode.Invalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, **e.error_dict)
-            else:
-                return self.handle_submit(self.api.formdata)
-        
-        return self.make_response()
-    
-    def make_response(self):
-        result = render_template(
-                       'templates/edit_profile.pt',
-                       api=self.api, actions=(), layout=self.layout,
-                       form_title=self.form_title, include_blurb=False,
-                       admin_edit=True,  is_active=self.is_active, 
-                       countries=[('', 'Select your Country')] + countries,
-                       challenges=[],
-                       preferences= ['immediately', 'digest', 'never'],
-                       defaults=[])     
-        return Response(body=result, content_type='text/html')   
-    
-    def handle_submit(self, converted):
-        context = self.context
-        request = self.request
-        users = self.users
-        userid = self.userid
-        user = self.user
-        '''if user is not None:
-            # todo: login is not in the converted map, investigate use of this admin edit form
-            login = converted.get('login')
-            login_changed = users.get_by_login(login) != user
-            if (login_changed and
-                (users.get_by_id(login) is not None or
-                 users.get_by_login(login) is not None or
-                 login in context)):
-                msg = "Login '%s' is already in use" % login
-                raise ValidationError(login=msg)
-        objectEventNotify(ObjectWillBeModifiedEvent(context))
-        if user is not None:
-            # Set new login
-            try:
-                users.change_login(userid, converted['login'])
-            except ValueError, e:
-                raise ValidationError(login=str(e))
-            # Set group memberships
-            user_groups = self.user_groups
-            chosen_groups = set(converted['groups'])
-            for group, group_title in self.group_options:
-                if group in chosen_groups and group not in user_groups:
-                    users.add_user_to_group(userid, group)
-                if group in user_groups and group not in chosen_groups:
-                    users.remove_user_from_group(userid, group)
-            # Edit password
-            if converted.get('password', None):
-                users.change_password(userid, converted['password'])'''
-        # Handle the easy ones
-        for name in self.simple_field_names:
-            setattr(context, name, converted.get(name))
-        # Handle the picture and clear the temporary filestore
-        try:
-            handle_photo_upload(context, converted)
-        except Invalid, e:
-            raise ValidationError(self, **e.error_dict)
-        #self.filestore.clear()
-        context.modified_by = authenticated_userid(request)
-        # Emit a modified event for recataloging
-        objectEventNotify(ObjectModifiedEvent(context))
-        # Whew, we made it!
-        path = model_url(context, request)
-        msg = '?status_message=User%20edited'
-        return HTTPFound(location=path+msg)    
-
 def get_group_options(context):
     group_options = []
     for group in get_setting(context, "selectable_groups").split():
@@ -623,7 +559,7 @@ class ResetConfirmController(object):
             try:
                 # todo: validate and convert
                 pass
-            except formencode.Invalid, e:
+            except FormEncodeInvalid, e:
                 self.api.formdata = post_data
                 raise ValidationError(self, **e.error_dict)
             else:

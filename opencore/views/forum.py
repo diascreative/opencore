@@ -245,29 +245,6 @@ def show_forum_topic_view(context, request):
     else:
         attachments = ()
 
-    '''# manually construct formish comment form
-    controller = AddCommentFormController(context['comments'], request)
-    form_schema = schemaish.Structure()
-    form_fields = controller.form_fields()
-    for fieldname, field in form_fields:
-        form_schema.add(fieldname, field)
-    form_action_url = '%sadd_comment.html' % model_url(context['comments'],
-                                                       request)
-    comment_form = Form(form_schema, add_default_action=False, name='save',
-                        action_url=form_action_url)
-    form_defaults = controller.form_defaults()
-    comment_form.defaults = form_defaults
-    request.form_defaults = form_defaults
-
-    form_actions = [FormAction('submit', 'submit'),
-                    FormAction('cancel', 'cancel', validate=False)]
-    for action in form_actions:
-        comment_form.add_action(action.name, action.title)
-
-    widgets = controller.form_widgets(form_fields)
-    for name, widget in widgets.items():
-        comment_form[name].widget = widget'''
-
     # enable imagedrawer for adding forum replies (comments)
     api.karl_client_data['text'] = dict(
             enable_imagedrawer_upload = True,

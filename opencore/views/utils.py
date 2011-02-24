@@ -8,6 +8,7 @@ from zope.component import getMultiAdapter
 from repoze.bfg.security import authenticated_userid
 from repoze.bfg.threadlocal import get_current_request
 from repoze.bfg.traversal import traverse
+from repoze.bfg.settings import asbool
 from repoze.lemonade.content import create_content
 
 from opencore.utils import find_communities
@@ -262,6 +263,7 @@ def handle_photo_upload(context, form):
     
     if upload_map is not None:
         if upload_map['file'] is not None and upload_map['file'] != '':
+            log.debug('uploading photo.')
             upload = upload_map['file']
            
             request = get_current_request()
@@ -291,7 +293,7 @@ def handle_photo_upload(context, form):
             context['photo'] = photo
             check_upload_size(context, photo, 'photo')
 
-        elif (upload_map.get('delete'), False):    
+        elif (upload_map.get('delete'), False) and asbool(upload_map.get('delete')):    
             if 'photo' in context:
                 log.debug('deleting photo.')
                 del context['photo']

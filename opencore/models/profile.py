@@ -22,7 +22,6 @@ class Profile(Folder):
 
     alert_attachments = 'link'
     fax = '' # BBB
-    websites = ()
     last_login_time = None # BBB
 
     def __init__(self,
@@ -62,8 +61,7 @@ class Profile(Folder):
         if country not in countries.as_dict:
             country = 'XX'
         self.country = country
-        if websites is not None:
-            self.websites = websites
+        self.websites = websites or ()
         self.languages = languages
         self.office = office
         self.room_no = room_no

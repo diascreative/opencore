@@ -458,7 +458,45 @@ class Tags(Persistent):
             del self._tagid_to_obj[id]
             notify(TagRemovedEvent(tagObj))
 
-
+class TopicFilteredTags(Tags):
+     
+    def getTags(self, items=None, users=None, community=None):
+        """ See ITaggingEngine.
+        """
+        if items is None and users is None and community is None:
+            # shortcut
+            return set([x for x in self._name_to_tagids.keys() 
+                       if not x.startswith('topic.')]) 
+    
+        result = self.getTagObjects(items, users, community=community)
+        return set([tag.name for tag in result if not tag.startswith('topic.')])
+    
+    def getTagObjects(self, items=None, users=None, tags=None, community=None):
+        """ See ITaggingEngine.
+        """
+        ids = self._getTagIds(items, users, tags, community)
+        objs = [self._tagid_to_obj[id] for id in ids]
+        return set([obj for obj in objs if not obj.name.startswith('topic.')])
+         
+    def getFrequency(self, tags=None, community=None, user=None):
+        """ See ITaggingEngine.
+        """
+        if user is not None:
+            users = [user]
+        else:
+            users = None
+        if tags is None:
+            result = {}
+        else:
+            result = dict((x, 0) for x in tags)
+        for tag_id in self._getTagIds(users=users,
+                                      tags=tags,
+                                      community=community):
+            tag_obj = self._tagid_to_obj[tag_id]
+            if not tag_obj.name.startswith('topic.'):
+                result[tag_obj.name] = result.setdefault(tag_obj.name, 0) + 1
+        return sorted(result.items(), key=lambda x: x[1])
+    
 class TagCommunityFinder(object):
     implements(ITagCommunityFinder)
 

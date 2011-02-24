@@ -37,7 +37,7 @@ from opencore.models.interfaces import IUserAdded
 from opencore.models.interfaces import IUserAddedGroup
 from opencore.models.interfaces import IUserRemoved
 from opencore.models.interfaces import IUserRemovedGroup
-from opencore.tagging import Tags
+from opencore.tagging import TopicFilteredTags
 from opencore.tagging.index import TagIndex
 from opencore.tagging.index import add_topic
 from opencore.utils import coarse_datetime_repr
@@ -259,7 +259,7 @@ class Site(Folder):
         self.communities_name = communities_name or 'communities'  
         self[self.communities_name] = communities
         self.users = KARLUsers(self)
-        self.tags = Tags(self)
+        self.tags = TopicFilteredTags(self)
         self.sessions = SessionDataManager(3600, 5)
         self.filestore = PersistentMapping()
         self.list_aliases = OOBTree()

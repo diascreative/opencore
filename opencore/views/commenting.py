@@ -8,6 +8,7 @@ from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
 from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.lemonade.content import create_content
+from formencode import Invalid
 from opencore.models.interfaces import IComment
 from opencore.models.interfaces import IForumTopic
 from opencore.views.validation import SafeInput
@@ -88,7 +89,6 @@ class AddCommentController(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        #self.show_sendalert = get_show_sendalert(context, request)
 
     def __call__(self):
         if self.request.method != 'POST':
@@ -106,7 +106,10 @@ class AddCommentController(object):
         if not text:
             return self.status_response('Please enter a comment')
         converted = {'attachments' : []}   # todo: when required
-        converted['add_comment'] = SafeInput().to_python(text)    
+        try:
+            converted['add_comment'] = SafeInput().to_python(text)   
+        except Invalid, e:
+            raise ValidationError(self, add_comment=str(e))     
         return self.handle_submit(converted)
     
     def status_response(self, msg):

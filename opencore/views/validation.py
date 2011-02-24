@@ -17,9 +17,33 @@ from lxml.html import clean
 from BeautifulSoup import BeautifulSoup
 from webob.multidict import MultiDict
 from opencore.consts import countries
+from opencore.views.utils import make_name
 import logging
 
 log = logging.getLogger(__name__)
+
+
+class FolderNameAvailable(FancyValidator):
+   
+    def _to_python(self, value, state):
+        try:
+            return make_name(state.context, value)
+        except ValueError, why:
+            raise Invalid(why[0])
+  
+''' todo: for forums etc
+class WikiTitleAvailable(Validator):
+    def __init__(self, container, exceptions=()):
+        self.container = container
+        self.exceptions = exceptions
+
+    def __call__(self, v):
+        if v in self.exceptions:
+            return
+        title = v.lower()
+        for page in self.container.values():
+            if page.title.lower() == title:
+                raise Invalid('Title "%s" is already in use on this wiki' % v)'''
 
 class SchemaFile(object):
     '''
@@ -246,7 +270,7 @@ class EditProfileSchema(PrefixSchema):
     lastname = UnicodeString()
     position = UnicodeString()
     organization = UnicodeString()
-    websites = WebSitesValidator()    
+    websites = WebSitesValidator(if_missing=())    
     
     description = UnicodeString()
     #twitter = PrefixedUnicodeString(prefix='@')

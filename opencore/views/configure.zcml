@@ -92,13 +92,13 @@
     view=".people.EditProfileFormController"
     name="edit_profile.html"
     permission="edit"/>
-    
+<!--    
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.AdminEditProfileFormController"
     name="admin_edit_profile.html"
     permission="administer"/>
-  
+ --> 
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.recent_content_view"
