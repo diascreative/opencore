@@ -527,5 +527,10 @@
     permission="view"
   />
 
+  <subscriber
+    for="repoze.bfg.interfaces.IAfterTraversal"
+    handler=".api.handle_request_api" />
+
+
 </configure>
 

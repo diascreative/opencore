@@ -8,6 +8,7 @@ from zope.component import getAdapter
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.component import queryUtility
+from zope.interface import Interface, Attribute
 
 from repoze.bfg.chameleon_zpt import get_template
 from repoze.bfg.url import model_url
@@ -44,6 +45,16 @@ from repoze.bfg.traversal import find_interface
 xhtml = ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
          '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
 
+class ITemplateAPI(Interface):
+    """ A Marker interface for a template API.
+
+        Any implementation is required to provide the constructor
+        arguements so they are accessible from within the template.
+    """
+    context = Attribute(u'The Context object for the view')
+    request = Attribute(u'The WebOb Request object for the view')
+    page_title = Attribute(u'The title of the view')
+    
 class TemplateAPI(object):
     _community_info = None
     _recent_items = None
@@ -575,4 +586,18 @@ def _get_egg_rev():
         path = os.path.dirname(path)
         
   
-  
+def handle_request_api(event):
+    """ Subscriber for assigning the correct TemplateAPI implementation
+    """
+    request = event.request
+    context = request.context
+    
+    if not hasattr(context, '__parent__'):
+        # The object is not in the model graph
+        return
+    
+    name = get_setting(context, 'package')
+    
+    factory = queryUtility(ITemplateAPI, name=name, default=TemplateAPI)
+    api = factory(context, request)
+    request.api = api
