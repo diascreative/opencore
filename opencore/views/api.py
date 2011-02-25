@@ -206,25 +206,25 @@ class TemplateAPI(object):
 
         return self._recent_items
 
-    community_layout_fn = 'opencore.views:templates/community_layout.pt'
+    community_layout_fn = 'openhcd.views:templates/community_layout.pt'
     @property
     def community_layout(self):
         macro_template = get_template(self.community_layout_fn)
         return macro_template
 
-    anonymous_layout_fn = 'opencore.views:templates/anonymous_layout.pt'
+    anonymous_layout_fn = 'openhcd.views:templates/anonymous_layout.pt'
     @property
     def anonymous_layout(self):
         macro_template = get_template(self.anonymous_layout_fn)
         return macro_template
 
-    generic_layout_fn = 'opencore.views:templates/generic_layout.pt'
+    generic_layout_fn = 'openhcd.views:templates/generic_layout.pt'
     @property
     def generic_layout(self):
         macro_template = get_template(self.generic_layout_fn)
         return macro_template
 
-    formfields_fn = 'opencore.views:templates/formfields.pt'
+    formfields_fn = 'openhcd.views:templates/formfields.pt'
     @property
     def formfields(self):
         macro_template = get_template(self.formfields_fn)
