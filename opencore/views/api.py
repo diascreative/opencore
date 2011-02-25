@@ -14,12 +14,13 @@ from repoze.bfg.chameleon_zpt import get_template
 from repoze.bfg.url import model_url
 from repoze.bfg.security import effective_principals
 from repoze.bfg.traversal import quote_path_segment
+from repoze.bfg.traversal import find_model
 
 from repoze.bfg.location import lineage
 from repoze.bfg.traversal import model_path
-from repoze.bfg.security import authenticated_userid
 from repoze.bfg.interfaces import ISettings
 
+from repoze.bfg.security import authenticated_userid
 from repoze.lemonade.content import get_content_type
 from opencore.consts import countries
 from opencore.utils import find_site
@@ -507,10 +508,16 @@ class TemplateAPI(object):
                                                      error=error,
                                                      api=self,))    
           
+    def model_path(self, obj):
+        return model_path(obj)
+    
+    def find_model(self, path):
+        return find_model(self.context, path)
+
     def get_url(self, ob):
         """ Returns the model url for `ob`
         """
-        pass
+        return model_url(ob, self.request).replace('https://', 'http://')
         '''if IProfile.providedBy(ob):
             # return channel specific profile url
             channel = find_realm(ob, self.request)
