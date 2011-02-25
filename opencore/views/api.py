@@ -26,6 +26,7 @@ from opencore.utils import find_site
 from opencore.utils import get_setting
 from opencore.utils import support_attachments
 from opencore.utils import get_user_bookmarks
+from opencore.utils import find_profiles
 from opencore.views.utils import convert_to_script
 from opencore.views.utils import get_user_home
 
@@ -525,6 +526,11 @@ class TemplateAPI(object):
             return model_url(content, self.request, anchor='comment-%s' % ob.__name__)
         
         return model_url(ob, self.request).replace('https://', 'http://')'''        
+
+    def find_profile(self, uid):
+        profiles = find_profiles(self.context)
+        return profiles.get(uid)
+ 
 
 class SettingsReader:
     """Convenience for reading settings in templates"""
