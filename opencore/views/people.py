@@ -20,7 +20,6 @@ from zope.component import getUtility
 from zope.component.event import objectEventNotify
 from formencode import Invalid as FormEncodeInvalid
 from webob.exc import HTTPFound
-from webob import Response
 from opencore.events import ObjectWillBeModifiedEvent
 from opencore.events import ObjectModifiedEvent
 from opencore.consts import countries
@@ -254,8 +253,7 @@ def show_profile_view(context, request):
             comments.append(newc)
         comments.sort(key=lambda x: x['timestamp'])    
    
-    return render_template_to_response(
-        'templates/profile.pt',
+    return dict(
         api=api,
         profile=profile,
         actions=get_profile_actions(context, request),
