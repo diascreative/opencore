@@ -80,3 +80,44 @@ def relocate_temp_images(doc, request):
 
     doc.text = TMP_IMG_RE.sub(relocate, doc.text)
     tempfolder.cleanup()
+
+
+extensions = {
+    "image/jpeg": "jpg",
+    "image/gif": "gif",
+    "image/png": "png",
+}
+
+# Convert types sent by IE to standard types
+ie_types = {
+    "image/x-png": "image/png",
+    "image/pjpeg": "image/jpeg",
+}
+
+mimetypes = extensions.keys() + ie_types.keys()
+
+def find_image(context, search='photo'):
+    if search in context:
+        return context[search]
+    for ext in extensions.values():
+        name = search + '.' + ext
+        try:
+            if name in context:
+                return context[name]
+        except (TypeError, KeyError): # if context is not iterable
+            return None
+
+#    if 'gallery' in context:
+#        # try and find a suitable image in the gallery to use
+#        for ob in context['gallery'].values():
+#            # if ob is an external reference
+#            if IExternalReference.providedBy(ob):
+#                utility = getUtility(IExternalReferenceConverter, ob.content_provider)
+#                return utility.get_thumbnail_url(ob.reference)
+#            if ob.__name__.startswith('fullsized_'):
+#                # skip fullsized images
+#                continue
+#            if ICommunityFile.providedBy(ob) and IGalleryRenderable.providedBy(ob):
+#                return ob
+    return None
+

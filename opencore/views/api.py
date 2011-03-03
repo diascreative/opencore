@@ -30,6 +30,7 @@ from opencore.utils import get_user_bookmarks
 from opencore.utils import find_profiles
 from opencore.views.utils import convert_to_script
 from opencore.views.utils import get_user_home
+from opencore.utilities.image import thumb_url, find_image
 
 from opencore.models.interfaces import ICommunityContent
 from opencore.models.interfaces import ICommunity
@@ -538,6 +539,22 @@ class TemplateAPI(object):
         profiles = find_profiles(self.context)
         return profiles.get(uid)
  
+
+    def find_image_url(self, ob, search='photo', default='/images/defaultUser.gif', size=None):
+        if ob is None:
+            return default
+        if size is None:
+            size = (220, 220)
+        photo = find_image(ob, search)
+        if photo is not None:
+	    if isinstance(photo, (unicode, str)):
+		# external reference thumbnail_url
+            	return photo
+            return thumb_url(photo, self.request, size)
+        else:
+            if default.startswith('/'): # absolute local url
+                default = self.static_url + default
+            return default
 
 class SettingsReader:
     """Convenience for reading settings in templates"""
