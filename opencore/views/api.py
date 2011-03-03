@@ -543,14 +543,15 @@ class TemplateAPI(object):
     def find_image_url(self, ob, search='photo', default='/images/defaultUser.gif', size=None):
         if ob is None:
             return default
-        if size is None:
-            size = (220, 220)
         photo = find_image(ob, search)
         if photo is not None:
 	    if isinstance(photo, (unicode, str)):
 		# external reference thumbnail_url
             	return photo
-            return thumb_url(photo, self.request, size)
+            if size:
+                return thumb_url(photo, self.request, size)
+            else:
+                return model_url(photo, self.request, 'dl')
         else:
             if default.startswith('/'): # absolute local url
                 default = self.static_url + default
