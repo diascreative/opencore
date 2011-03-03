@@ -324,8 +324,8 @@ class EditProfileFormController(object):
         self.prefix = 'profile.'
         
         photo = context.get('photo')
-        if photo is not None:
-            photo = SchemaFile(None, photo.__name__, photo.mimetype)
+        #if photo is not None:
+        #    photo = SchemaFile(None, photo.__name__, photo.mimetype)
         self.photo = photo
         
         
