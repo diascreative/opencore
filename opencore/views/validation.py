@@ -45,23 +45,6 @@ class WikiTitleAvailable(Validator):
             if page.title.lower() == title:
                 raise Invalid('Title "%s" is already in use on this wiki' % v)'''
 
-class SchemaFile(object):
-    '''
-    Basic class object for storing files (Taken from schemaish)
-    '''
-    def __init__(self, file, filename, mimetype, metadata=None):
-        self.file = file
-        self.filename = filename
-        self.mimetype = mimetype
-        if metadata is None:
-            metadata = {}
-        self.metadata = metadata
-
-    def __repr__(self):
-        return ('<schemaish.type.File file="%r" filename="%s", '
-                'mimetype="%s", metadata="%r" >' % (
-                    self.file, self.filename, self.mimetype, self.metadata))
-
 class ValidationError(Exception):
     '''
     Exception raised in views for validation errors.
@@ -89,6 +72,7 @@ def validation_error_handler(exc, request):
         else:
             form_errors = exc.errors  
         log.error('failed_validation handler: %s' % str(form_errors))
+        log.debug('controller.api.formdata: %s' % str(controller.api.formdata))
         controller.api.formerrors.update(form_errors)
         return exc.controller.make_response()
     except Exception, e:
@@ -207,7 +191,6 @@ class NewMemberValidator(FancyValidator):
                 
         for user in users:
             if user not in state.users:
-                print 'user=%s' % str(user)
                 raise Invalid(self.message('invalid', state, username=user), value, state)
        
        
@@ -272,7 +255,7 @@ class EditProfileSchema(PrefixSchema):
     organization = UnicodeString()
     websites = WebSitesValidator(if_missing=())    
     
-    description = UnicodeString()
+    biography = UnicodeString()
     #twitter = PrefixedUnicodeString(prefix='@')
     #facebook = UnicodeString() # todo: link
     
