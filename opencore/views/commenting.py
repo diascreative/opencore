@@ -103,7 +103,7 @@ class AddCommentController(object):
             self.parent = self.context.__parent__
         else:
             # The comments folder is in the context, i.e. IForumTopic 
-            # and IProfile if it contains testimonials a comments.
+            # and IProfile if it contains testimonials as comments.
             self.parent = self.context
                 
         if not text:
