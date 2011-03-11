@@ -21,7 +21,9 @@ class Profile(Folder):
     implements(IProfile)
 
     alert_attachments = 'link'
-   
+    fax = '' # BBB
+    last_login_time = None # BBB
+
     def __init__(self,
                  firstname = '',
                  lastname = '',

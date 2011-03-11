@@ -79,7 +79,8 @@
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.show_profile_view"
-    permission="view"/>
+    permission="view"
+    renderer="templates/profile.pt"/>
 
   <view
     for="opencore.models.interfaces.IProfile"

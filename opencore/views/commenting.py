@@ -60,9 +60,6 @@ def show_comment_view(context, request):
     if container is None:
         # Comments can also be in forum topics
         container = find_interface(context, IForumTopic)
-    if container is None:
-        # Comments can also be in profile
-        container = find_interface(context, IProfile)    
     backto = {
         'href': model_url(container, request),
         'title': container.title,
