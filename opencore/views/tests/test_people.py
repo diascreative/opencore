@@ -60,7 +60,6 @@ class TestEditProfileFormController(unittest.TestCase):
     def setUp(self):
         testing.cleanUp()
         sessions = DummySessions()
-        #context = DummyProfile(sessions=sessions)
         context = DummyProfile(sessions=sessions, **profile_data)
         context.title = 'title'
         self.context = context
@@ -84,7 +83,6 @@ class TestEditProfileFormController(unittest.TestCase):
         context['photo'] = DummyImageFile()
         controller = self._makeOne(context, self.request)
         self.failUnless(controller.photo is not None)
-        self.assertEqual(controller.photo.filename, 'photo')
 
     def test_form_defaults(self):
         context = self.context

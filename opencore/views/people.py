@@ -46,7 +46,6 @@ from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import Invalid
 from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
-from opencore.views.validation import SchemaFile
 from opencore.views.validation import EditProfileSchema
 from opencore.views.validation import add_dict_prefix
 from opencore.views.validation import ValidationError
@@ -110,15 +109,15 @@ def show_profile_view(context, request):
             profile[name] = unicode(profile_value)
         else:
             profile[name] = None
-
-    if 'fax' not in profile:
-        profile['fax'] = '' # BBB
-
-    # 'websites' is a property, so the loop above misses it
+   
+    # 'websites' is a tuple, so unicode(websites) is not what we want
     profile["websites"] = context.websites
 
-    # ditto for 'title'
+    # 'title' is a property, so need to access it directly
     profile["title"] = context.title
+    
+    # 'created' is also a property and needs formatting too
+    profile['created'] = context.created.strftime('%B %d, %Y')
 
     if profile.has_key("languages"):
         profile["languages"] = context.languages
@@ -253,7 +252,8 @@ def show_profile_view(context, request):
             comments.append(newc)
         comments.sort(key=lambda x: x['timestamp'])    
    
-    return dict(
+    return render_template_to_response(
+        'templates/profile.pt',
         api=api,
         profile=profile,
         actions=get_profile_actions(context, request),
@@ -266,6 +266,7 @@ def show_profile_view(context, request):
         recent_items=recent_items,
         comments=comments
        )
+    
 
 def profile_thumbnail(context, request):
     api = TemplateAPI(context, request, 'Profile thumbnail redirector')
@@ -322,13 +323,7 @@ class EditProfileFormController(object):
         self.layout = layout_provider('generic')
         self.form_title = 'Edit Profile'
         self.prefix = 'profile.'
-        
-        photo = context.get('photo')
-        #if photo is not None:
-        #    photo = SchemaFile(None, photo.__name__, photo.mimetype)
-        self.photo = photo
-        
-        
+        self.photo = context.get('photo')
 
     def form_defaults(self):
         context = self.context

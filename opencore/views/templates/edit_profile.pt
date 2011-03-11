@@ -14,18 +14,23 @@
         <div class="mid">
             <h3>${api.page_title}</h3>
             <form id="edit-profile" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix 'profile.'">
-                <!-- whats this all about?  required when editing a profile as 'admin' type user
+                <!-- required when editing a profile as 'admin' type user
                 <fieldset metal:use-macro="api.formfields.macros['login-field']"/>
                 <<fieldset metal:use-macro="api.formfields.macros['group-fields']"/>
                 <fieldset metal:use-macro="api.formfields.macros['home-path-field']"/>-->
       
                 <div tal:content="structure api.render_form_widget('input', 'profile.firstname', 'First name', compulsory=True)"></div>
                 <div tal:content="structure api.render_form_widget('input', 'profile.lastname', 'Last name')"></div>
-                <div tal:content="structure api.render_form_widget('input', 'profile.description', 'A motto or line that describes you')"></div>
                 <div tal:content="structure api.render_form_widget('textarea', 'profile.biography', 'About you')"></div>
                 <div tal:content="structure api.render_form_widget('input', 'profile.position', 'Occupation')"></div>
                 <div tal:content="structure api.render_form_widget('input', 'profile.organization', 'Company')"></div>
-                <div tal:content="structure api.render_form_widget('textarea', 'profile.websites', 'Websites (please start urls with http://)', default='\r\n'.join(api.formdata.get('profile.websites', [])))"></div>
+                <!-- on any validation error, profile.websites is not a tuple but the text input so the join will break each char in the string
+                           with \r\n. -->
+                <div metal:define-macro="my_websites" 
+                   tal:condition="api.formerrors">
+                    <div tal:content="structure api.render_form_widget('textarea', 'profile.websites', 'Websites (please start urls with http://)', default=api.formdata.get('profile.websites', []))"></div>
+                </div>   
+                <div tal:condition="not api.formerrors" tal:content="structure api.render_form_widget('textarea', 'profile.websites', 'Websites (please start urls with http://)', default='\r\n'.join(api.formdata.get('profile.websites', [])))"></div>
                                
                 <!--
                 <div tal:content="structure api.render_form_widget('input', 'profile.twitter', 'Twitter Username')"></div>

@@ -469,7 +469,7 @@ class TopicFilteredTags(Tags):
                        if not x.startswith('topic.')]) 
     
         result = self.getTagObjects(items, users, community=community)
-        return set([tag.name for tag in result if not tag.startswith('topic.')])
+        return set([tag.name for tag in result if not tag.name.startswith('topic.')])
     
     def getTagObjects(self, items=None, users=None, tags=None, community=None):
         """ See ITaggingEngine.
