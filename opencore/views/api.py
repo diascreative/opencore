@@ -519,21 +519,6 @@ class TemplateAPI(object):
         """ Returns the model url for `ob`
         """
         return model_url(ob, self.request).replace('https://', 'http://')
-        '''if IProfile.providedBy(ob):
-            # return channel specific profile url
-            channel = find_realm(ob, self.request)
-            return '%s/' % join(model_url(channel, self.request), self.model_path(ob).lstrip('/'))
-        elif IComment.providedBy(ob):
-            content = find_interface(ob, IChallengeContentBase)
-            if content is None and getattr(ob, '__parent__', None):
-                # comments on top level
-                return model_url(ob.__parent__, self.request, anchor='comment-%s' % ob.__name__)
-            if content is None:
-                # comments on challenge brief
-                content = find_interface(ob, IChallenge)
-            return model_url(content, self.request, anchor='comment-%s' % ob.__name__)
-        
-        return model_url(ob, self.request).replace('https://', 'http://')'''        
 
     def find_profile(self, uid):
         profiles = find_profiles(self.context)
