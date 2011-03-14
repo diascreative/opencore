@@ -236,6 +236,106 @@ class ShowForumTopicViewTests(unittest.TestCase):
                          'My dog has fleas.')
 
 
+class TestAddForumTopicController(unittest.TestCase):
+    def setUp(self):
+        testing.setUp()
+        registerLayoutProvider()
+
+    def tearDown(self):
+        testing.cleanUp()
+
+    def _makeOne(self, *arg, **kw):
+        from opencore.views.forum import AddForumTopicController
+        return AddForumTopicController(*arg, **kw)
+
+    def _makeRequest(self):
+        request = testing.DummyRequest()
+        request.environ['repoze.browserid'] = '1'
+        request.api = testing.DummyModel()
+        return request
+
+    def _makeContext(self):
+        sessions = DummySessions()
+        context = testing.DummyModel(sessions=sessions)
+        return context
+ 
+    def test_form_defaults(self):
+        context = self._makeContext()
+        request = self._makeRequest()
+        controller = self._makeOne(context, request)
+        defaults = controller.form_defaults()
+        self.assertEqual(defaults['title'], '')
+        self.assertEqual(defaults['text'], '')
+
+    def test___call__(self):
+        context = self._makeContext()
+        request = self._makeRequest()
+        renderer = testing.registerTemplateRenderer(
+            'templates/add_forum_topic.pt')
+        controller = self._makeOne(context, request)
+        response = controller()
+        self.failUnless(renderer.api)
+        self.failUnless(renderer.layout)
+        self.failUnless(renderer.api.page_title)
+   
+    def test_handle_submit(self):
+        from repoze.lemonade.testing import registerContentFactory
+        from opencore.models.interfaces import IForumTopic
+       
+        def factory(title, text, creator):
+            topic = testing.DummyModel(
+                title=title, text=text, creator=creator)
+            topic['comments'] = testing.DummyModel()
+            return topic
+        registerContentFactory(factory, IForumTopic)
+        renderer = testing.registerTemplateRenderer(
+            'templates/add_forum_topic.pt')
+     
+        converted = {
+            'title':'title',
+            'text':'abc',
+            }
+
+        context = self._makeContext()
+        context.catalog = DummyCatalog()
+        request = self._makeRequest()
+        controller = self._makeOne(context, request)
+        response = controller.handle_submit(converted)
+        self.assertEqual(response.location, 'http://example.com/title/')
+        self.assertEqual(context['title'].title, 'title')
+        self.assertEqual(context['title'].text, 'abc')
+        self.assertEqual(context['title'].creator, None)
+  
+    def test_handle_submit_with_validation(self):
+        from repoze.lemonade.testing import registerContentFactory
+        from opencore.models.interfaces import IForumTopic
+   
+        def factory(title, text, creator):
+            topic = testing.DummyModel(
+                title=title, text=text, creator=creator)
+            topic['comments'] = testing.DummyModel()
+            return topic
+        registerContentFactory(factory, IForumTopic)
+        renderer = testing.registerTemplateRenderer(
+            'templates/add_forum_topic.pt')
+     
+        converted = {
+            'title':'title',
+            'text':'abc',
+            }
+
+        context = self._makeContext()
+        context.catalog = DummyCatalog()
+        request = self._makeRequest()
+        request.method = "POST"
+        request.POST = converted
+        
+        controller = self._makeOne(context, request)
+        response = controller()
+        self.assertEqual(response.location, 'http://example.com/title/')
+        self.assertEqual(context['title'].title, 'title')
+        self.assertEqual(context['title'].text, 'abc')
+        self.assertEqual(context['title'].creator, None)     
 
 class dictall(dict):
     def getall(self, name):
