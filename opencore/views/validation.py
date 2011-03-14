@@ -193,7 +193,12 @@ class NewMemberValidator(FancyValidator):
             if user not in state.users:
                 raise Invalid(self.message('invalid', state, username=user), value, state)
        
-       
+class AddForumTopicSchema(Schema):
+    allow_extra_fields = True
+    
+    title = UnicodeString(not_empty=True, max=100)
+    text = SafeInput()
+           
 class InviteMemberSchema(Schema):
     # This schema accepts missing form submissions for both users and 
     # email_address. The controller checks if they are both missing

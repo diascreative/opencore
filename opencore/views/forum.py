@@ -1,4 +1,5 @@
 import datetime
+import logging
 from webob.exc import HTTPFound
 
 from zope.component import getMultiAdapter
@@ -13,6 +14,8 @@ from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import effective_principals
 from repoze.bfg.security import has_permission
 from repoze.bfg.view import bfg_view
+
+from formencode import Invalid as FormEncodeInvalid
 
 from repoze.lemonade.content import create_content
 
@@ -44,6 +47,11 @@ from opencore.views.tags import get_tags_client_data
 from opencore.views.interfaces import IBylineInfo
 from opencore.views.utils import fetch_attachments
 from opencore.views.utils import upload_attachments
+from opencore.views.utils import extract_description
+from opencore.views.validation import AddForumTopicSchema
+from opencore.views.validation import State
+
+log = logging.getLogger(__name__)
 
 def titlesort(one, two):
     return cmp(one.title, two.title)
@@ -121,9 +129,9 @@ def show_forum_view(context, request):
     api = TemplateAPI(context, request, page_title)
 
     actions = []
-    '''if has_permission('create', context, request):
+    if has_permission('create', context, request):
         actions.append(('Add Forum Topic', 'add_forum_topic.html'))
-    if has_permission('edit', context, request):
+    '''if has_permission('edit', context, request):
         actions.append(('Edit', 'edit.html'))
     if has_permission('delete', context, request):
         actions.append(('Delete', 'delete.html'))'''
@@ -202,7 +210,7 @@ def show_forum_topic_view(context, request):
         else:
             newc['edit_url'] = None
             newc['delete_url'] = None
-
+            
         # Display portrait
         photo = profile.get('photo')
         photo_url = {}
@@ -221,6 +229,39 @@ def show_forum_topic_view(context, request):
 
         # Fetch the attachments info
         newc['attachments'] = fetch_attachments(comment, request)
+        
+        # handle comment replies
+        newc['comment_reply_url'] = model_url(comment, request, 'comment.html')
+        replies = []
+        if 'comments' in comment:
+            for reply in comment['comments'].values(): 
+                newr = {}
+                newr['id'] = reply.__name__
+                if has_permission('edit', reply, request):
+                    newr['edit_url'] = model_url(reply, request, 'edit.html')
+                    newr['delete_url'] = model_url(reply, request, 'delete.html')
+                else:
+                    newr['edit_url'] = None
+                    newr['delete_url'] = None
+                reply_profile = profiles.get(reply.creator)
+                reply_author_name = reply_profile.title
+                reply_author_url = model_url(reply_profile, request)
+                # Display portrait
+                reply_photo = reply_profile.get('photo')
+                reply_photo_url = {}
+                if reply_photo is not None:
+                    reply_photo_url = thumb_url(reply_photo, request, PROFILE_THUMB_SIZE)
+                else:
+                    reply_photo_url = api.static_url + "/images/defaultUser.gif"
+                newr["portrait_url"] = reply_photo_url
+                newr['author_url'] = reply_author_url
+                newr['author_name'] = reply_author_name
+                newr['date'] = appdates(reply.created, 'longform')
+                newr['timestamp'] = reply.created
+                newr['text'] = reply.text
+                replies.append(newr)
+            replies.sort(key=lambda x: x['timestamp'])    
+        newc['comment_replies'] = replies 
         comments.append(newc)
     comments.sort(key=lambda x: x['timestamp'])
 
@@ -299,3 +340,80 @@ def get_topic_batch(forum, request):
         allowed={'query': effective_principals(request), 'operator': 'or'},
         )
 
+class AddForumTopicController(object):
+    
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        
+        layout_provider = get_layout_provider(self.context, self.request)
+        self.layout = layout_provider('community')
+        self.api = self.request.api
+        self.api.page_title = 'Add Forum Topic'
+      
+
+    def form_defaults(self):
+        defaults = {
+            'title':'',
+            'tags':[],
+            'text':'',
+            'attachments':[],
+            }
+
+        return defaults
+
+    def __call__(self):
+               
+        if self.request.method == 'POST':
+            post_data = self.request.POST
+            log.debug('request.POST: %s' % post_data)
+            try:
+                # validate and convert
+                self.api.formdata = AddForumTopicSchema.to_python(post_data,
+                                             state=State(context=self.context))
+            except FormEncodeInvalid, e:
+                self.api.formdata = post_data
+                raise ValidationError(self, **e.error_dict)
+            else:
+                return self.handle_submit(self.api.formdata)
+        
+        return self.make_response()
+
+    def make_response(self):
+                
+        return render_template_to_response(
+                'templates/add_forum_topic.pt', 
+                api=self.api,
+                actions=(),
+                layout=self.layout
+            )
+        
+        
+    def handle_submit(self, converted):
+        context = self.context
+        request = self.request
+      
+        name = make_unique_name(context, converted['title'])
+        creator = authenticated_userid(request)
+
+        topic = create_content(IForumTopic,
+            converted['title'],
+            converted['text'],
+            creator,
+            )
+        # todo: look further into calling extract_description as the text
+        # has already been converted from html to text with validators.SafeInput
+        if converted['text']:
+            topic.description = extract_description(converted['text'])
+        else:
+            topic.description = converted['title']    
+        context[name] = topic
+      
+        ''' Tags and attachments
+        set_tags(context, request, converted['tags'])
+        if support_attachments(topic):
+            upload_attachments(converted['attachments'], topic['attachments'],
+                               creator, request)'''
+
+        location = model_url(topic, request)
+        return HTTPFound(location=location)

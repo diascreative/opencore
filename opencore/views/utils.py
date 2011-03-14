@@ -17,6 +17,7 @@ from opencore.utils import find_site
 from opencore.utils import find_users
 from opencore.utils import get_setting
 from opencore.models.interfaces import ICommunityFile
+from opencore.models.interfaces import ICommentsFolder
 from opencore.views.interfaces import IFileInfo
 
 from simplejson import JSONEncoder
@@ -612,7 +613,8 @@ def get_upload_mimetype(upload):
 
 def fetch_attachments(attachments_folder, request):
     return [getMultiAdapter((attachment, request), IFileInfo)
-                   for attachment in attachments_folder.values()]
+                   for attachment in attachments_folder.values()
+                   if not ICommentsFolder.providedBy(attachment)]
 
 def upload_attachments(attachments, folder, creator, request):
     """ This creates *and removes* attachments based on information

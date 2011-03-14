@@ -117,6 +117,10 @@ class AddCommentController(object):
     
     def status_response(self, msg):
         location = model_url(self.parent, self.request)
+        if IComment.providedBy(self.context):
+            # for comment replies we need the location of the real container 
+            # like forum topic.
+            location =  model_url(find_interface(self.context, IForumTopic), self.request)
         location = '%s?status_message=%s' % (location, urllib.quote(msg))
         return HTTPFound(location=location)
    

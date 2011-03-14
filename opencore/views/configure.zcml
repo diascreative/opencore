@@ -151,28 +151,30 @@
   <view
     for="opencore.models.interfaces.IForumsFolder"
     view=".forum.show_forums_view"
-    permission="view"
-  />
+    permission="view"/>
 
   <view
     for="opencore.models.interfaces.IForum"
     view=".forum.show_forum_view"
-    permission="view"
-  />
+    permission="view"/>
+  
   <view
     for="opencore.models.interfaces.IForum"
     name="delete.html"
     view="opencore.views.resource.delete_resource_view"
     permission="delete"
-    renderer="opencore.views:templates/delete_resource.pt"
-  />
+    renderer="opencore.views:templates/delete_resource.pt"/>
+  
   <view
     for="opencore.models.interfaces.IForumTopic"
     view=".forum.show_forum_topic_view"
-    permission="view"
-  />
+    permission="view"/>
   
-  
+   <view
+    for="opencore.models.interfaces.IForum"
+    name="add_forum_topic.html"
+    view=".forum.AddForumTopicController"
+    permission="create"/>
    
   <adapter
       for="opencore.models.interfaces.ICommunityContent

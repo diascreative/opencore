@@ -1,0 +1,22 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal"
+     metal:use-macro="layout.macros['master']">
+
+  <div metal:fill-slot="content">
+
+    <div metal:use-macro="api.snippets.macros['status_message']"/>
+    <div metal:use-macro="api.snippets.macros['error_message']"/>
+    <div metal:use-macro="api.snippets.macros['actions_box']"/>
+    <h1 class="kscreentitle">${api.page_title}</h1>
+    <p tal:content="page_description|''"/>
+    <div tal:condition="blurb_macro|False" metal:use-macro="blurb_macro"/>
+    <form id="add-forum-topic" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
+      <div tal:content="structure api.render_form_widget('input', 'title', 'Title', compulsory=True)"></div>
+      <div tal:content="structure api.render_form_widget('textarea', 'text', 'Description')"></div>
+      <div class="l-spacer"></div>
+      <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
+    </form>
+  </div>
+
+</div>
