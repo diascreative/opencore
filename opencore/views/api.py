@@ -486,7 +486,7 @@ class TemplateAPI(object):
             return []
         return get_user_bookmarks(self.context, self.userid, filter_challenge)
     
-    def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None):
+    def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None, description=None):
         if default is None:
             default = self.formdata.get(id, '')
         error = self.formerrors.get(id, '')
@@ -502,12 +502,13 @@ class TemplateAPI(object):
         return template.render_macro(widget_id, global_scope=True,
                                      parameters=dict(name=id,
                                                      label=label,
+                                                     description=description,
                                                      choices=choices,
                                                      compulsory=compulsory,
                                                      default_value=default,
                                                      default_list=default_list,
                                                      error=error,
-                                                     api=self,))    
+                                                     api=self,))
           
     def model_path(self, obj):
         return model_path(obj)
