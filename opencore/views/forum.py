@@ -48,6 +48,7 @@ from opencore.views.interfaces import IBylineInfo
 from opencore.views.utils import fetch_attachments
 from opencore.views.utils import upload_attachments
 from opencore.views.utils import extract_description
+from opencore.views.utils import comments_to_display
 from opencore.views.validation import AddForumTopicSchema
 from opencore.views.validation import State
 
@@ -181,12 +182,6 @@ def show_forum_view(context, request):
 @bfg_view(for_=IForumTopic, permission='view')  
 def show_forum_topic_view(context, request):
     post_url = model_url(context, request, "comments", "add_comment.html")
-    appdates = getUtility(IAppDates)
-    profiles = find_profiles(context)
-
-    # Convert comments into a digestable form for the template
-    comments = []
-
     page_title = context.title
 
     actions = []
@@ -196,74 +191,6 @@ def show_forum_topic_view(context, request):
         actions.append(('Delete', 'delete.html'))
 
     api = TemplateAPI(context, request, page_title)
-
-    for comment in context['comments'].values():
-        profile = profiles.get(comment.creator)
-        author_name = profile.title
-        author_url = model_url(profile, request)
-
-        newc = {}
-        newc['id'] = comment.__name__
-        if has_permission('edit', comment, request):
-            newc['edit_url'] = model_url(comment, request, 'edit.html')
-            newc['delete_url'] = model_url(comment, request, 'delete.html')
-        else:
-            newc['edit_url'] = None
-            newc['delete_url'] = None
-            
-        # Display portrait
-        photo = profile.get('photo')
-        photo_url = {}
-        if photo is not None:
-            photo_url = thumb_url(photo, request, PROFILE_THUMB_SIZE)
-        else:
-            photo_url = api.static_url + "/images/defaultUser.gif"
-        newc["portrait_url"] = photo_url
-
-        newc['author_url'] = author_url
-        newc['author_name'] = author_name
-
-        newc['date'] = appdates(comment.created, 'longform')
-        newc['timestamp'] = comment.created
-        newc['text'] = comment.text
-
-        # Fetch the attachments info
-        newc['attachments'] = fetch_attachments(comment, request)
-        
-        # handle comment replies
-        newc['comment_reply_url'] = model_url(comment, request, 'comment.html')
-        replies = []
-        if 'comments' in comment:
-            for reply in comment['comments'].values(): 
-                newr = {}
-                newr['id'] = reply.__name__
-                if has_permission('edit', reply, request):
-                    newr['edit_url'] = model_url(reply, request, 'edit.html')
-                    newr['delete_url'] = model_url(reply, request, 'delete.html')
-                else:
-                    newr['edit_url'] = None
-                    newr['delete_url'] = None
-                reply_profile = profiles.get(reply.creator)
-                reply_author_name = reply_profile.title
-                reply_author_url = model_url(reply_profile, request)
-                # Display portrait
-                reply_photo = reply_profile.get('photo')
-                reply_photo_url = {}
-                if reply_photo is not None:
-                    reply_photo_url = thumb_url(reply_photo, request, PROFILE_THUMB_SIZE)
-                else:
-                    reply_photo_url = api.static_url + "/images/defaultUser.gif"
-                newr["portrait_url"] = reply_photo_url
-                newr['author_url'] = reply_author_url
-                newr['author_name'] = reply_author_name
-                newr['date'] = appdates(reply.created, 'longform')
-                newr['timestamp'] = reply.created
-                newr['text'] = reply.text
-                replies.append(newr)
-            replies.sort(key=lambda x: x['timestamp'])    
-        newc['comment_replies'] = replies 
-        comments.append(newc)
-    comments.sort(key=lambda x: x['timestamp'])
 
     byline_info = getMultiAdapter((context, request), IBylineInfo)
     forum = find_interface(context, IForum)
@@ -295,7 +222,7 @@ def show_forum_topic_view(context, request):
         'templates/show_forum_topic.pt',
         api=api,
         actions=actions,
-        comments=comments,
+        comments=comments_to_display(request),
         attachments=attachments,
         formfields=api.formfields,
         post_url=post_url,

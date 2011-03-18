@@ -19,9 +19,11 @@ from opencore.views.interfaces import IBylineInfo
 from opencore.models.interfaces import IBlogEntry
 from opencore.utils import support_attachments
 from opencore.utils import find_interface
+from opencore.utils import find_supported_interface
 from opencore.utils import get_layout_provider
 from opencore.views.utils import fetch_attachments
 from opencore.models.interfaces import IProfile
+from opencore.models.interfaces import ICommunity
 from opencore.models.interfaces import ICommentsFolder
 
 log = logging.getLogger(__name__)
@@ -119,8 +121,10 @@ class AddCommentController(object):
         location = model_url(self.parent, self.request)
         if IComment.providedBy(self.context):
             # for comment replies we need the location of the real container 
-            # like forum topic.
-            location =  model_url(find_interface(self.context, IForumTopic), self.request)
+            # like forum topic or profile or community
+            log.debug('commenting status_response: reply context=%s, grandparent=%s' % (self.context, self.parent.__parent__))
+            location = model_url(self.parent.__parent__, self.request)
+            
         location = '%s?status_message=%s' % (location, urllib.quote(msg))
         return HTTPFound(location=location)
    

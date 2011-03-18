@@ -134,6 +134,8 @@ class ShowForumTopicViewTests(unittest.TestCase):
         context['profiles'] = profiles = testing.DummyModel()
         profiles['dummy'] = DummyProfile(title='Dummy Profile')
         request = testing.DummyRequest()
+        request.context = context
+        request.api = DummyApi()
         request.environ['repoze.browserid'] = 1
         def dummy_byline_info(context, request):
             return context
@@ -172,6 +174,8 @@ class ShowForumTopicViewTests(unittest.TestCase):
         context['comments']['1'] = comment
         context['attachments'] = testing.DummyModel()
         request = testing.DummyRequest()
+        request.context = context
+        request.api = DummyApi()
         request.environ['repoze.browserid'] = 1
         def dummy_byline_info(context, request):
             return context
@@ -219,6 +223,8 @@ class ShowForumTopicViewTests(unittest.TestCase):
         context['profiles'] = profiles = testing.DummyModel()
         profiles['dummy'] = DummyProfile(title='Dummy Profile')
         request = testing.DummyRequest()
+        request.context = context
+        request.api = DummyApi()
         request.environ['repoze.browserid'] = 1
         def dummy_byline_info(context, request):
             return context
@@ -376,3 +382,40 @@ class DummySessions(dict):
         if name not in self:
             self[name] = {}
         return self[name]
+
+class DummyApi(object):  
+    
+    static_url = 'http://localhost'
+    
+    def format_text(self, text):
+        return text
+    
+    def app_url(self):
+        return 'http://localhost'
+    
+    def get_phase(self, ob=None):
+        return testing.DummyModel(phase_type='concept')
+    
+    def find_image_url(self, foo, bar):
+        return self.app_url()
+    
+    def truncate_text(self, text, length):
+        return text
+    
+    def remove_html_tags(self, data):
+        return data
+    
+    def get_views(self, context=None):  
+        return 0
+    
+    def get_ratings(self, context=None):
+         return 0
+ 
+    def get_url(self, context=None):
+        return 'http://localhost'
+    
+    def format_datetime(self, d, with_break=False):
+        if with_break:
+            return d.strftime('%B %d, %Y<br /> %I:%M%p')
+        else:
+            return d.strftime('%B %d, %Y, %I:%M%p')

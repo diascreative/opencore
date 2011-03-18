@@ -16,6 +16,7 @@ from opencore.models.interfaces import ISite
 from opencore.models.interfaces import IAttachmentPolicy
 from opencore.views.interfaces import IFolderAddables
 from opencore.views.interfaces import ILayoutProvider
+from opencore.utilities.interfaces import IAppDates
 
 def find_site(context):
     site = find_interface(context, ISite)
@@ -171,3 +172,16 @@ def list_index(index):
     index_keys = list(index._fwd_index.keys())
     return len(index_keys), index_keys
             
+def find_supported_interface(context, class_or_interfaces):
+    '''
+    Finds the first supported interface navigating up the tree from context until an interface is matched.
+    Returns None if a match is not found.
+    @param context: locatable content object
+    @param class_or_interfaces: list of interfaces 
+    '''
+    found = None
+    for class_or_interface in class_or_interfaces:
+        found = find_interface(context, class_or_interface)
+        if found: 
+            return found    
+    return found     

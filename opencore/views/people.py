@@ -44,6 +44,7 @@ from opencore.views.tags import get_tags_client_data
 from opencore.views.utils import convert_to_script
 from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import Invalid
+from opencore.views.utils import comments_to_display
 from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
 from opencore.views.validation import EditProfileSchema
@@ -211,47 +212,7 @@ def show_profile_view(context, request):
             continue
         adapted = getMultiAdapter((item, request), IGridEntryInfo)
         recent_items.append(adapted)
-        
-    # Convert comments into a digestable form for the template
-   
-    comments = []
-    if context.get('comments', None):
-        profiles = find_profiles(context)
-        for comment in context['comments'].values():
-            creator_profile = profiles.get(comment.creator)
-            author_name = creator_profile.title
-            author_url = model_url(creator_profile, request)
-      
-            newc = {}
-            newc['id'] = comment.__name__
-            if has_permission('edit', comment, request):
-                newc['edit_url'] = model_url(comment, request, 'edit.html')
-                newc['delete_url'] = model_url(comment, request, 'delete.html')
-            else:
-                newc['edit_url'] = None
-                newc['delete_url'] = None
-        
-            # Display portrait
-            photo = creator_profile.get('photo')
-            photo_url = {}
-            if photo is not None:
-                photo_url = thumb_url(photo, request, PROFILE_THUMB_SIZE)
-            else:
-                photo_url = api.static_url + "/images/defaultUser.gif"
-            newc["portrait_url"] = photo_url
-        
-            newc['author_url'] = author_url
-            newc['author_name'] = author_name
-        
-            newc['date'] = appdates(comment.created, 'longform')
-            newc['timestamp'] = comment.created
-            newc['text'] = comment.text
-        
-            # Fetch the attachments info
-            newc['attachments'] = []#fetch_attachments(comment, request)
-            comments.append(newc)
-        comments.sort(key=lambda x: x['timestamp'])    
-   
+  
     return render_template_to_response(
         'templates/profile.pt',
         api=api,
@@ -264,7 +225,7 @@ def show_profile_view(context, request):
         preferred_communities=preferred_communities,
         tags=tags,
         recent_items=recent_items,
-        comments=comments
+        comments=comments_to_display(request)
        )
     
 

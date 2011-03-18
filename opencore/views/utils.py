@@ -4,11 +4,14 @@ import re
 from itertools import islice
 
 from zope.component import getMultiAdapter
+from zope.component import getUtility
 
 from repoze.bfg.security import authenticated_userid
 from repoze.bfg.threadlocal import get_current_request
 from repoze.bfg.traversal import traverse
+from repoze.bfg.url import model_url
 from repoze.bfg.settings import asbool
+from repoze.bfg.security import has_permission
 from repoze.lemonade.content import create_content
 
 from opencore.utils import find_communities
@@ -18,6 +21,8 @@ from opencore.utils import find_users
 from opencore.utils import get_setting
 from opencore.models.interfaces import ICommunityFile
 from opencore.models.interfaces import ICommentsFolder
+from opencore.models.interfaces import IImage
+from opencore.utilities.interfaces import IAppDates
 from opencore.views.interfaces import IFileInfo
 
 from simplejson import JSONEncoder
@@ -686,3 +691,95 @@ def extract_description(htmlstring):
         summary = summary + "..."
 
     return summary                        
+
+def comments_to_display(request, profile_thumb_size=None):
+    from opencore.views.people import PROFILE_THUMB_SIZE
+    
+    profile_thumb_size = profile_thumb_size or PROFILE_THUMB_SIZE
+    
+    def thumb_url(image, request, size):
+        """
+        Return the url for displaying the image with dimensions bounded by given
+        size.
+        """
+        assert IImage.providedBy(image), "Cannot take thumbnail of non-image."
+        return model_url(image, request, 'thumb', '%dx%d.jpg' % size)
+
+    context = request.context
+    appdates = getUtility(IAppDates)
+    profiles = find_profiles(context)
+    api = request.api
+    
+     # Convert comments into a digestable form for the template
+    comments = [] 
+    if 'comments' not in context:
+        return comments
+     
+    for comment in context['comments'].values():
+        profile = profiles.get(comment.creator)
+        author_name = profile.title
+        author_url = model_url(profile, request)
+
+        newc = {}
+        newc['id'] = comment.__name__
+        if has_permission('edit', comment, request):
+            newc['edit_url'] = model_url(comment, request, 'edit.html')
+            newc['delete_url'] = model_url(comment, request, 'delete.html')
+        else:
+            newc['edit_url'] = None
+            newc['delete_url'] = None
+            
+        # Display portrait
+        photo = profile.get('photo')
+        photo_url = {}
+        if photo is not None:
+            photo_url = thumb_url(photo, request, profile_thumb_size)
+        else:
+            photo_url = api.static_url + "/images/defaultUser.gif"
+        newc["portrait_url"] = photo_url
+
+        newc['author_url'] = author_url
+        newc['author_name'] = author_name
+
+        newc['date'] = appdates(comment.created, 'longform')
+        newc['timestamp'] = comment.created
+        newc['text'] = comment.text
+
+        # Fetch the attachments info
+        newc['attachments'] = fetch_attachments(comment, request)
+        
+        # handle comment replies
+        newc['comment_reply_url'] = model_url(comment, request, 'comment.html')
+        replies = []
+        if 'comments' in comment:
+            for reply in comment['comments'].values(): 
+                newr = {}
+                newr['id'] = reply.__name__
+                if has_permission('edit', reply, request):
+                    newr['edit_url'] = model_url(reply, request, 'edit.html')
+                    newr['delete_url'] = model_url(reply, request, 'delete.html')
+                else:
+                    newr['edit_url'] = None
+                    newr['delete_url'] = None
+                reply_profile = profiles.get(reply.creator)
+                reply_author_name = reply_profile.title
+                reply_author_url = model_url(reply_profile, request)
+                # Display portrait
+                reply_photo = reply_profile.get('photo')
+                reply_photo_url = {}
+                if reply_photo is not None:
+                    reply_photo_url = thumb_url(reply_photo, request, profile_thumb_size)
+                else:
+                    reply_photo_url = api.static_url + "/images/defaultUser.gif"
+                newr["portrait_url"] = reply_photo_url
+                newr['author_url'] = reply_author_url
+                newr['author_name'] = reply_author_name
+                newr['date'] = appdates(reply.created, 'longform')
+                newr['timestamp'] = reply.created
+                newr['text'] = reply.text
+                replies.append(newr)
+            replies.sort(key=lambda x: x['timestamp'])    
+        newc['comment_replies'] = replies 
+        comments.append(newc)
+    comments.sort(key=lambda x: x['timestamp'])
+    return comments

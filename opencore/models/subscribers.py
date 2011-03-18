@@ -35,6 +35,7 @@ def postorder(startnode):
 
 def index_content(obj, event):
     """ Index content (an IObjectAddedEvent subscriber) """
+    log.debug('index_content: obj=%s, event=%s' % (obj, event))
     catalog = find_catalog(obj)
     if catalog is not None:
         for node in postorder(obj):
@@ -91,7 +92,6 @@ def set_modified(obj, event):
     
     Intended use is as an IObjectModified event subscriber.
     """
-    log.debug('subscriber set_modified')
     if is_content(obj):
         now = _now()
         obj.modified = now
@@ -104,7 +104,6 @@ def set_created(obj, event):
     
     Intended use is as an IObjectWillBeAddedEvent subscriber.
     """
-    log.debug('subscriber set_created')
     now = _now()
     for node in postorder(obj):
         if is_content(obj):
@@ -119,16 +118,13 @@ def set_created(obj, event):
 def _modify_community(obj, when):
     # manage content_modified on community whenever a piece of content
     # in a community is changed
-    log.debug('subscriber  _modify_community: obj=%s, when=%s', (obj, str(when)))
     community = find_interface(obj, ICommunity)
     if community is not None:
-        log.debug('subscriber  _modify_community: set community.content_modified = when')
         community.content_modified = when
         catalog = find_catalog(community)
         if catalog is not None:  # may not be wired into the site yet
             index = catalog.get('content_modified')
             if index is not None:
-                log.debug('subscriber  _modify_community:  index.index_doc(community.docid=%d, community=%s)' % (community.docid, community))
                 index.index_doc(community.docid, community)
 
 def delete_community(obj, event):

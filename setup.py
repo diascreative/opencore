@@ -22,7 +22,7 @@ requires = [
     'repoze.browserid',
     'repoze.catalog',
     'repoze.evolution',
-    'repoze.folder == 0.4',
+    'repoze.folder',
     'repoze.lemonade',
     'repoze.monty',
     'repoze.retry',

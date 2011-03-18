@@ -144,9 +144,6 @@
       type=".interfaces.IProfiles"
       />
   
-  <!-- not sure its necessary to content create this? 
-       but used in comment utility
-  -->    
   <lemonade:content
     factory="opencore.models.commenting.CommentsFolder"
     type="opencore.models.interfaces.ICommentsFolder"/>   
