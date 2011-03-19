@@ -102,7 +102,8 @@ def show_members_view(context, request):
     """Default view of community members (with/without pictures)."""
 
     page_title = 'Community Members'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     # Filter the actions based on permission in the **community**
     community = find_interface(context, ICommunity)
@@ -221,7 +222,7 @@ class ManageMembersController(object):
         self.request = request
         self.community = find_interface(context, ICommunity)
         self.profiles = find_profiles(self.community)
-        self.api = TemplateAPI(context, request)
+        self.api = request.api
         self.actions = _get_manage_actions(self.community, request)
         self.desc = ('Use the form below to remove members or to resend invites '
                 'to people who have not accepted your invitation to join '
@@ -469,7 +470,7 @@ class AcceptInvitationController(object):
         self.request = request
         self.community = find_interface(context, ICommunity)
         self.profiles = find_profiles(context)
-        self.api = TemplateAPI(context, request)
+        self.api = request.api
      
     '''def form_fields(self):
         required = validator.Required()
@@ -649,7 +650,7 @@ class InviteNewUsersController(object):
         self.context = context
         self.request = request
         self.community = find_interface(context, ICommunity)
-        self.api = TemplateAPI(context, request)
+        self.api = request.api
         self.actions = _get_manage_actions(self.community, request)
         self.profiles = find_profiles(context)
         self.desc = ('Type the first few letters of the name of the person you '
@@ -879,7 +880,7 @@ class JoinNewUsersController(object):
         self.context = context
         self.request = request
         self.community = find_interface(context, ICommunity)
-        self.api = TemplateAPI(context, request)
+        self.api = request.api
         self.actions = _get_manage_actions(self.community, request)
         self.profiles = find_profiles(context)
         self.desc = ('Type in you email address and you will be sent a signup email shortly.')

@@ -98,6 +98,8 @@ class SearchResultsViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.search import searchresults_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return searchresults_view(context, request)
 
     def test_no_searchterm(self):
@@ -361,6 +363,8 @@ class AdvancedSearchViewTests(unittest.TestCase):
 
         context = testing.DummyModel()
         request = testing.DummyRequest()
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         from opencore.views.search import advancedsearch_view
         result = advancedsearch_view(context, request)
         self.assertEqual(

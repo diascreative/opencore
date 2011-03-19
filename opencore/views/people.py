@@ -8,6 +8,8 @@ except ImportError:
 import datetime
 from email.Message import Message
 
+from repoze.bfg.traversal import model_path
+from repoze.bfg.url import model_url
 from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.bfg.chameleon_zpt import render_template
 from repoze.bfg.security import authenticated_userid
@@ -51,6 +53,7 @@ from opencore.views.validation import EditProfileSchema
 from opencore.views.validation import add_dict_prefix
 from opencore.views.validation import ValidationError
 from opencore.utilities.interfaces import IAppDates
+from opencore.views.batch import get_catalog_batch_grid
 
 
 log = logging.getLogger(__name__)
@@ -67,7 +70,8 @@ def min_pw_length():
 def show_profiles_view(context, request):
     system_name = get_setting(context, 'system_name', 'OpenCore')
     page_title = '%s Profiles' % system_name
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     # Grab the data for the two listings, main communities and portlet
     search = ICatalogSearch(context)
@@ -97,7 +101,8 @@ def show_profiles_view(context, request):
 def show_profile_view(context, request):
     """Show a profile with actions if the current user"""
     page_title = 'View Profile'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     appdates = getUtility(IAppDates)
     
     # Create display values from model object
@@ -198,8 +203,18 @@ def show_profile_view(context, request):
                                   reverse=True,
                                  )[:10]:
             tags.append({'name': name, 'count': count})
+            
+    def get_recent_items_batch(community, request, size=10):
+        batch = get_catalog_batch_grid(
+            community, request, interfaces=[IContent],
+            creator=context.__name__,
+            sort_index="modified_date", reverse=True, batch_size=size,
+            path={'query': model_path(community)},
+            allowed={'query': effective_principals(request), 'operator': 'or'},
+        )
+        return batch        
 
-    # List recently added content
+    '''# List recently added content
     num, docids, resolver = ICatalogSearch(context)(
         sort_index='creation_date', reverse=True,
         interfaces=[IContent], limit=5, creator=context.__name__,
@@ -211,7 +226,13 @@ def show_profile_view(context, request):
         if item is None:
             continue
         adapted = getMultiAdapter((item, request), IGridEntryInfo)
-        recent_items.append(adapted)
+        recent_items.append(adapted)'''
+        
+    recent_items = []
+    recent_items_batch = get_recent_items_batch(context, request)
+    for item in recent_items_batch["entries"]:
+        adapted = getMultiAdapter((item, request), IGridEntryInfo)
+        recent_items.append(adapted)    
   
     return render_template_to_response(
         'templates/profile.pt',
@@ -225,12 +246,15 @@ def show_profile_view(context, request):
         preferred_communities=preferred_communities,
         tags=tags,
         recent_items=recent_items,
+        batch_info=recent_items_batch,
+        feed_url=model_url(context, request, "atom.xml"),
         comments=comments_to_display(request)
        )
     
 
 def profile_thumbnail(context, request):
-    api = TemplateAPI(context, request, 'Profile thumbnail redirector')
+    api = request.api
+    api.page_title = 'Profile thumbnail redirector'
     photo = context.get('photo')
     if photo is not None:
         url = thumb_url(photo, request, PROFILE_THUMB_SIZE)
@@ -393,7 +417,8 @@ def recent_content_view(context, request):
         recent_items.append(adapted)
 
     page_title = "Content Added Recently by %s" % context.title
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     return render_template_to_response(
         'templates/profile_recent_content.pt',
         api=api,
@@ -455,7 +480,8 @@ def deactivate_profile_view(context, request):
 
     page_title = 'Deactivate user account for %s %s' % (context.firstname,
                                                         context.lastname)
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     # Show confirmation page.
     return dict(api=api, myself=myself)
@@ -477,7 +503,8 @@ def reactivate_profile_view(context, request,
 
     page_title = 'Reactivate user account for %s %s' % (context.firstname,
                                                         context.lastname)
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     # Show confirmation page.
     return dict(api=api)
@@ -573,7 +600,8 @@ class ResetConfirmController(object):
             users.change_password(userid, password)
 
             page_title = 'Password Reset Complete'
-            api = TemplateAPI(context, request, page_title)
+            api = request.api
+            api.page_title = page_title
             return render_template_to_response(
                 'templates/reset_complete.pt',
                 api=api,
@@ -582,7 +610,8 @@ class ResetConfirmController(object):
                 )
 
         except ResetFailed, e:
-            api = TemplateAPI(context, request, e.page_title)
+            api = request.api
+            api.page_title = e.page_title
             return render_template_to_response('templates/reset_failed.pt',
                                                api=api)
 

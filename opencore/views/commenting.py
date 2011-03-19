@@ -7,6 +7,7 @@ from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
 from repoze.bfg.chameleon_zpt import render_template_to_response
+from repoze.bfg.exceptions import ExceptionResponse
 from repoze.lemonade.content import create_content
 from formencode import Invalid
 from opencore.models.interfaces import IComment
@@ -49,7 +50,9 @@ def redirect_comments_view(context, request):
 def show_comment_view(context, request):
 
     page_title = "Comment on " + context.title
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
+    
 
     actions = []
     if has_permission('edit', context, request):
@@ -58,13 +61,15 @@ def show_comment_view(context, request):
         actions.append(('Delete', 'delete.html'))
 
     byline_info = getMultiAdapter((context, request), IBylineInfo)
-    container = find_interface(context, IBlogEntry)
-    if container is None:
-        # Comments can also be in forum topics
-        container = find_interface(context, IForumTopic)
-    if container is None:
-        # Comments can also be in profile
-        container = find_interface(context, IProfile)    
+    container = find_supported_interface(context, api.supported_comment_interfaces())  
+    if not container:
+        err_msg = 'unsupported interface for show_comment_view found for ' \
+          'context: %s' % context  
+        log.warn(err_msg)          
+        exception_response = ExceptionResponse(err_msg)
+        exception_response.status = '500 Internal Server Error'
+        return exception_response
+          
     backto = {
         'href': model_url(container, request),
         'title': container.title,

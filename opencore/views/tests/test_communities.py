@@ -17,6 +17,8 @@ class Test_show_communities_view(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.communities import show_communities_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_communities_view(context, request)
 
     def _checkResponse(self, response, target):
@@ -68,6 +70,8 @@ class Test_show_all_communities_view(_Show_communities_helper,
 
     def _callFUT(self, context, request):
         from opencore.views.communities import show_all_communities_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_all_communities_view(context, request)
 
     def test_wo_groups(self):
@@ -130,6 +134,8 @@ class Test_show_active_communities_view(_Show_communities_helper,
         
     def _callFUT(self, context, request):
         from opencore.views.communities import show_active_communities_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_active_communities_view(context, request)
 
     def test_excludes_inactive(self):

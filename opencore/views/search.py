@@ -39,7 +39,8 @@ def get_topic_options(context):
 def advancedsearch_view(context, request):
 
     page_title = 'Advanced Search'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     type_choices = []
     for t in get_content_types():
@@ -181,7 +182,8 @@ def searchresults_view(context, request):
     # screens
 
     page_title = 'Search Results'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     if ICommunity.providedBy(context):
         layout = api.community_layout
         community = context.title

@@ -1,5 +1,4 @@
 from repoze.lemonade.content import create_content
-#from repoze.postoffice.message import Message
 from email.message import Message
 
 from zope.component.event import objectEventNotify
@@ -70,7 +69,8 @@ def show_community_view(context, request):
 
     user = authenticated_userid(request)
     page_title = 'View Community ' + context.title
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     # provide client data for rendering current tags in the tagbox
     tagquery = getMultiAdapter((context, request), ITagQuery)
@@ -244,7 +244,8 @@ def join_community_view(context, request):
 
     # Show form
     page_title = "Join " + context.title
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     return render_template_to_response(
         "templates/join_community.pt",
         api=api,
@@ -257,7 +258,8 @@ def join_community_view(context, request):
 def delete_community_view(context, request):
 
     page_title = 'Delete ' + context.title
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     confirm = request.params.get('confirm', False)
     if confirm == '1':

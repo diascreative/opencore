@@ -125,7 +125,8 @@ def older_feed_items(context, request):
 
 
 def show_feeds_view(context, request):
-    api = TemplateAPI(context, request, 'Latest Activity')
+    api = request.api
+    api.page_title = 'Latest Activity'
     filter_cookie = request.cookies.get(_FILTER_COOKIE) or ''
     return {'api': api,
             'show_filter': True,
@@ -134,7 +135,8 @@ def show_feeds_view(context, request):
 
 
 def profile_feed_view(context, request):
-    api = TemplateAPI(context, request, 'Latest Activity')
+    api = request.api
+    api.page_title = 'Latest Activity'
     return {'api': api,
             'show_filter': False,
             'sticky_filter': 'profile:%s' % context.__name__,
@@ -142,7 +144,8 @@ def profile_feed_view(context, request):
 
 
 def community_feed_view(context, request):
-    api = TemplateAPI(context, request, 'Latest Activity')
+    api = request.api
+    api.page_title = 'Latest Activity'
     return {'api': api,
             'show_filter': False,
             'sticky_filter': 'community:%s' % context.__name__,

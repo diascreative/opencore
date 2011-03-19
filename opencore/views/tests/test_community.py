@@ -58,6 +58,8 @@ class ShowCommunityViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.community import show_community_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_community_view(context, request)
 
     def _makeCommunity(self):
@@ -199,6 +201,8 @@ class RelatedCommunitiesAjaxViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.community import related_communities_ajax_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return related_communities_ajax_view(context, request)
 
     def _register(self):
@@ -246,6 +250,8 @@ class JoinCommunityViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.community import join_community_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return join_community_view(context, request)
 
     def test_show_form(self):
@@ -309,6 +315,8 @@ class DeleteCommunityViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.community import delete_community_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return delete_community_view(context, request)
 
     def _register(self):

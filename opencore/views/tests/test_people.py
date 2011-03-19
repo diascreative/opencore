@@ -1058,6 +1058,8 @@ class ShowProfilesViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.people import show_profiles_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_profiles_view(context, request)
 
     def test_it(self):

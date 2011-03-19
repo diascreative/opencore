@@ -11,7 +11,8 @@ from opencore.views.api import TemplateAPI
 def delete_resource_view(context, request, num_children=0):
 
     page_title = 'Delete ' + context.title
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     confirm = request.params.get('confirm')
     if confirm:

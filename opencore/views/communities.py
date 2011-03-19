@@ -65,6 +65,7 @@ def _show_communities_view_helper(context,
                                   prefix='',
                                   **kw
                                  ):
+    
     # Grab the data for the two listings, main communities and portlet
     communities_path = model_path(context)
 
@@ -120,7 +121,9 @@ def _show_communities_view_helper(context,
     my_communities = get_my_communities(context, request)
 
     preferred_communities = get_preferred_communities(context, request)
-
+    api = request.api
+    api.page_title = page_title
+      
     return {'communities': communities,
             'batch_info': batch_info,
             'letters': {}, #letter_info,
@@ -128,7 +131,7 @@ def _show_communities_view_helper(context,
             'actions': actions,
             'my_communities': my_communities, 
             'preferred_communities': preferred_communities,
-            'api': TemplateAPI(context, request, page_title),
+            'api': api,
             'profile': None,
             'qualifiers': qualifiers,
             'error': error,

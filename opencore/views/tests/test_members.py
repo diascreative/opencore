@@ -13,6 +13,8 @@ class ShowMembersViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.members import show_members_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_members_view(context, request)
 
     def test_show_members(self):
@@ -62,6 +64,8 @@ class AddExistingUserTests(unittest.TestCase):
 
     def _makeOne(self, context, request):
         from opencore.views.members import InviteNewUsersController
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return InviteNewUsersController(context, request)
 
     def _getContext(self):
@@ -158,6 +162,8 @@ class AcceptInvitationControllerTests(unittest.TestCase):
 
     def _makeOne(self, context, request):
         from opencore.views.members import AcceptInvitationController
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return AcceptInvitationController(context, request)
 
     def test__call__(self):
@@ -279,6 +285,8 @@ class InviteNewUsersTests(unittest.TestCase):
         return InviteNewUsersController
 
     def _makeOne(self, context, request):
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return self._getTargetClass()(context, request)
 
     def _registerMailer(self):
@@ -459,6 +467,8 @@ class ManageMembersControllerTests(unittest.TestCase):
         return ManageMembersController
 
     def _makeOne(self, context, request):
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return self._getTargetClass()(context, request)
 
     def _registerMailer(self):

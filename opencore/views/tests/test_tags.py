@@ -13,6 +13,8 @@ class AddTagsTests(unittest.TestCase):
 
     def _callFUT(self, context, request, values):
         from opencore.views.tags import add_tags
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return add_tags(context, request, values)
 
     def test_w_no_values(self):
@@ -78,6 +80,8 @@ class SetTagsTests(unittest.TestCase):
 
     def _callFUT(self, context, request, values):
         from opencore.views.tags import set_tags
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return set_tags(context, request, values)
 
     def test_w_normal_values(self):
@@ -110,6 +114,8 @@ class ShowTagViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import showtag_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return showtag_view(context, request)
 
     def test_without_tag(self):
@@ -217,6 +223,8 @@ class CommunityShowTagViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import community_showtag_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return community_showtag_view(context, request)
 
     def test_without_tag(self):
@@ -340,6 +348,8 @@ class ProfileShowTagViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import profile_showtag_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return profile_showtag_view(context, request)
 
     def test_without_tag(self):
@@ -468,6 +478,8 @@ class TagCloudViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import tag_cloud_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return tag_cloud_view(context, request)
 
     def test_wo_tags_tool(self):
@@ -548,6 +560,8 @@ class CommunityTagCloudViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import community_tag_cloud_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return community_tag_cloud_view(context, request)
 
     def test_wo_tags_tool(self):
@@ -652,6 +666,8 @@ class TagListingViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import tag_listing_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return tag_listing_view(context, request)
 
     def test_wo_tags_tool(self):
@@ -698,6 +714,8 @@ class CommunityTagListingViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import community_tag_listing_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return community_tag_listing_view(context, request)
 
     def test_wo_tags_tool(self):
@@ -756,6 +774,8 @@ class ProfileTagListingViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import profile_tag_listing_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return profile_tag_listing_view(context, request)
 
     def test_wo_tags_tool(self):
@@ -828,6 +848,8 @@ class TagUsersViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import tag_users_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return tag_users_view(context, request)
 
     def test_with_tag_missing(self):
@@ -896,6 +918,8 @@ class CommunityTagUsersViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import community_tag_users_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return community_tag_users_view(context, request)
 
     def test_with_tag_missing(self):
@@ -976,6 +1000,8 @@ class ManageTagsViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import manage_tags_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return manage_tags_view(context, request)
 
     def test_not_submitted(self):
@@ -1198,6 +1224,8 @@ class TestJQueryTagSearchView(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.tags import jquery_tag_search_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return jquery_tag_search_view(context, request)
 
     def test_it(self):

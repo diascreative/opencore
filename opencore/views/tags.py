@@ -134,7 +134,8 @@ def showtag_view(context, request, community=None, user=None, crumb_title=None):
     """Show a page for a particular tag, optionally refined by context."""
 
     page_title = 'Show Tag'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     # The tag screens (cloud, listing, and this view) each have a
     # "jump box" that allows you to quickly jump to another tag.  All
@@ -269,7 +270,8 @@ def _calculateTagWeights(taglist):
 
 def tag_cloud_view(context, request):
     page_title = 'Tag Cloud'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     tags = find_tags(context)
     if tags is not None:
         cloud = [{'name': x[0], 'count': x[1]} for x in tags.getCloud()]
@@ -287,7 +289,8 @@ def tag_cloud_view(context, request):
 
 def community_tag_cloud_view(context, request):
     page_title = 'Tag Cloud'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     tags = find_tags(context)
     if tags is not None:
         cloud = [{'name': x[0], 'count': x[1]}
@@ -309,7 +312,8 @@ def community_tag_cloud_view(context, request):
 
 def tag_listing_view(context, request):
     page_title = 'Tag Listing'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     tags = find_tags(context)
 
     if tags is None:
@@ -326,7 +330,8 @@ def tag_listing_view(context, request):
 
 def community_tag_listing_view(context, request):
     page_title = 'Tag Listing'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     tags = find_tags(context)
 
     if tags is None:
@@ -346,7 +351,8 @@ def community_tag_listing_view(context, request):
 
 def profile_tag_listing_view(context, request):
     page_title = 'Tag Listing'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     tags = find_tags(context)
 
     if tags is None:
@@ -367,7 +373,8 @@ def profile_tag_listing_view(context, request):
 
 def tag_users_view(context, request):
     page_title = 'Tag Users'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     tag = request.params.get('tag', None)
     docid = request.params.get('docid', None)
@@ -408,7 +415,8 @@ def tag_users_view(context, request):
 
 def community_tag_users_view(context, request):
     page_title = 'Tag Users'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     tag = request.params.get('tag', None)
     docid = request.params.get('docid', None)
@@ -454,7 +462,8 @@ re_tag = re.compile(r"^[a-zA-Z0-9\.\-_]+$")
 
 def manage_tags_view(context, request):
     page_title = 'Manage Tags'
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
     tagger = find_tags(context)
     userid = context.__name__
     error = ''

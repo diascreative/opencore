@@ -38,6 +38,9 @@ from opencore.models.interfaces import ICommunityInfo
 from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IGridEntryInfo
 from opencore.models.interfaces import ITagQuery
+from opencore.models.interfaces import IBlogEntry 
+from opencore.models.interfaces import IForumTopic
+from opencore.models.interfaces import IProfile
 from opencore.views.adapters import DefaultFooter
 from opencore.views.interfaces import IFooter
 from opencore.views.interfaces import ISidebar
@@ -480,6 +483,9 @@ class TemplateAPI(object):
             d.update(update_dict)
         return convert_to_script(d, var_name='karl_client_data')
 
+    def supported_comment_interfaces(self):
+        return (IBlogEntry, ICommunity, IForumTopic, IProfile)
+    
     # openideo additions below    
     def get_user_bookmarks(self, filter_challenge=True):
         if self.userid is None:
@@ -602,7 +608,12 @@ def _get_egg_rev():
             return 'r%d' % hash(rev)
         path = os.path.dirname(path)
         
-  
+def get_template_api(context, request):
+    name = get_setting(request, 'package')
+    factory = queryUtility(ITemplateAPI, name=name, default=TemplateAPI)
+    return factory(context, request)
+    
+      
 def handle_request_api(event):
     """ Subscriber for assigning the correct TemplateAPI implementation
     """
@@ -613,8 +624,4 @@ def handle_request_api(event):
         # The object is not in the model graph
         return
     
-    name = get_setting(context, 'package')
-    
-    factory = queryUtility(ITemplateAPI, name=name, default=TemplateAPI)
-    api = factory(context, request)
-    request.api = api
+    request.api = get_template_api(context, request)

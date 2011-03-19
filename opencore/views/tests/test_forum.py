@@ -20,6 +20,8 @@ class TestShowForumsView(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.forum import show_forums_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_forums_view(context, request)
 
     def _register(self):
@@ -62,6 +64,8 @@ class TestShowForumView(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.forum import show_forum_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_forum_view(context, request)
 
     def _register(self):
@@ -100,6 +104,8 @@ class ShowForumTopicViewTests(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.forum import show_forum_topic_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return show_forum_topic_view(context, request)
 
     def _register(self):
@@ -252,6 +258,9 @@ class TestAddForumTopicController(unittest.TestCase):
 
     def _makeOne(self, *arg, **kw):
         from opencore.views.forum import AddForumTopicController
+        from opencore.views.api import get_template_api
+        context, request = arg 
+        request.api = get_template_api(context, request)
         return AddForumTopicController(*arg, **kw)
 
     def _makeRequest(self):

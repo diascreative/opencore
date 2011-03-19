@@ -11,6 +11,8 @@ class TestLoginView(unittest.TestCase):
 
     def _callFUT(self, context, request):
         from opencore.views.login import login_view
+        from opencore.views.api import get_template_api
+        request.api = get_template_api(context, request)
         return login_view(context, request)
 
     def test_GET_came_from_endswith_login_html_relative(self):

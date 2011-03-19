@@ -80,7 +80,8 @@ def login_view(context, request):
         return HTTPFound(headers=remember_headers, location=came_from)
 
     page_title = '' # Per #366377, don't say what screen
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     came_from = _fixup_came_from(request,
                                  request.params.get('came_from', request.url))

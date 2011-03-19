@@ -73,7 +73,8 @@ class ShowForumsView(object):
         request = self.request
 
         page_title = context.title
-        api = TemplateAPI(context, request, page_title)
+        api = request.api
+        api.page_title = page_title
         appdates = getUtility(IAppDates)
 
         actions = []
@@ -127,8 +128,8 @@ def show_forums_view(context, request):
 def show_forum_view(context, request):
 
     page_title = context.title
-    api = TemplateAPI(context, request, page_title)
-
+    api = request.api
+ 
     actions = []
     if has_permission('create', context, request):
         actions.append(('Add Forum Topic', 'add_forum_topic.html'))
@@ -190,7 +191,8 @@ def show_forum_topic_view(context, request):
     if has_permission('delete', context, request):
         actions.append(('Delete', 'delete.html'))
 
-    api = TemplateAPI(context, request, page_title)
+    api = request.api
+    api.page_title = page_title
 
     byline_info = getMultiAdapter((context, request), IBylineInfo)
     forum = find_interface(context, IForum)
