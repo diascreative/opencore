@@ -204,35 +204,6 @@ def show_profile_view(context, request):
                                  )[:10]:
             tags.append({'name': name, 'count': count})
             
-    def get_recent_items_batch(community, request, size=10):
-        batch = get_catalog_batch_grid(
-            community, request, interfaces=[IContent],
-            creator=context.__name__,
-            sort_index="modified_date", reverse=True, batch_size=size,
-            path={'query': model_path(community)},
-            allowed={'query': effective_principals(request), 'operator': 'or'},
-        )
-        return batch        
-
-    '''# List recently added content
-    num, docids, resolver = ICatalogSearch(context)(
-        sort_index='creation_date', reverse=True,
-        interfaces=[IContent], limit=5, creator=context.__name__,
-        allowed={'query': effective_principals(request), 'operator': 'or'},
-        )
-    recent_items = []
-    for docid in docids:
-        item = resolver(docid)
-        if item is None:
-            continue
-        adapted = getMultiAdapter((item, request), IGridEntryInfo)
-        recent_items.append(adapted)'''
-        
-    recent_items = []
-    recent_items_batch = get_recent_items_batch(context, request)
-    for item in recent_items_batch["entries"]:
-        adapted = getMultiAdapter((item, request), IGridEntryInfo)
-        recent_items.append(adapted)    
   
     return render_template_to_response(
         'templates/profile.pt',
@@ -245,8 +216,7 @@ def show_profile_view(context, request):
         my_communities=my_communities,
         preferred_communities=preferred_communities,
         tags=tags,
-        recent_items=recent_items,
-        batch_info=recent_items_batch,
+        recent_items=[],
         feed_url=model_url(context, request, "atom.xml"),
         comments=comments_to_display(request)
        )

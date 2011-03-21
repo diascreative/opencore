@@ -463,7 +463,7 @@
     for="opencore.models.interfaces.ICommunityContent
          repoze.bfg.interfaces.IRequest"
     provides="opencore.views.interfaces.IAtomEntry"
-    factory="opencore.views.atom.NullContentAtomEntry"/>  
+    factory="opencore.views.atom.GenericAtomEntry"/>  
  
    <view
      for="opencore.models.interfaces.IMembers"

@@ -165,7 +165,7 @@ class GenericAtomEntry(AtomEntry):
             return self.context.text
         if hasattr(self.context, "description"):
             return self.context.description
-        raise ValueError("Cannot adapt %s" % self.context)
+        return u""
 
 class CommunityAtomFeed(AtomFeed):
     """ Presents "Recent Activity" for community as an atom feed.

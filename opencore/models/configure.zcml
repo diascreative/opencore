@@ -141,7 +141,7 @@
     factory="opencore.models.commenting.CommentsFolder"
     type="opencore.models.interfaces.ICommentsFolder"/>   
 
-<!--
+
   <lemonade:content
       factory=".feedstorage.FeedsContainer"
       type=".interfaces.IFeedsContainer"
@@ -151,7 +151,7 @@
       factory=".feedstorage.Feed"
       type=".interfaces.IFeed"
       />
--->
+
 
   <!-- default tools available to communities (IToolFactories) -->
 
