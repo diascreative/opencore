@@ -1,18 +1,25 @@
 import time
 
+from zope.interface import implements
 from zope.component import getMultiAdapter
+from zope.component import getAdapter
 
 from webob import Response
-from zope.interface import implements
+
 from repoze.bfg.chameleon_zpt import render_template
 from repoze.bfg.url import model_url
+from repoze.bfg.traversal import model_path
 
 from opencore.utils import find_profiles
 from opencore.views.community import get_recent_items_batch
 from opencore.views.interfaces import IAtomFeed
 from opencore.views.interfaces import IAtomEntry
 from opencore.views.utils import convert_entities
+from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import ICommunityContent
+
+N_ENTRIES = 20
 
 def format_datetime(d):
     formatted = d.strftime("%Y-%m-%dT%H:%M:%S")
@@ -176,3 +183,21 @@ class CommunityAtomFeed(AtomFeed):
 
 def community_atom_view(context, request):
     return CommunityAtomFeed(context, request)()
+
+class ProfileAtomFeed(AtomFeed):
+    @property
+    def _entry_models(self):
+        search = getAdapter(self.context, ICatalogSearch)
+        count, docids, resolver = search(
+            limit=N_ENTRIES,
+            #path=model_path(self.context),
+            creator=self.context.__name__,
+            sort_index="modified_date",
+            reverse=True,
+            interfaces=[ICommunityContent,]
+        )
+
+        return [resolver(docid) for docid in docids]
+
+def profile_atom_view(context, request):
+    return ProfileAtomFeed(context, request)()

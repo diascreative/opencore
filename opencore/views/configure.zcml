@@ -204,6 +204,12 @@
   <!-- feeds -->
   
   <view
+    for="opencore.models.interfaces.ICommunity"
+    name="rss_view.xml"
+    view=".redirects.redirect_rss_view_xml"
+    permission="view"/>
+  
+  <view
     for="opencore.models.interfaces.ISite"
     view=".contentfeeds.show_feeds_view"
     renderer="templates/contentfeeds.pt"
@@ -355,6 +361,20 @@
     permission="edit"
     name="manage_tags.html"
   />
+  
+   <view
+    for="opencore.models.interfaces.IProfile"
+    view=".contentfeeds.profile_feed_view"
+    renderer="templates/contentfeeds.pt"
+    permission="view"
+    name="contentfeed.html"
+    />
+  
+  <view
+    for="opencore.models.interfaces.IProfile"
+    view=".atom.profile_atom_view"
+    name="atom.xml"
+    permission="view"/> 
 
   <!-- /stop global tagging related views -->
   
@@ -426,12 +446,6 @@
     renderer="templates/searchresults.pt"
     view=".search.searchresults_view"
     permission="view"/>
-
- <!-- <view
-    for="opencore.models.interfaces.ICommunity"
-    name="edit.html"
-    view=".community.EditCommunityFormController"
-    permission="moderate"/>-->
     
   <view
     for="opencore.models.interfaces.ICommunity"
@@ -444,6 +458,12 @@
          repoze.bfg.interfaces.IRequest"
     provides=".interfaces.ISidebar"
     factory=".community.CommunitySidebar"/>
+    
+  <adapter
+    for="opencore.models.interfaces.ICommunityContent
+         repoze.bfg.interfaces.IRequest"
+    provides="opencore.views.interfaces.IAtomEntry"
+    factory="opencore.views.atom.NullContentAtomEntry"/>  
  
    <view
      for="opencore.models.interfaces.IMembers"

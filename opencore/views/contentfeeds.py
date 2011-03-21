@@ -10,7 +10,7 @@ from opencore.utils import find_events
 from opencore.views.api import TemplateAPI
 
 
-_FILTER_COOKIE = 'karl.feed_filter'
+_FILTER_COOKIE = 'opencore.feed_filter'
 
 
 def _get_criteria(request):

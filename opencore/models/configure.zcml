@@ -12,12 +12,12 @@
       for="repoze.lemonade.interfaces.IContent
            repoze.folder.interfaces.IObjectAddedEvent"
       handler=".subscribers.index_content"/>
-<!--
+
   <subscriber
       for="repoze.lemonade.interfaces.IContent
            repoze.folder.interfaces.IObjectAddedEvent"
       handler=".contentfeeds.user_added_content"/>
--->
+
   <subscriber
       for="repoze.lemonade.interfaces.IContent
            repoze.folder.interfaces.IObjectWillBeAddedEvent"
@@ -27,12 +27,12 @@
       for="repoze.lemonade.interfaces.IContent
            opencore.interfaces.IObjectModifiedEvent"
       handler=".subscribers.set_modified"/>
-<!--
+
   <subscriber
       for="repoze.lemonade.interfaces.IContent
            opencore.interfaces.IObjectModifiedEvent"
       handler=".contentfeeds.user_modified_content"/>
--->
+
   <subscriber
       for="repoze.lemonade.interfaces.IContent
            opencore.interfaces.IObjectModifiedEvent"
@@ -54,20 +54,13 @@
       for="opencore.tagging.interfaces.ITagAddedEvent"
       handler=".contentfeeds.user_tagged_content"/>
       
-<!--
-  <subscriber
-      for=".interfaces.IUserAddedGroup"
-      handler=".subscribers.reindex_profile_after_group_change"/>
-
   <subscriber
       for=".interfaces.IUserAddedGroup"
       handler=".contentfeeds.user_joined_community"/>
-
  
   <subscriber
       for=".interfaces.IUserRemovedGroup"
       handler=".contentfeeds.user_left_community"/>
--->
  
   <subscriber
       for=".interfaces.ICatalogQueryEvent"
