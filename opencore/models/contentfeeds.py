@@ -183,7 +183,7 @@ def user_added_content(added, event):
             return
         site = find_site(added)
         profile_id = getattr(added, 'creator', None)
-        if profile_id in (None, 'None'):
+        if profile_id in (None, 'None', ''):
             return
         profile = site['profiles'][profile_id]
         info = _getInfo(profile, added)
