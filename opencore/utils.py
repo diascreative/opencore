@@ -184,4 +184,49 @@ def find_supported_interface(context, class_or_interfaces):
         found = find_interface(context, class_or_interface)
         if found: 
             return found    
-    return found     
+    return found 
+
+
+def fetch_url(url, data=None, timeout=None,  httpDebugLevel=0):
+    import urllib2
+    import socket
+    from urllib2 import Request
+    errorMessage = ""
+    # best to make out we are a browser
+    userAgent = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322)'
+    httpHeaders = {
+            'User-agent' : userAgent,
+            'Proxy-Connection' : 'Keep-Alive',
+            'Accept-Encoding' : 'gzip, deflate',
+            'Pragma' : 'no-cache',
+            'Cache-Control' : 'no-cache',
+            'Connection' : 'Keep-Alive'
+    }
+    try:
+        httpLogger = urllib2.HTTPHandler(debuglevel=httpDebugLevel)
+        if timeout:
+            socket.setdefaulttimeout(timeout)
+        opener = urllib2.build_opener(httpLogger)
+        request = None
+        if data:
+            request = Request(url, data=data, headers=httpHeaders)
+        else:
+            request = Request(url, headers=httpHeaders)
+        response =  opener.open(request)
+        return response.read(), response.headers
+
+    except urllib2.HTTPError, e:
+        errorMessage = 'Could not get file for '+ url + '. Exception: ' + str(e)
+    except urllib2.URLError, e:
+        errorMessage = 'Failed to reach server. Exception: ' + str(e)
+    except IOError, e:
+        errorMessage = 'IOError Exception: ' + str(e)
+    except socket.error:
+        errno, errstr = sys.exc_info()[:2]
+        if errno == socket.timeout:
+            errorMessage = 'Socket timeout getting ' + url + ':' + str(errstr)
+        else:
+            errorMessage = 'Some socket error ' + url + ':' + str(errstr)
+    except Exception, e:
+        errorMessage = 'Exception:' + str(e) + ', for url=' + url
+    raise ValueError('Exception during fetch_url, exception=%s' % errorMessage)    

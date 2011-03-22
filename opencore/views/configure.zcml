@@ -204,6 +204,12 @@
   <!-- feeds -->
   
   <view
+    for="opencore.models.interfaces.ISite"
+    view=".atom.twitter_site_atom_view"
+    name="twitter_atom.xml"
+    permission="view"/> 
+  
+  <view
     for="opencore.models.interfaces.ICommunity"
     name="rss_view.xml"
     view=".redirects.redirect_rss_view_xml"

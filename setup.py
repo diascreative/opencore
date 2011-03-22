@@ -44,7 +44,8 @@ requires = [
     'bitlyapi',
     'Baker',
     'WebError',
-    'appendonly'
+    'appendonly',
+    'Beaker'
     ]
 
 setup(name='opencore',

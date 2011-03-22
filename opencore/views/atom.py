@@ -1,4 +1,5 @@
 import time
+import logging
 
 from zope.interface import implements
 from zope.component import getMultiAdapter
@@ -9,7 +10,7 @@ from webob import Response
 from repoze.bfg.chameleon_zpt import render_template
 from repoze.bfg.url import model_url
 from repoze.bfg.traversal import model_path
-
+from beaker.cache import cache_region
 from opencore.utils import find_profiles
 from opencore.views.community import get_recent_items_batch
 from opencore.views.interfaces import IAtomFeed
@@ -18,8 +19,11 @@ from opencore.views.utils import convert_entities
 from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import ICommunity
 from opencore.models.interfaces import ICommunityContent
+from opencore.models.interfaces import IImage
+from opencore.utilities.image import thumb_url
 
 N_ENTRIES = 20
+log = logging.getLogger(__name__)
 
 def format_datetime(d):
     formatted = d.strftime("%Y-%m-%dT%H:%M:%S")
@@ -56,7 +60,7 @@ class AtomFeed(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
-
+        
         self._url = model_url(context, request)
 
     def __call__(self):
@@ -122,6 +126,8 @@ class AtomEntry(object):
 
     @property
     def uri(self):
+        if IImage.providedBy(self.context):
+            return thumb_url(self.context, self.request, (75,75))    
         return model_url(self.context, self.request)
 
     @property
@@ -201,3 +207,20 @@ class ProfileAtomFeed(AtomFeed):
 
 def profile_atom_view(context, request):
     return ProfileAtomFeed(context, request)()
+
+@cache_region('short_term', 'twitter_search')
+def twitter_site_atom_view(context, request):
+    from opencore.utils import fetch_url
+    from opencore.utils import get_setting
+    twitter_search_id = get_setting(context, 'twitter_search_id')
+    if not twitter_search_id:
+        raise ValueError('no value found for twitter_search_id in config (ini). Unable to search twitter.')
+    search_url = 'http://search.twitter.com/search.rss?q=%s' % twitter_search_id
+    log.debug('twitter_site_atom_view: GET %s' % search_url)
+    feed_xml, headers = fetch_url(search_url)
+    response = Response(feed_xml, content_type=headers['Content-Type'])
+    # would be good to set the ETag too so the browser doesn't even try 
+    # to hit the page unless its expired.
+    log.debug('twitter_site_atom_view: %s' % response.headerlist)
+    return response
+    

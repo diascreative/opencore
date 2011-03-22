@@ -7,7 +7,10 @@
   <updated>${view.updated}</updated>
   <entry tal:repeat="entry view.entries">
     <title>${entry.title}</title>
+   
     <link href="${entry.uri}" rel="self"></link>
+    <link type="text/html" href="${entry.uri}" rel="alternate"/>
+    
     <id>${entry.uri}</id>
     <published>${entry.published}</published>
     <updated>${entry.updated}</updated>
