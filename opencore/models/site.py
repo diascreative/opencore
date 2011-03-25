@@ -264,7 +264,10 @@ class Site(Folder):
         self.filestore = PersistentMapping()
         self.list_aliases = OOBTree()
         self['signup'] = Folder()
-
+    
+    def communities(self):
+        return self[self.communities_name]
+    
     def update_indexes(self):
         """ Ensure that we have indexes matching what the application needs.
 

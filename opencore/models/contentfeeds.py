@@ -147,7 +147,7 @@ def user_joined_community(event):
         for group in joined:
             community_id, gtype = group[len(MEMBER_PREFIX):].split(':')
             if gtype == 'members':
-                community = event.site['communities'].get(community_id)
+                community = event.site.communities().get(community_id)
                 if community is None:
                     continue
                 info = _getInfo(profile, community)
@@ -167,7 +167,7 @@ def user_left_community(event):
         for group in left:
             community_id, gtype = group[len(MEMBER_PREFIX):].split(':')
             if gtype == 'members':
-                community = event.site['communities'].get(community_id)
+                community = event.site.communities().get(community_id)
                 if community is None:
                     continue
                 info = _getInfo(profile, community)
