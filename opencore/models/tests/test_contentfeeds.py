@@ -421,17 +421,17 @@ class _EventSubscriberTestsBase:
         from opencore.models.interfaces import IProfile
         registerContentFactory(DummyModel, ICommunity)
         registerContentFactory(DummyModel, IProfile)
-        site = DummyModel() # no events
+        site = DummySite(communities_name='communities') # no events
         site.catalog = DummyCatalog()
         site.events = DummyEvents()
         site.tags = DummyTags()
-        site['communities'] = DummyModel()
+        site[site.communities_name] = DummyModel()
         c = create_content(ICommunity,
                            title="Testing",
                            description='blah blah blah' * 80,
                           )
         directlyProvides(c, ICommunity)
-        site['communities']['testing'] = c
+        site[site.communities_name]['testing'] = c
         c.docid = 123
         c.__acl__ = [('Allow', 'group:KarlAdmin', ('view',)),
                      ('Allow',
@@ -1361,3 +1361,12 @@ class DummyTags:
                     ('europe', 1),
                     ('australia', 7),
                    ])
+
+from opencore.testing import DummyModel
+class DummySite(DummyModel):
+    
+    def __init__(self, **kw):
+        DummyModel.__init__(self, **kw)
+        
+    def communities(self):
+        return self[self.communities_name]  

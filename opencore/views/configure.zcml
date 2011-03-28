@@ -20,9 +20,7 @@
   <view
     for="opencore.models.interfaces.IImage"
     view=".files.thumbnail_view"
-    name="thumb"
-    permission="view"
-    />
+    name="thumb"/>
 
 
             
@@ -73,20 +71,17 @@
   <!-- profile -->
   <view
     for="opencore.models.interfaces.IProfiles"
-    view=".people.show_profiles_view"
-    permission="view"/>
+    view=".people.show_profiles_view"/>
     
   <view
     for="opencore.models.interfaces.IProfile"
-    view=".people.show_profile_view"
-    permission="view"/>
+    view=".people.show_profile_view"/>
 
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.profile_thumbnail"
-    name="profile_thumbnail"
-    permission="view"/>
-    
+    name="profile_thumbnail"/>
+     
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.EditProfileFormController"
@@ -206,8 +201,8 @@
   <view
     for="opencore.models.interfaces.ISite"
     view=".atom.twitter_site_atom_view"
-    name="twitter_atom.xml"
-    permission="view"/> 
+    name="twitter_atom.xml"/>
+   
   
   <view
     for="opencore.models.interfaces.ICommunity"
@@ -235,7 +230,6 @@
   <view
     for="opencore.models.interfaces.ISite"
     view=".contentfeeds.newest_feed_items"
-    permission="view"
     name="newest_feed_items.json"
     renderer="json"
     />
@@ -380,7 +374,7 @@
     for="opencore.models.interfaces.IProfile"
     view=".atom.profile_atom_view"
     name="atom.xml"
-    permission="view"/> 
+    permission="view"/>
 
   <!-- /stop global tagging related views -->
   

@@ -1,5 +1,3 @@
-
-
 """ A commenting facility that can be hung off resources"""
 
 from zope.interface import implements
@@ -47,3 +45,6 @@ class Comment(Folder):
 
     def get_attachments(self):
         return self
+    
+    def is_reply(self):
+        return IComment.providedBy(self.__parent__.__parent__)

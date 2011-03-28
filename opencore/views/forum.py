@@ -133,10 +133,10 @@ def show_forum_view(context, request):
     actions = []
     if has_permission('create', context, request):
         actions.append(('Add Forum Topic', 'add_forum_topic.html'))
-    '''if has_permission('edit', context, request):
+    if has_permission('edit', context, request):
         actions.append(('Edit', 'edit.html'))
     if has_permission('delete', context, request):
-        actions.append(('Delete', 'delete.html'))'''
+        actions.append(('Delete', 'delete.html'))
 
     profiles = find_profiles(context)
     appdates = getUtility(IAppDates)

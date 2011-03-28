@@ -1,13 +1,14 @@
 """Catalog results batching functions"""
-
+import logging
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
 from repoze.bfg.url import urlencode
 from opencore.models.interfaces import ICatalogSearch
 from opencore.utils import find_catalog
 
+log = logging.getLogger(__name__)
 
-def get_catalog_batch(context, request, **kw):
+def get_catalog_batch(context, request, filter_func=None, **kw):
     batch_start = kw.pop('batch_start', 0)
     batch_start = int(request.params.get("batch_start", batch_start))
     batch_size = kw.pop('batch_size', 20)
@@ -28,6 +29,7 @@ def get_catalog_batch(context, request, **kw):
     # the reverse parameter is only useful when there's a sort index
     kw['reverse'] = reverse
 
+    log.debug('get_catalog_batch query=%s' % str(kw))
     searcher = ICatalogSearch(context)
     total, docids, resolver = searcher(**kw)
 
@@ -46,6 +48,11 @@ def get_catalog_batch(context, request, **kw):
                 i -= 1
                 total -= 1
                 continue
+            if filter_func and not filter_func(model):
+                i -= 1
+                total -= 1
+                continue 
+                
             batch.append(model)
     else:
         batch_start = total

@@ -15,12 +15,11 @@ from repoze.bfg.url import model_url
 from repoze.bfg.security import effective_principals
 from repoze.bfg.traversal import quote_path_segment
 from repoze.bfg.traversal import find_model
-
-from repoze.bfg.location import lineage
 from repoze.bfg.traversal import model_path
+from repoze.bfg.location import lineage
 from repoze.bfg.interfaces import ISettings
-
 from repoze.bfg.security import authenticated_userid
+
 from repoze.lemonade.content import get_content_type
 from opencore.consts import countries
 from opencore.utils import find_site
@@ -41,6 +40,7 @@ from opencore.models.interfaces import ITagQuery
 from opencore.models.interfaces import IBlogEntry 
 from opencore.models.interfaces import IForumTopic
 from opencore.models.interfaces import IProfile
+from opencore.models.rdbms import RDBMSStore
 from opencore.views.adapters import DefaultFooter
 from opencore.views.interfaces import IFooter
 from opencore.views.interfaces import ISidebar
@@ -149,6 +149,7 @@ class TemplateAPI(object):
         self.formerrors = {}   
         self.formdata = request.POST 
         self.app_config = settings
+        self.rdbstore = RDBMSStore()
         
     @property
     def snippets(self):
@@ -485,6 +486,9 @@ class TemplateAPI(object):
 
     def supported_comment_interfaces(self):
         return (IBlogEntry, ICommunity, IForumTopic, IProfile)
+    
+    def view_count(self, context):
+        return self.rdbstore.view_count(path=model_path(context,''))[0][0]
     
     # openideo additions below    
     def get_user_bookmarks(self, filter_challenge=True):
