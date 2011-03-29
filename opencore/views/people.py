@@ -29,6 +29,7 @@ from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IGridEntryInfo
 from opencore.models.interfaces import IContent
 from opencore.models.interfaces import IProfile
+from opencore.models.profile import social_category
 from opencore.utilities.image import thumb_url
 from opencore.utils import find_communities
 from opencore.utils import find_tags
@@ -150,6 +151,12 @@ def show_profile_view(context, request):
         display_photo["url"] = api.static_url + "/images/defaultUser.gif"
     profile["photo"] = display_photo
 
+    if get_setting(context, 'twitter_search_id'):
+        # assume it's a social app
+        social = social_category(context, None)
+        if social:
+            profile.update(social.ids())
+            
     # provide client data for rendering current tags in the tagbox
     client_json_data = dict(
         tagbox = get_tags_client_data(context, request),
@@ -279,6 +286,7 @@ class EditProfileFormController(object):
         self.form_title = 'Edit Profile'
         self.prefix = 'profile.'
         self.photo = context.get('photo')
+        self.schema = EditProfileSchema
 
     def form_defaults(self):
         context = self.context
@@ -316,7 +324,7 @@ class EditProfileFormController(object):
             log.debug('request.POST: %s' % post_data)
             try:
                 # validate and convert
-                self.api.formdata = EditProfileSchema.to_python(post_data, state=None, prefix='profile.')
+                self.api.formdata = self.schema.to_python(post_data, state=None, prefix='profile.')
             except FormEncodeInvalid, e:
                 self.api.formdata = post_data
                 raise ValidationError(self, **e.error_dict)
@@ -339,6 +347,18 @@ class EditProfileFormController(object):
         request = self.request
         log.debug('handle_submit: %s' % str(converted))
         objectEventNotify(ObjectWillBeModifiedEvent(context))
+        self.handle_submit_base_fields(converted)
+        # Emit a modified event for recataloging
+        objectEventNotify(ObjectModifiedEvent(context))
+        # Whew, we made it!
+        path = model_url(context, request)
+        msg = '?status_message=Profile%20edited'
+        return HTTPFound(location=path+msg)
+
+    def handle_submit_base_fields(self, converted):
+        context = self.context
+        request = self.request
+        objectEventNotify(ObjectWillBeModifiedEvent(context))
         # Handle the easy ones
         for name in self.simple_field_names:
             if name in converted:
@@ -356,13 +376,8 @@ class EditProfileFormController(object):
         except Invalid, e:
             raise ValidationError(self, **e.error_dict)
         context.modified_by = authenticated_userid(request)
-        # Emit a modified event for recataloging
-        objectEventNotify(ObjectModifiedEvent(context))
-        # Whew, we made it!
-        path = model_url(context, request)
-        msg = '?status_message=Profile%20edited'
-        return HTTPFound(location=path+msg)
-    
+        
+            
 def get_group_options(context):
     group_options = []
     for group in get_setting(context, "selectable_groups").split():

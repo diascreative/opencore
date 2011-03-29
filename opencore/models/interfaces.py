@@ -746,3 +746,12 @@ class IOrdering(Interface):
 
     def next_name(current_name):
         """ Given a name, return the next name or None """
+
+# do we also need a non community page?        
+class IPage(ICommunityContent, IPages):
+    """A page that isn't in a wiki
+    """
+    taggedValue('name', 'Page')
+    title = Attribute(u'Title')
+    text = Attribute(u'Text')
+        

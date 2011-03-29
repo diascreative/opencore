@@ -162,7 +162,6 @@ def profile_textindexdata(profile):
 
 class ProfileCategoryGetter:
     """Gets category values from profiles.
-
     Limited to a particular category key.
     """
 
@@ -179,31 +178,22 @@ class ProfileCategoryGetter:
         if not values:
             return default
         return values
-
+        
 social_category =  ProfileCategoryGetter('social')
    
-class PeopleCategory(Folder):
-    implements(IPeopleCategory)
-    is_ordered = False
+class SocialCategory(Folder):
+    """container for social sites profile information
+    """    
+    def ids(self):
+        results = {}
+        for k,v in self.items():
+            results[k] = v.id
+        return results    
 
-    def __init__(self, title):
-        super(PeopleCategory, self).__init__()
-        self.title = title
-
-
-class PeopleCategoryItem(Persistent):
-    implements(IPeopleCategoryItem)
-    is_ordered = False
-    sync_id = None # normally set by GSA sync.
-
-    def __init__(self, title, description=u''):
-        self.title = title
-        self.description = description  # HTML blob    
-        
-
-class SocialPeopleCategoryItem(PeopleCategoryItem):
+class SocialCategoryItem(Persistent):
     implements(ISocial)
     
     def __init__(self, id, title, description=u''):
-        PeopleCategoryItem.__init__(self, title, description)
-        self.id = id    
+        self.id = unicode(id) 
+        self.title = unicode(title)
+        self.description = unicode(description)   
