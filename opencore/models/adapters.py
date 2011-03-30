@@ -153,6 +153,14 @@ class GridEntryInfo(object):
     @property
     def modified_by_url(self):
         return model_url(self.modified_by_profile, self.request)
+    
+    def __str__(self ):
+        return 'GridEntryInfo: title=%s, url=%s, type=%s, modified=%s, ' \
+         'created=%s, creator_title=%s, creator_url=%s, ' \
+         'modified_by_profile=%s, modified_by_title=%s, modified_by_url=%s' % \
+      (self.title, self.url, self.type, self.modified, self.created,
+       self.creator_title, self.creator_url, self.modified_by_profile,
+       self.modified_by_title, self.modified_by_url) 
 
 
 class TagQuery(object):
