@@ -29,21 +29,7 @@ class FolderNameAvailable(FancyValidator):
         try:
             return make_name(state.context, value)
         except ValueError, why:
-            raise Invalid(why[0])
-  
-''' todo: for forums etc
-class WikiTitleAvailable(Validator):
-    def __init__(self, container, exceptions=()):
-        self.container = container
-        self.exceptions = exceptions
-
-    def __call__(self, v):
-        if v in self.exceptions:
-            return
-        title = v.lower()
-        for page in self.container.values():
-            if page.title.lower() == title:
-                raise Invalid('Title "%s" is already in use on this wiki' % v)'''
+            raise Invalid(why[0], value, state)          
 
 class ValidationError(Exception):
     '''
@@ -260,10 +246,7 @@ class EditProfileSchema(PrefixSchema):
     organization = UnicodeString()
     websites = WebSitesValidator(if_missing=())    
     
-    biography = UnicodeString()
-    #twitter = PrefixedUnicodeString(prefix='@')
-    #facebook = UnicodeString() # todo: link
-    
+    biography = UnicodeString()    
     email = Email(not_empty=True)
     country = OneOf(countries.as_dict.keys())
     password = UnicodeString()
