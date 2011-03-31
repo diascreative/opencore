@@ -75,7 +75,7 @@
     
   <view
     for="opencore.models.interfaces.IProfile"
-    view=".people.show_profile_view"/>
+    view=".people.ShowProfileView"/>
 
   <view
     for="opencore.models.interfaces.IProfile"
