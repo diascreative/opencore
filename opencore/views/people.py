@@ -98,136 +98,153 @@ def show_profiles_view(context, request):
         profiles=profiles,
         )
 
-
-def show_profile_view(context, request):
-    """Show a profile with actions if the current user"""
-    page_title = 'View Profile'
-    api = request.api
-    api.page_title = page_title
-    appdates = getUtility(IAppDates)
+class ShowProfileView(object):
     
-    # Create display values from model object
-    profile = {}
-    for name in [name for name in context.__dict__.keys()
-                 if not name.startswith("_")]:
-        profile_value = getattr(context, name)
-        if profile_value is not None:
-            # Don't produce u'None'
-            profile[name] = unicode(profile_value)
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.api = TemplateAPI(self.context, self.request, 
+                               "View %s" % context.title)
+        layout_provider = get_layout_provider(self.context, self.request)
+        self.layout = layout_provider('generic')
+        self.photo_thumb_size = (75, 100)     
+        
+    def __call__(self):
+        context = self.context
+        request = self.request
+        api = self.api
+        appdates = getUtility(IAppDates)
+        
+        # Create display values from model object
+        profile = {}
+        for name in [name for name in context.__dict__.keys()
+                     if not name.startswith("_")]:
+            profile_value = getattr(context, name)
+            if profile_value is not None:
+                # Don't produce u'None'
+                profile[name] = unicode(profile_value)
+            else:
+                profile[name] = None
+       
+        # 'websites' is a tuple, so unicode(websites) is not what we want
+        profile["websites"] = context.websites
+    
+        # 'title' is a property, so need to access it directly
+        profile["title"] = context.title
+        
+        # 'created' is also a property and needs formatting too
+        profile['created'] = context.created.strftime('%B %d, %Y')
+    
+        if profile.has_key("languages"):
+            profile["languages"] = context.languages
+    
+        if profile.has_key("department"):
+            profile["department"] = context.department
+    
+        if profile.get("last_login_time"):
+            stamp = context.last_login_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+            profile["last_login_time"] = stamp
+    
+        if profile.has_key("country"):
+            # translate from country code to country name
+            country_code = profile["country"]
+            country = countries.as_dict.get(country_code, u'')
+            profile["country"] = country
+    
+        # Display portrait
+        photo = context.get('photo')
+        display_photo = {}
+        if photo is not None:
+            display_photo["url"] = thumb_url(photo, request, self.photo_thumb_size)
         else:
-            profile[name] = None
-   
-    # 'websites' is a tuple, so unicode(websites) is not what we want
-    profile["websites"] = context.websites
-
-    # 'title' is a property, so need to access it directly
-    profile["title"] = context.title
+            display_photo["url"] = api.static_url + "/images/defaultUser.gif"
+        profile["photo"] = display_photo
     
-    # 'created' is also a property and needs formatting too
-    profile['created'] = context.created.strftime('%B %d, %Y')
-
-    if profile.has_key("languages"):
-        profile["languages"] = context.languages
-
-    if profile.has_key("department"):
-        profile["department"] = context.department
-
-    if profile.get("last_login_time"):
-        stamp = context.last_login_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-        profile["last_login_time"] = stamp
-
-    if profile.has_key("country"):
-        # translate from country code to country name
-        country_code = profile["country"]
-        country = countries.as_dict.get(country_code, u'')
-        profile["country"] = country
-
-    # Display portrait
-    photo = context.get('photo')
-    display_photo = {}
-    if photo is not None:
-        display_photo["url"] = thumb_url(photo, request, PROFILE_THUMB_SIZE)
-    else:
-        display_photo["url"] = api.static_url + "/images/defaultUser.gif"
-    profile["photo"] = display_photo
-
-    if get_setting(context, 'twitter_search_id'):
-        # assume it's a social app
-        social = social_category(context, None)
-        if social:
-            profile.update(social.ids())
-            
-    # provide client data for rendering current tags in the tagbox
-    client_json_data = dict(
-        tagbox = get_tags_client_data(context, request),
-        )
-
-    # Get communities this user is a member of, along with moderator info
-    #
-    communities = {}
-    communities_folder = find_communities(context)
-    user_info = find_users(context).get_by_id(context.__name__)
-    if user_info is not None:
-        for group in user_info["groups"]:
-            if group.startswith("group.community:"):
-                unused, community_name, role = group.split(":")
-                if (communities.has_key(community_name) and
-                    role != "moderators"):
-                    continue
-
-                community = communities_folder.get(community_name, None)
-                if community is None:
-                    continue
-
-                if has_permission('view', community, request):
-                    communities[community_name] = {
-                        "title": community.title,
-                        "moderator": role == "moderators",
-                        "url": model_url(community, request),
-                    }
-
-    communities = communities.values()
-    communities.sort(key=lambda x:x["title"])
-
-    preferred_communities = []
-    my_communities = None
-    name = context.__name__
-    # is this the current user's profile?
-    if authenticated_userid(request) == name:
-        preferred_communities = get_preferred_communities(communities_folder,
-                                                          request)
-        my_communities = get_my_communities(communities_folder, request)
-
-    tagger = find_tags(context)
-    if tagger is None:
-        tags = ()
-    else:
-        tags = []
-        names = tagger.getTags(users=[context.__name__])
-        for name, count in sorted(tagger.getFrequency(names,
-                                                      user=context.__name__),
-                                  key=lambda x: x[1],
-                                  reverse=True,
-                                 )[:10]:
-            tags.append({'name': name, 'count': count})
-            
-  
-    return render_template_to_response(
-        'templates/profile.pt',
-        api=api,
-        profile=profile,
-        actions=get_profile_actions(context, request),
-        photo=photo,
-        head_data=convert_to_script(client_json_data),
-        communities=communities,
-        my_communities=my_communities,
-        preferred_communities=preferred_communities,
-        tags=tags,
-        recent_items=[],
-        feed_url=model_url(context, request, "atom.xml"),
-        comments=comments_to_display(request)
+        if get_setting(context, 'twitter_search_id'):
+            # assume it's a social app
+            social = social_category(context, None)
+            if social:
+                profile.update(social.ids())
+                
+        # provide client data for rendering current tags in the tagbox
+        client_json_data = dict(
+            tagbox = get_tags_client_data(context, request),
+            )
+    
+        # Get communities this user is a member of, along with moderator info
+        #
+        communities = {}
+        communities_folder = find_communities(context)
+        user_info = find_users(context).get_by_id(context.__name__)
+        if user_info is not None:
+            for group in user_info["groups"]:
+                if group.startswith("group.community:"):
+                    unused, community_name, role = group.split(":")
+                    if (communities.has_key(community_name) and
+                        role != "moderators"):
+                        continue
+    
+                    community = communities_folder.get(community_name, None)
+                    if community is None:
+                        continue
+    
+                    if has_permission('view', community, request):
+                        communities[community_name] = {
+                            "title": community.title,
+                            "moderator": role == "moderators",
+                            "url": model_url(community, request),
+                        }
+    
+        communities = communities.values()
+        communities.sort(key=lambda x:x["title"])
+    
+        preferred_communities = []
+        my_communities = None
+        name = context.__name__
+        # is this the current user's profile?
+        if authenticated_userid(request) == name:
+            preferred_communities = get_preferred_communities(communities_folder,
+                                                              request)
+            my_communities = get_my_communities(communities_folder, request)
+    
+        tagger = find_tags(context)
+        if tagger is None:
+            tags = ()
+        else:
+            tags = []
+            names = tagger.getTags(users=[context.__name__])
+            for name, count in sorted(tagger.getFrequency(names,
+                                                          user=context.__name__),
+                                      key=lambda x: x[1],
+                                      reverse=True,
+                                     )[:10]:
+                tags.append({'name': name, 'count': count})
+               
+        
+        self.profile = profile
+        self.communities = communities
+        self.my_communities = my_communities
+        self.preferred_communities = preferred_communities
+        self.tags = tags
+        self.actions = get_profile_actions(context, request)
+        self.head_data = convert_to_script(client_json_data)
+        return self.make_response()
+        
+    def make_response(self):
+         return render_template_to_response(
+            'templates/profile.pt',
+            api=self.api,
+            profile=self.profile,
+            actions=self.actions,
+            head_data=self.head_data,
+            communities=self.communities,
+            my_communities=self.my_communities,
+            preferred_communities=self.preferred_communities,
+            tags=self.tags,
+            recent_items=[],
+            feed_url=model_url(self.context, self.request, "atom.xml"),
+            comments=comments_to_display(self.request)
        )
-    
 
 def profile_thumbnail(context, request):
     api = request.api
