@@ -497,7 +497,7 @@ $.widget('ui.karltagbox', $.extend({}, $.ui.autobox3.prototype, {
         // add a button after the input
         // also wrap it to avoid breaking
         this.input.wrap('<span></span>');
-        $('<button class="button primary_button inline addtag-button" type="button"><span>Add</span></button>')
+/*        $('<button class="button primary_button inline addtag-button" type="button"><span>Add</span></button>')
             .bind('click', function(e) {
                 // We generate the record first...
                 // (null result means we need not add it)
@@ -505,7 +505,7 @@ $.widget('ui.karltagbox', $.extend({}, $.ui.autobox3.prototype, {
                 if (record) { self._addBox(record); }
                 e.preventDefault();
             })
-            .insertAfter(this.input);
+            .insertAfter(this.input);*/
 
 
         // populate additional methods from options
