@@ -298,38 +298,6 @@ class TemplateAPI(object):
         tagquery = getMultiAdapter((self.context, self.request), ITagQuery)
         return tagquery.tagusers
 
-    '''@property
-    def intranets_info(self):
-        """Get information for the footer and intranets listing"""
-        if self._intranets_info is None:
-            intranets_info = []
-            intranets = find_intranets(self.context)
-            if not intranets:
-                # Maybe there aren't any intranets defined yet
-                return []
-            request = self.request
-            intranets_url = model_url(intranets, request)
-            for name, entry in intranets.items():
-                try:
-                    content_iface = get_content_type(entry)
-                except ValueError:
-                    continue
-                href = '%s%s/' % (intranets_url, quote_path_segment(name))
-                if content_iface == ICommunity:
-                    intranets_info.append({
-                            'title': entry.title,
-                            'intranet_href': href,
-                            'edit_href': href + '/edit_intranet.html',
-                            })
-            # Sort the list
-            def intranet_sort(x, y):
-                if x['title'] > y['title']:
-                    return 1
-                else:
-                    return -1
-            self._intranets_info = sorted(intranets_info, intranet_sort)
-        return self._intranets_info'''
-
     def actions_to_menu(self, actions):
         """A helper used by the snippets rendering the actions menu.
 
@@ -489,6 +457,12 @@ class TemplateAPI(object):
     
     def view_count(self, context):
         return self.rdbstore.view_count(path=model_path(context,''))[0][0]
+    
+    def like_count(self, context):
+        count = 0
+        if 'likes' in context.__dict__:
+            count = context.likes.count()
+        return count    
     
     # openideo additions below    
     def get_user_bookmarks(self, filter_challenge=True):

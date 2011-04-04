@@ -548,6 +548,12 @@
     renderer="templates/list_communities.pt"
     permission="view"
   />
+  
+  <view
+   name="like.html"
+   for="opencore.models.interfaces.IContent"
+   view=".like.like"
+   permission="comment"/>
 
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"

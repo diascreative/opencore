@@ -754,4 +754,7 @@ class IPage(ICommunityContent, IPages):
     taggedValue('name', 'Page')
     title = Attribute(u'Title')
     text = Attribute(u'Text')
+    
+class ILike(Interface):   
+    """Like content""" 
         

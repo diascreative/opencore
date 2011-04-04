@@ -243,6 +243,10 @@
       type="opencore.models.interfaces.IReferenceSection"
       />
     
+   <lemonade:content
+      factory=".like.Like"
+      type="opencore.models.interfaces.ILike"/>
+        
   <adapter
       for="opencore.models.interfaces.ICommunityFile"
       provides="opencore.models.interfaces.ITextIndexData"
