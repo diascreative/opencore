@@ -48,3 +48,12 @@ class Comment(Folder):
     
     def is_reply(self):
         return IComment.providedBy(self.__parent__.__parent__)
+    
+    def has_replies(self):
+        _has_replies = False
+        if self.replies():
+            _has_replies = True
+        return _has_replies
+    
+    def replies(self):
+        return self.get('comments')    
