@@ -23,13 +23,22 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class FolderNameAvailable(FancyValidator):
+class FolderName(FancyValidator):
    
     def _to_python(self, value, state):
         try:
             return make_name(state.context, value)
         except ValueError, why:
-            raise Invalid(why[0], value, state)          
+            raise Invalid(why[0], value, state)     
+        
+class FolderNameAvailable(FancyValidator):
+   
+    def _to_python(self, value, state):
+        try:
+            make_name(state.context, value)
+            return value
+        except ValueError, why:
+            raise Invalid(why[0], value, state)                  
 
 class ValidationError(Exception):
     '''
