@@ -3,8 +3,17 @@
 
   <include package="repoze.lemonade.includes" file="meta.zcml" />
   
+  <!-- 
+    Any zcml defined here must be overridden in an applications zcml. 
+  -->
   <lemonade:content
       factory="opencore.models.community.Community"
       type="opencore.models.interfaces.ICommunity"/>
+      
+  <adapter
+    for="opencore.models.interfaces.ICommunity
+          repoze.bfg.interfaces.IRequest"
+    provides="opencore.models.interfaces.ICommunityInfo"
+    factory="opencore.models.adapters.CommunityInfo"/>    
 
 </configure>

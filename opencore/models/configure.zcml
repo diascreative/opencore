@@ -74,13 +74,6 @@
     factory=".members.Invitation"
     type="opencore.models.interfaces.IInvitation"/>
 
-  <adapter
-    for=".interfaces.ICommunity
-          repoze.bfg.interfaces.IRequest"
-    provides=".interfaces.ICommunityInfo"
-    factory=".adapters.CommunityInfo"
-  />
-
   <!-- XXX Multi-adapter with IRequest not really necessary.
            This should be deprecated, with registration immediately
            following being the preferred way to get a CatalogSearch. -->
