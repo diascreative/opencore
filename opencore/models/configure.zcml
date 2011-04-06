@@ -37,12 +37,7 @@
       for="repoze.lemonade.interfaces.IContent
            opencore.interfaces.IObjectModifiedEvent"
       handler=".subscribers.reindex_content"/>
-
-  <subscriber
-      for="repoze.lemonade.interfaces.IContent
-           opencore.interfaces.IObjectModifiedEvent"
-      handler=".subscribers.set_modified"/>
-
+ 
   <subscriber
       for=".interfaces.ICommunity
            repoze.folder.interfaces.IObjectWillBeRemovedEvent"
