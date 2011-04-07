@@ -223,7 +223,7 @@ class ShowProfileView(object):
         
         self.profile = profile
         self.communities = communities
-        self.my_communities = my_communities
+        self.my_communities = my_communities or []
         self.preferred_communities = preferred_communities
         self.tags = tags
         self.actions = get_profile_actions(context, request)
