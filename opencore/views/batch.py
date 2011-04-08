@@ -1,9 +1,11 @@
 """Catalog results batching functions"""
 import logging
+from zope.component import queryUtility
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
 from repoze.bfg.url import urlencode
 from opencore.models.interfaces import ICatalogSearch
+from opencore.utilities.interfaces import ICatalogSearchArgs
 from opencore.utils import find_catalog
 
 log = logging.getLogger(__name__)
@@ -17,6 +19,9 @@ def get_catalog_batch(context, request, filter_func=None, **kw):
     sort_index = request.params.get('sort_index', sort_index)
     reverse = kw.pop('reverse', False)
     reverse = bool(int(request.params.get('reverse', reverse)))
+    catalog_filter = queryUtility(ICatalogSearchArgs)
+    if catalog_filter:
+        kw.update(catalog_filter(request.params))
 
     # XXX Asserting a default 'modified' sort order here is
     # fragrant.  It's unclear which callers depend on the behavior
@@ -32,6 +37,7 @@ def get_catalog_batch(context, request, filter_func=None, **kw):
     log.debug('get_catalog_batch query=%s' % str(kw))
     searcher = ICatalogSearch(context)
     total, docids, resolver = searcher(**kw)
+    log.debug('search returned %d' % total)
 
     batch = []
     i = -1
@@ -121,8 +127,8 @@ def _add_link_data(batch_info, context, request):
         next_batch_info or previous_batch_info)
 
 
-def get_catalog_batch_grid(context, request, **kw):
-    batch = get_catalog_batch(context, request, **kw)
+def get_catalog_batch_grid(context, request, filter_func=None, **kw):
+    batch = get_catalog_batch(context, request, filter_func, **kw)
 
     query_terms = [('batch_size', str(batch['batch_size']))]
     for k, v in request.params.items():

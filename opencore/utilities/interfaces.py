@@ -24,6 +24,13 @@ class IMailinTextScrubber(Interface):
         o If 'is_reply' is True, extra processing may be done to attempt to
           separate the reply from the replied to message.
         """
+        
+class ICatalogSearchArgs(Interface):
+    """ Utility to add extra args to a catalog search.
+    """
+    def __call__(args):
+        """ Given args transform and return as kw args suitable 
+        for extending an existing catalog search"""
 
 class IAppDates(Interface):
     """ Utility for various representations of a date

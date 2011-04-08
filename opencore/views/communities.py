@@ -62,7 +62,7 @@ def _set_cookie_via_request(request, value):
 
 def _show_communities_view_helper(context,
                                   request,
-                                  prefix='',
+                                  filter_func=None,
                                   **kw
                                  ):
     
@@ -90,7 +90,7 @@ def _show_communities_view_helper(context,
 
     error = None
     try:
-        batch_info = get_catalog_batch_grid(context, request, **query)
+        batch_info = get_catalog_batch_grid(context, request, filter_func, **query)
     except ParseError, e:
         batch_info = { 'entries': [], 'batching_required': False }
         error = 'Error: %s' % e
@@ -115,8 +115,8 @@ def _show_communities_view_helper(context,
     if has_permission('create', context, request):
         actions.append(('Add Community', 'add_community.html'))
 
-    system_name = get_setting(context, 'system_name', 'KARL')
-    page_title = '%s%s Communities' % (prefix, system_name)
+    system_name = get_setting(context, 'system_name', 'OpenCore')
+    page_title = '%s Communities' % system_name
 
     my_communities = get_my_communities(context, request)
 
