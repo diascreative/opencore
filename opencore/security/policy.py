@@ -130,6 +130,10 @@ def to_profile_active(ob):
                 ADMINISTRATOR_PERMS + ('view_only',)))
     acl.append((Allow, 'group.KarlStaff',
                 GUEST_PERMS + ('view_only',)))
+    
+    # not auth'd users can view all content
+    acl.append((Allow, Everyone, ('view_only',)))
+     
     users = find_users(ob)
     user = users.get_by_id(ob.creator)
     if user is not None:
@@ -146,7 +150,6 @@ def to_profile_active(ob):
     if ob.security_state == 'inactive':
         ob.security_state = 'active'    
         log.info('profile (%s) security_state changed to %s' % (model_path(ob), ob.security_state))
-    #_reindex(ob)
 
 def to_profile_inactive(ob):
     acl  = [
