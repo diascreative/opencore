@@ -73,7 +73,7 @@ def _show_communities_view_helper(context,
         sort_index='title',
         interfaces=[ICommunity],
         path={'query': communities_path, 'depth': 1},
-        allowed={'query': effective_principals(request), 'operator': 'or'},
+        #allowed={'query': effective_principals(request), 'operator': 'or'},
         **kw
         )
 
@@ -118,9 +118,9 @@ def _show_communities_view_helper(context,
     system_name = get_setting(context, 'system_name', 'OpenCore')
     page_title = '%s Communities' % system_name
 
-    my_communities = get_my_communities(context, request)
+    my_communities = [] #get_my_communities(context, request)
 
-    preferred_communities = get_preferred_communities(context, request)
+    preferred_communities = []#get_preferred_communities(context, request)
     api = request.api
     api.page_title = page_title
       
