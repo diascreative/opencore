@@ -746,6 +746,9 @@ def comments_to_display(request, profile_thumb_size=None):
         newc['date'] = appdates(comment.created, 'longform')
         newc['timestamp'] = comment.created
         newc['text'] = comment.text
+        # a bit crude
+        if hasattr(api, 'like_count'):
+            newc['nlikes'] = api.like_count(comment)
 
         # Fetch the attachments info
         newc['attachments'] = fetch_attachments(comment, request)
@@ -781,6 +784,9 @@ def comments_to_display(request, profile_thumb_size=None):
                 newr['date'] = appdates(reply.created, 'longform')
                 newr['timestamp'] = reply.created
                 newr['text'] = reply.text
+                # a bit crude
+                if hasattr(api, 'like_count'):
+                    newc['nlikes'] = api.like_count(reply)
                 replies.append(newr)
             replies.sort(key=lambda x: x['timestamp'])    
         newc['comment_replies'] = replies 
