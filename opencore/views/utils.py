@@ -741,6 +741,7 @@ def comments_to_display(request, profile_thumb_size=None):
         newc['author_url'] = author_url
         newc['author_name'] = author_name
         newc['author_country'] = profile.country
+        newc['author_organization'] = profile.organization
 
         newc['date'] = appdates(comment.created, 'longform')
         newc['timestamp'] = comment.created
@@ -776,6 +777,7 @@ def comments_to_display(request, profile_thumb_size=None):
                 newr['author_url'] = reply_author_url
                 newr['author_name'] = reply_author_name
                 newr['author_country'] = reply_profile.country
+                newr['author_organization'] = reply_profile.organization
                 newr['date'] = appdates(reply.created, 'longform')
                 newr['timestamp'] = reply.created
                 newr['text'] = reply.text
