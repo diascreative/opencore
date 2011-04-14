@@ -14,6 +14,12 @@
     for="opencore.models.interfaces.ICommunity
           repoze.bfg.interfaces.IRequest"
     provides="opencore.models.interfaces.ICommunityInfo"
-    factory="opencore.models.adapters.CommunityInfo"/>    
+    factory="opencore.models.adapters.CommunityInfo"/>   
+    
+   <adapter
+      for="opencore.models.interfaces.ICommunityContent
+           repoze.bfg.interfaces.IRequest"
+      provides="opencore.views.interfaces.IBylineInfo"
+      factory="opencore.views.adapters.BylineInfo"/>   
 
 </configure>

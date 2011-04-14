@@ -171,12 +171,6 @@
     view=".forum.AddForumTopicController"
     permission="create"/>
    
-  <adapter
-      for="opencore.models.interfaces.ICommunityContent
-           repoze.bfg.interfaces.IRequest"
-      provides=".interfaces.IBylineInfo"
-      factory=".adapters.BylineInfo"/>
-  
   <!-- comments -->
   <view
     name="comment.html"  

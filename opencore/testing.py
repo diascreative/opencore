@@ -85,6 +85,7 @@ class DummyProfile(DummyModel):
     department = 'department1'
     location = 'location'
     alert_attachments = 'link'
+    country = 'country'
 
     def __init__(self, *args, **kw):
         DummyModel.__init__(self)
