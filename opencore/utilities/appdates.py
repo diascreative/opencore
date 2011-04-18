@@ -1,5 +1,6 @@
 _FLAVOR_FORMATS = {
     'longform': '%A, %B %d, %Y %I:%M %p',
+    'midform': '%B %d, %Y',  # Nov 2, 2010
     'shortform': '%d/%m/%Y'
     }
 

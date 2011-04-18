@@ -137,47 +137,6 @@ class DefaultLayoutProvider(object):
         else:
             layout = self.generic_layout
         return layout    
-            
-    '''def __call__(self, default=None):
-        # The layouts are by identifier, e.g. layout='community'
-
-        # A series of tests, in order of precedence.
-        layout = None
-        if default is not None:
-            layout = getattr(self, default+'_layout')
-        intranet = find_interface(self.context, IIntranet)
-
-        # Group a series of intranet-oriented decisions
-        if intranet:
-            # First, when under an intranet, OSI wants forums to get
-            # the generic layout.
-            if find_interface(self.context, IForum):
-                layout = getattr(self, 'generic_layout')
-
-            # Now for an intranet.  Everything gets the two-column
-            # view except the intranet home page, which gets the 3
-            # column treatment.
-            else:
-                layout = getattr(self, 'intranet_layout')
-
-        elif find_interface(self.context, IIntranets):
-            if find_interface(self.context, IForum):
-                layout = self.generic_layout
-            elif ICalendarEvent.providedBy(self.context):
-                layout = self.generic_layout
-            elif INetworkNewsMarker.providedBy(self.context):
-                layout = self.generic_layout
-            elif find_interface(self.context, IReferencesFolder):
-                layout = self.generic_layout
-            elif INetworkEventsMarker.providedBy(self.context):
-                layout = self.generic_layout
-
-        elif not find_interface(self.context, ICommunity):
-            # If we're not in a community or an intranet we need to use the
-            # generic layout.
-            layout = self.generic_layout
-
-        return layout'''
 
 class BylineInfo(object):
     """ Adapter to grab resource info for the byline in ZPT """
@@ -213,3 +172,7 @@ class BylineInfo(object):
             kd = getUtility(IAppDates)
             self._posted_date = kd(self.context.created, 'longform')
         return self._posted_date
+    
+    def __str__(self):
+        return 'BylineInfo: name=%s, url=%s, posted: %s' % (self.author_name,
+          self.author_url, self.posted_date)

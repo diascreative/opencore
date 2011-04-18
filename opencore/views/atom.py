@@ -196,7 +196,6 @@ class ProfileAtomFeed(AtomFeed):
         search = getAdapter(self.context, ICatalogSearch)
         count, docids, resolver = search(
             limit=N_ENTRIES,
-            #path=model_path(self.context),
             creator=self.context.__name__,
             sort_index="modified_date",
             reverse=True,
@@ -216,7 +215,7 @@ def twitter_site_atom_view(context, request):
     if not twitter_search_id:
         raise ValueError('no value found for twitter_search_id in config (ini). Unable to search twitter.')
     search_url = 'http://search.twitter.com/search.rss?q=%s' % twitter_search_id
-    log.debug('twitter_site_atom_view: GET %s' % search_url)
+    log.info('twitter_site_atom_view: GET %s' % search_url)
     feed_xml, headers = fetch_url(search_url)
     response = Response(feed_xml, content_type=headers['Content-Type'])
     # would be good to set the ETag too so the browser doesn't even try 

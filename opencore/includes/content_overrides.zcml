@@ -17,7 +17,7 @@
     factory="opencore.models.adapters.CommunityInfo"/>   
     
    <adapter
-      for="opencore.models.interfaces.ICommunityContent
+      for="repoze.lemonade.interfaces.IContent
            repoze.bfg.interfaces.IRequest"
       provides="opencore.views.interfaces.IBylineInfo"
       factory="opencore.views.adapters.BylineInfo"/>   
