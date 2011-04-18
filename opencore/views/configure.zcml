@@ -548,6 +548,58 @@
    for="opencore.models.interfaces.IContent"
    view=".like.like"
    permission="comment"/>
+   
+  <!-- Admin UI -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.admin.admin_view"
+    renderer="templates/admin/admin.pt"
+    permission="administer"
+    name="admin.html"
+    />
+     
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.admin.site_announcement_view"
+    renderer="templates/admin/site_announcement.pt"
+    permission="administer"
+    name="site_announcement.html"
+    />
+    
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.admin.delete_content_view"
+    renderer="templates/admin/delete_content.pt"
+    permission="administer"
+    name="delete_content.html"
+    />
+
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.admin.move_content_view"
+    renderer="templates/admin/move_content.pt"
+    permission="administer"
+    name="move_content.html"
+    />
+
+ 
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.admin.logs_view"
+    renderer="templates/admin/log.pt"
+    permission="administer"
+    name="logs.html"
+    />
+
+
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.admin.rename_or_merge_user_view"
+    name="rename_user.html"
+    renderer="templates/admin/rename_merge_user.pt"
+    />
+
+     
 
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"
