@@ -491,8 +491,7 @@
    <view   
      for="repoze.folder.interfaces.IFolder"
      view=".members.JoinNewUsersController"
-     name="join.html"
-     permission="moderate"/>   
+     name="join.html"/>   
      
   <view
     name="active_communities.html"

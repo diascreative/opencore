@@ -41,6 +41,7 @@ from opencore.utilities.interfaces import IRandomId
 
 from opencore.utils import find_profiles
 from opencore.utils import find_users
+from opencore.utils import find_site
 from opencore.utils import get_setting
 from opencore.consts import countries
 
@@ -71,7 +72,7 @@ def _get_manage_actions(community, request):
 
 def _get_common_email_info(community, community_href):
     info = {}
-    info['system_name'] = get_setting(community, 'system_name', 'KARL')
+    info['system_name'] = get_setting(community, 'system_name', 'OpenCore')
     info['system_email_domain'] = get_setting(community,
                                               'system_email_domain')
     info['from_name'] = '%s invitation' % info['system_name']
@@ -465,6 +466,14 @@ def _add_existing_users(context, community, profiles, text, request, status=None
 
 
 class AcceptInvitationController(object):
+    '''
+    Handles email invitation links for site signup and new project members.
+    signup & members are both folders with invitations.
+    i.e. http://127.0.0.1:6544/signup/hifebi &
+         http://127.0.0.1:6544/projects/x/members/ywryw
+         
+    todo: use IInvitationBoilerplate for t&c.     
+    '''
     def __init__(self, context, request):
         self.context = context
         self.request = request
@@ -557,15 +566,23 @@ class AcceptInvitationController(object):
         return widgets'''
 
     def __call__(self):
-        community_name = self.community.title
         context = self.context
         request = self.request
         
         self.system_name = get_setting(context, 'system_name', 'OpenCore')
-
-        self.desc = ('You have been invited to join the "%s" in %s.  Please begin '
+        if self.community:
+            community_name = self.community.title
+            self.desc = ('You have been invited to join the "%s" in %s.  Please begin '
                 'by creating a %s login with profile information.' %
                 (community_name, self.system_name, self.system_name))
+        
+        else:
+            self.desc = ('You have been invited to join the "%s".  Please begin '
+                'by creating a %s login with profile information.' %
+                (self.system_name, self.system_name))
+       
+
+        
         
         if request.method == 'POST':
             post_data = request.POST
@@ -581,10 +598,13 @@ class AcceptInvitationController(object):
         return self.make_response()
          
     def make_response(self):
-        return  {'api':self.api,
-                'page_title':'Accept %s Invitation' % self.system_name,
-                'page_description':self.desc,
-                'countries' : [('', 'Select your Country')] + countries}
+        return render_template_to_response(
+              'templates/accept_invitation.pt',
+              api=self.api,
+              page_title='Accept %s Invitation' % self.system_name,
+              page_description=self.desc,
+              countries=[('', 'Select your Country')] + countries
+            )
   
     def handle_submit(self, converted):
         context = self.context
@@ -597,9 +617,11 @@ class AcceptInvitationController(object):
         password_confirm = converted['password_confirm']
         username = converted['username']
 
-        community_href = model_url(community, request)
-        groups = [ community.members_group_name ]
-        users.add(username, username, password, groups)
+        if community:
+            community_href = model_url(community, request)
+            groups = [ community.members_group_name ]
+            users.add(username, username, password, groups)
+        
         plugin = request.environ['repoze.who.plugins']['auth_tkt']
         identity = {'repoze.who.userid':username}
         remember_headers = plugin.remember(request.environ, identity)
@@ -616,9 +638,15 @@ class AcceptInvitationController(object):
         to_profile_active(profile)
             
         del context.__parent__[context.__name__]
-        url = model_url(community, request,
+        
+        if community:
+            url = model_url(community, request,
                         query={'status_message':'Welcome!'})
-        _send_ai_email(community, community_href, username, profile)
+            _send_ai_email(community, community_href, username, profile)
+        else:
+            url = request.api.app_url+'?status_message=Welcome!'
+            _send_signup_ai_email(request, username, profile)
+                
         return HTTPFound(headers=remember_headers, location=url)
 
 def _send_ai_email(community, community_href, username, profile):
@@ -647,6 +675,41 @@ def _send_ai_email(community, community_href, username, profile):
     msg.set_payload(body, "UTF-8")
     msg.set_type('text/html')
     mailer.send(info['mfrom'], [profile.email,], msg)
+    
+def _send_signup_ai_email(request, username, profile):
+    """Send email to user who has signed up to site.
+    """
+    info = {}
+    info['system_name'] = get_setting(profile, 'system_name', 'OpenCore')
+    info['system_email_domain'] = get_setting(profile, 'system_email_domain')
+    info['from_name'] = '%s invitation' % info['system_name']
+    info['from_email'] = 'invitation@%s' % info['system_email_domain']
+    info['c_title'] = info['system_name']
+    info['c_description'] = ""
+    info['c_href'] = request.api.app_url
+    info['mfrom'] = '%s <%s>' % (info['from_name'], info['from_email'])
+    info['subject'] = 'Thank you for joining the %s community' % info['system_name']
+  
+    body_template = get_template('templates/email_accept_signup_invitation.pt')
+
+    mailer = getUtility(IMailDelivery)
+    msg = Message()
+    msg['From'] = info['mfrom']
+    msg['To'] = profile.email
+    msg['Subject'] = info['subject'] 
+    body = body_template(
+        system_name=info['system_name'],
+        system_href=info['c_href'],                 
+        username=username,
+        )
+
+    if isinstance(body, unicode):
+        body = body.encode("UTF-8")
+
+    msg.set_payload(body, "UTF-8")
+    msg.set_type('text/html')
+    mailer.send(info['mfrom'], [profile.email,], msg)    
+    
 
 class InviteNewUsersController(object):
     def __init__(self, context, request):
@@ -849,6 +912,40 @@ def _send_invitation_email(request, community, community_href, invitation):
     msg.set_payload(body, "UTF-8")
     msg.set_type('text/html')
     mailer.send(info['mfrom'], [invitation.email,], msg)
+    
+def _send_signup_email(request, invitation):
+    site = find_site(request.context)
+    mailer = getUtility(IMailDelivery)
+    
+    info = {}
+    info['system_name'] = get_setting(site, 'system_name', 'OpenCore')
+    info['system_email_domain'] = get_setting(site, 'system_email_domain')
+    info['from_name'] = '%s invitation' % info['system_name']
+    info['from_email'] = 'invitation@%s' % info['system_email_domain']
+    info['c_title'] = info['system_name']
+    info['c_description'] = ""
+    info['c_href'] = model_url(site, request)
+    info['mfrom'] = '%s <%s>' % (info['from_name'], info['from_email'])
+    info['subject'] = 'Please join the %s community' % info['system_name']
+    
+    body_template = get_template('templates/email_signup.pt')
+
+    msg = Message()
+    msg['From'] = info['mfrom']
+    msg['To'] = invitation.email
+    msg['Subject'] = info['subject']
+    body = body_template(
+        system_name=info['system_name'],
+        personal_message=invitation.message,
+        invitation_url=model_url(site, request, 'signup', invitation.__name__)
+        )
+
+    if isinstance(body, unicode):
+        body = body.encode("UTF-8")
+
+    msg.set_payload(body, "UTF-8")
+    msg.set_type('text/html')
+    mailer.send(info['mfrom'], [invitation.email,], msg)    
 
 def jquery_member_search_view(context, request):
     prefix = request.params['val'].lower()
@@ -884,7 +981,7 @@ class JoinNewUsersController(object):
         self.request = request
         self.community = find_interface(context, ICommunity)
         self.api = request.api
-        self.actions = _get_manage_actions(self.community, request)
+        self.api.page_title = 'Signup'
         self.profiles = find_profiles(context)
         self.desc = ('Type in you email address and you will be sent a signup email shortly.')
         self.system_name = get_setting(context, 'system_name', 'OpenCore')
@@ -912,14 +1009,11 @@ class JoinNewUsersController(object):
     def handle_submit(self, converted):
         context = self.context
         request = self.request
-        #community = self.community
         random_id = getUtility(IRandomId)
-        #members = community.member_names | community.moderator_names
-        #community_href = model_url(community, request)
-
+       
         search = ICatalogSearch(context)
 
-        address = converted['email_address']
+        email_address = converted['email_address']
      
         # Check for existing member
         total, docids, resolver = search(email=email_address.lower(),
@@ -941,17 +1035,15 @@ class JoinNewUsersController(object):
             invitation = create_content(
                 IInvitation,
                 email_address,
-                html_body
+                "We look forward to you joining."
             )
             while 1:
                 name = random_id()
                 if name not in context:
                     context[name] = invitation
                     break
-            # todo: change community here to general site link  
-            _send_invitation_email(request, community, community_href,
-                                   invitation)
-            status = 'One user signup invitation.'
+            _send_signup_email(request, invitation)
+            status = 'You have been sent a signup email.'
      
         return HTTPFound(location='/?status_message=%s' % status)      
      
@@ -960,6 +1052,6 @@ class JoinNewUsersController(object):
         return render_template_to_response(
                        'templates/members_signup.pt',
                        api=self.api,
-                       #actions=self.actions,
+                       actions=(),
                        page_title='Welcome to %s' % self.system_name,
                        page_description=self.desc)     
