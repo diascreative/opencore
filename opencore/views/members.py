@@ -561,11 +561,11 @@ class AcceptInvitationController(object):
         context = self.context
         request = self.request
         
-        system_name = get_setting(context, 'system_name', 'OpenCore')
+        self.system_name = get_setting(context, 'system_name', 'OpenCore')
 
-        desc = ('You have been invited to join the "%s" in %s.  Please begin '
+        self.desc = ('You have been invited to join the "%s" in %s.  Please begin '
                 'by creating a %s login with profile information.' %
-                (community_name, system_name, system_name))
+                (community_name, self.system_name, self.system_name))
         
         if request.method == 'POST':
             post_data = request.POST
@@ -577,10 +577,13 @@ class AcceptInvitationController(object):
                 raise ValidationError(self, **e.error_dict)
             else:
                 return self.handle_submit(self.api.formdata)
-               
-        return {'api':self.api,
-                'page_title':'Accept %s Invitation' % system_name,
-                'page_description':desc,
+    
+        return self.make_response()
+         
+    def make_response(self):
+        return  {'api':self.api,
+                'page_title':'Accept %s Invitation' % self.system_name,
+                'page_description':self.desc,
                 'countries' : [('', 'Select your Country')] + countries}
   
     def handle_submit(self, converted):

@@ -22,7 +22,7 @@
         <div class="top"></div>
         <div class="mid">
             <h3>Join Up</h3><div class="spacer"></div>
-            <form id="signup" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8">
+            <form id="signup" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
                 <!--<metal:resources use-macro="api.snippets.macros['sign_up_form']"/>-->
                 
                 <div tal:replace="structure api.render_form_widget('input_username', 'username', 'Username', compulsory=True)"></div>
@@ -36,7 +36,7 @@
     
                 <div class="l-spacer"></div>
                 <p class="terms-label">
-                    <input type="checkbox" class="checkbox" name="signup.terms" value="I accept the OPEN IDEO Terms and conditions" />
+                    <input type="checkbox" class="checkbox" name="terms" value="yes" />
                     I accept <a href="/terms/ajax.html" class="terms-conditions-link">Terms of Use</a>.
                 </p>
                 
@@ -47,8 +47,8 @@
         </div>
         <div class="bot"></div>
     </div>
-<!--
-    <div class="side-bar">
+
+    <div tal:condition="0" class="side-bar">
         <div class="top"></div>
         <div class="mid">
             <p>Login using your Facebook account</p>
@@ -59,7 +59,7 @@
         </div>
         <div class="bot"></div>
     </div>
-    --> 
+     
 
     </tal:block>
 
