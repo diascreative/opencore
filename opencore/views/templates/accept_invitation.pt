@@ -21,7 +21,7 @@
       <div class="content-2-3">
         <div class="top"></div>
         <div class="mid">
-            <h3>Join Up</h3><div class="spacer"></div>
+            <h3>Sign Up</h3><div class="spacer"></div>
             <form id="signup" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
                 <!--<metal:resources use-macro="api.snippets.macros['sign_up_form']"/>-->
                 
@@ -42,7 +42,9 @@
                 
                 <div class="admin-help">* required fields</div>
             
-                <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
+                <div class="buttons clearafter">
+                    <button name="image" type="submit" class="button primary_button"><span>Sign In</span></button>
+                </div>
             </form>
         </div>
         <div class="bot"></div>

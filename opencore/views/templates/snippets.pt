@@ -217,7 +217,7 @@
       <ul class="menubar">
           <tal:block repeat="action api.actions_to_menu(actions)">
               <li tal:attributes="id string:menubar-${repeat.action.number()}"
-                  class="${' '.join((repeat['action'].end and 'menubar-lastitem clearafter' or '', action[2] and 'karldropdown' or ''))}">
+                  class="${' '.join((repeat['action'].end and 'menubar-lastitem clearfix' or '', action[2] and 'karldropdown' or ''))}">
                 <a href="${api.here_url}${action[1]}"
                    class="${action[2] and 'karldropdown-heading' or ''}"
                    tal:condition="not action[1].startswith('http')"
@@ -470,7 +470,7 @@
     <metal:gridstyle_batching metal:define-macro="gridstyle_batching">
       <span class="ui-grid-footer-text ui-grid-limits"
             tal:content="batch_info['status']|None" />
-      <span class="ui-grid-pagination clearafter"
+      <span class="ui-grid-pagination clearfix"
             tal:content="structure batch_info.gridbatch_snippet"></span>
     </metal:gridstyle_batching>
 
