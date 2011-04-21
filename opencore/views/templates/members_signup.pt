@@ -5,19 +5,34 @@
 
     <tal:block metal:fill-slot="content">
 
-    <div metal:use-macro="api.snippets.macros['status_message']"/>
-    <div metal:use-macro="api.snippets.macros['error_message']"/>
-    <div metal:use-macro="api.snippets.macros['actions_box']"/>
+        <div metal:use-macro="api.snippets.macros['status_message']"/>
+        <div metal:use-macro="api.snippets.macros['error_message']"/>
+        <div metal:use-macro="api.snippets.macros['actions_box']"/>
 
-    <h1>${api.page_title}</h1>
-    <p tal:content="page_description|''"/>
-    
-    <form class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
-        <div tal:content="structure api.render_form_widget('input', 'email_address', 'Email Address')"></div>
-        <div class="button-holder">
-            <input class="button submit highlight" type="submit" id="submitter" name="${formprefix}submit" value="Signup" />
+
+        <div class="column block column-3-4">
+            <h4>${api.page_title}</h4>
+            <div class="content">
+                <p tal:content="page_description|''"/>
+                
+                <form class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
+                    <div tal:content="structure api.render_form_widget('input', 'email_address', 'Email Address')"></div>
+                    <div class="button-holder">
+                        <input class="button submit highlight" type="submit" id="submitter" name="${formprefix}submit" value="Signup" />
+                    </div>
+                </form>
+            </div>
         </div>
-    </form>
+
+        <div class="column column-1-4 last">
+            <div class="block fill split">
+                <h4>Or Log in</h4>
+                <div class="content">
+                    <a href="${api.app_url}/login.html">Log in</a>
+                </div>
+            </div>
+            
+        </div>
   </tal:block>
   
 </div>
