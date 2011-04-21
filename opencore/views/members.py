@@ -480,90 +480,6 @@ class AcceptInvitationController(object):
         self.community = find_interface(context, ICommunity)
         self.profiles = find_profiles(context)
         self.api = request.api
-     
-    '''def form_fields(self):
-        required = validator.Required()
-        min_pw_length = int(get_setting(self.context, 'min_pw_length', 6))
-        pwlen = validator.Length(min_pw_length)
-        username = karlvalidators.RegularExpression(
-            r'^[\w-]+$',
-            'Username must contain only letters, numbers, and dashes')
-        fields = [
-            ('username', schemaish.String(validator=validator.All(required,
-                                                                  username))),
-            ('password', schemaish.String(
-                validator=validator.All(required, pwlen))),
-            ('password_confirm', schemaish.String(
-                validator=validator.All(required, pwlen))),
-            ('firstname', schemaish.String(validator=required)),
-            ('lastname', schemaish.String(validator=required)),
-            ('phone', schemaish.String()),
-            ('extension', schemaish.String()),
-            ('organization', schemaish.String()),
-            ('country', schemaish.String(
-                validator=validator.All(
-                            validator.OneOf(countries.as_dict.keys()),
-                            validator.Required()),
-                ),
-            ),
-            ('location', schemaish.String()),
-            ('department', schemaish.String()),
-            ('position', schemaish.String()),
-            ('websites', schemaish.Sequence(
-                schemaish.String(validator=validator.URL()))),
-            ('languages', schemaish.String()),
-            ('biography', schemaish.String()),
-            ('photo', schemaish.File()),
-            ]
-
-        r = queryMultiAdapter((self.context, self.request),
-                              IInvitationBoilerplate)
-        if r is not None:
-            if r.terms_and_conditions:
-                fields.append(
-                    ('terms_and_conditions',
-                     schemaish.Boolean(validator=validator.Equal(True)))
-                )
-            if r.privacy_statement:
-                fields.append(
-                    ('accept_privacy_policy',
-                     schemaish.Boolean(validator=validator.Equal(True)))
-                )
-        return fields
-
-    def form_widgets(self, fields):
-        default_icon = self.api.static_url + '/images/defaultUser.gif'
-        system_name = get_setting(self.context, 'system_name', 'OpenCore')
-        widgets = {
-            'biography': karlwidgets.RichTextWidget(),
-            'password':formish.Password(),
-            'password_confirm':formish.Password(),
-            'country':formish.SelectChoice(countries),
-            'photo':karlwidgets.PhotoImageWidget(
-                filestore=self.filestore,
-                url_base=model_url(self.context, self.request, 'photo'),
-                image_thumbnail_default=default_icon),
-            'websites': formish.TextArea(
-                rows=3,
-                converter_options={'delimiter':'\n'}),
-            }
-
-        r = queryMultiAdapter((self.context, self.request),
-                              IInvitationBoilerplate)
-        if r is not None:
-            terms_text = r.terms_and_conditions
-            if terms_text:
-                widgets['terms_and_conditions'] = (
-                    karlwidgets.AcceptFieldWidget(
-                        terms_text, 'the %s Terms and Conditions' % system_name
-                    ))
-            privacy_text = r.privacy_statement
-            if privacy_text:
-                widgets['accept_privacy_policy'] = (
-                    karlwidgets.AcceptFieldWidget(
-                        privacy_text, 'the %s Privacy Policy' % system_name
-                    ))
-        return widgets'''
 
     def __call__(self):
         context = self.context
@@ -581,9 +497,6 @@ class AcceptInvitationController(object):
                 'by creating a %s login with profile information.' %
                 (self.system_name, self.system_name))
        
-
-        
-        
         if request.method == 'POST':
             post_data = request.POST
             try:

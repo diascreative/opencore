@@ -164,20 +164,24 @@ class AcceptInvitationControllerTests(unittest.TestCase):
         from opencore.views.members import AcceptInvitationController
         from opencore.views.api import get_template_api
         request.api = get_template_api(context, request)
+        context.communities_name = 'test_commmunity'
         return AcceptInvitationController(context, request)
 
     def test__call__(self):
         context = self._makeContext()
         request = self._makeRequest()
+        renderer = testing.registerDummyRenderer(
+            'templates/accept_invitation.pt')
       
         controller = self._makeOne(context, request)
         info = controller()
-        self.failUnless('page_title' in info)
-        self.failUnless('page_description' in info)
-        self.failUnless('api' in info)
-        self.failIf('terms_and_conditions' in info)
-        self.failIf('accept_privacy_policy' in info)
-    
+      
+        self.failUnless('page_title' in renderer._received)
+        self.failUnless('page_description' in renderer._received)
+        self.failUnless('api' in renderer._received)
+        self.failIf('terms_and_conditions' in renderer._received)
+        self.failIf('accept_privacy_policy' in renderer._received)
+   
     def test_handle_submit_password_mismatch(self):
         from opencore.views.validation import ValidationError
         from opencore.models.interfaces import IProfiles

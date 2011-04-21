@@ -102,22 +102,6 @@ def find_users(root):
         return Users()
     return root[zodb_root].users  
 
-'''
-openideos user acl
-def set_user_profile_acl(obj, event):
-    acl  = []
-    acl.append((Allow, 'group.KarlUserAdmin', ADMINISTRATOR_PERMS))
-    acl.append((Allow, 'group.KarlAdmin', ADMINISTRATOR_PERMS))
-    acl.append((Allow, obj.creator, CREATOR_PERMS))
-    acl.append((Allow, Authenticated, MEMBER_PERMS))
-    acl.append((Allow, Everyone, GUEST_PERMS))
-    
-    added, removed = acl_diff(obj, acl)
-    if added or removed:
-        obj.__acl__ = acl
-        if hasattr(obj, 'docid'):
-            _reindex(obj)'''
-            
 def to_profile_active(ob):
     from opencore.utils import find_users
     from opencore.views.communities import get_community_groups
@@ -141,7 +125,7 @@ def to_profile_active(ob):
         for group, role in get_community_groups(groups):
             c_group = 'group.community:%s:%s' % (group, role)
             acl.append((Allow, c_group, GUEST_PERMS + ('view_only',)))
-    acl.append((Allow, 'system.Authenticated', ('view_only',)))
+    acl.append((Allow, 'system.Authenticated', GUEST_PERMS + ('view_only',)))
     acl.append(NO_INHERIT)
     added, removed = acl_diff(ob, acl)
     if added or removed:
@@ -166,9 +150,34 @@ def to_profile_inactive(ob):
         log.info('profile (%s) to-inactive, added: %s, removed: %s' % (model_path(ob), added, removed))
     ob.security_state = 'inactive'
     log.info('profile (%s) security_state changed to %s' % (model_path(ob), ob.security_state))    
-    #_reindex(ob)
 
-
+def to_community_public(ob):
+    acl  = [
+        (Allow, ob.creator, MEMBER_PERMS + ('view_only',)),
+    ]
+    acl.append((Allow, 'group.KarlUserAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlStaff',
+                GUEST_PERMS + ('view_only',)))
+    
+    # not auth'd users can view all content
+    acl.append((Allow, Everyone, ('view_only',)))
+    acl.append((Allow, 'system.Authenticated', GUEST_PERMS + ('view_only',)))
+    
+    moderators_group_name = ob.moderators_group_name
+    members_group_name = ob.members_group_name
+    
+    acl.append((Allow, moderators_group_name, MODERATOR_PERMS))
+    acl.append((Allow, members_group_name, MEMBER_PERMS))
+    acl.append(NO_INHERIT)
+    added, removed = acl_diff(ob, acl)
+    if added or removed:
+        ob.__acl__ = acl
+        log.info('community (%s) to-public, added: %s, removed: %s' % (model_path(ob), added, removed))
+    
+    
 def postorder(startnode):
     def visit(node):
         if IFolder.providedBy(node):

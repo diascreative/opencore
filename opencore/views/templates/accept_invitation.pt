@@ -1,40 +1,33 @@
-<div xmlns="http://www.w3.org/1999/xhtml" 
-     xmlns:tal="http://xml.zope.org/namespaces/tal"
-     xmlns:metal="http://xml.zope.org/namespaces/metal" 
-     metal:use-macro="api.anonymous_layout.macros['master']">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      metal:use-macro="api.generic_layout">
 
-  <div metal:fill-slot="content">
+    <tal:block metal:fill-slot="content">
  
-    <tal:block condition="api.userid is not None">
+        <tal:block condition="api.userid is not None">
+            <p>You cannot accept an invitation while logged in. Please <a href="${api.app_url}/logout">log out</a> first.</p>
+            <form xml:id="contentform"></form>
+        </tal:block>
 
-      <p>You cannot accept an invitation while logged in. Please 
-	<a href="${api.app_url}/logout">log out</a> first. </p>
+        <form class="admin-form columns k3_genericForm" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''" tal:condition="api.userid is None">
+        <p class="page-intro">${page_description}</p>
 
-      <form xml:id="contentform"></form>
+        <div class="column column-3-4 first">
+            <div class="box no-collapse">
 
-    </tal:block>
+                <h3>Join Up</h3>
 
-    <tal:block condition="api.userid is None">
-
-      <p>${page_description}</p>
-
-      <div class="content-2-3">
-        <div class="top"></div>
-        <div class="mid">
-            <h3>Sign Up</h3><div class="spacer"></div>
-            <form id="signup" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
-                <!--<metal:resources use-macro="api.snippets.macros['sign_up_form']"/>-->
-                
-                <div tal:replace="structure api.render_form_widget('input_username', 'username', 'Username', compulsory=True)"></div>
+                <div tal:replace="structure api.render_form_widget('input', 'username', 'Username', compulsory=True)"></div>
                 <div tal:replace="structure api.render_form_widget('password', 'password', 'Password', compulsory=True)"></div>
                 <div tal:replace="structure api.render_form_widget('password_2', 'password_confirm', 'Confirm Password', compulsory=True)"></div>
                 <div tal:replace="structure api.render_form_widget('input', 'firstname', 'First name', compulsory=True)"></div>
                 <div tal:replace="structure api.render_form_widget('input', 'lastname', 'Last name')"></div>
-                <div tal:content="structure api.render_form_widget('select_list', 'country', 'Country', choices=countries,compulsory=1)"></div>
-                <div tal:content="structure api.render_form_widget('date','dob','Date of Birth (dd/mm/yyyy)',default='')"></div>
+                <div tal:replace="structure api.render_form_widget('select_list', 'country', 'Country', choices=countries,compulsory=1)"></div>
+                <div tal:replace="structure api.render_form_widget('date','dob','Date of Birth (dd/mm/yyyy)',default='')"></div>
+                <div class="clear"></div>
                 <div tal:content="structure api.render_form_widget('select_list','gender','Gender',choices=[('','select gender'),('female','female'),('male','male')])"></div>
-    
-                <div class="l-spacer"></div>
+
                 <p class="terms-label">
                     <input type="checkbox" class="checkbox" name="terms" value="yes" />
                     I accept <a href="/terms/ajax.html" class="terms-conditions-link">Terms of Use</a>.
@@ -42,28 +35,12 @@
                 
                 <div class="admin-help">* required fields</div>
             
-                <div class="buttons clearafter">
-                    <button name="image" type="submit" class="button primary_button"><span>Sign In</span></button>
+                <div class="buttons clearfix">
+                    <button name="image" type="submit" class="button primary_button"><span>Join Up</span></button>
                 </div>
-            </form>
+            </div>
         </div>
-        <div class="bot"></div>
-    </div>
-
-    <div tal:condition="0" class="side-bar">
-        <div class="top"></div>
-        <div class="mid">
-            <p>Login using your Facebook account</p>
-            <a href="${api.fbauth_url()}">
-                <img id="fb_login_image" src="http://static.ak.fbcdn.net/images/fbconnect/login-buttons/connect_light_medium_long.gif" alt="Connect" />
-            </a>
-            
-        </div>
-        <div class="bot"></div>
-    </div>
-     
+        </form>
 
     </tal:block>
-
-  </div>
-</div>
+</html>
