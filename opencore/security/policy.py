@@ -1,3 +1,4 @@
+import logging
 from BTrees.IFBTree import multiunion
 from BTrees.IFBTree import IFSet
 
@@ -8,7 +9,6 @@ from repoze.bfg.security import AllPermissionsList
 from repoze.bfg.traversal import model_path
 from repoze.who.plugins.zodb.users import Users
 from repoze.folder.interfaces import IFolder
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -171,12 +171,32 @@ def to_community_public(ob):
     
     acl.append((Allow, moderators_group_name, MODERATOR_PERMS))
     acl.append((Allow, members_group_name, MEMBER_PERMS))
-    acl.append(NO_INHERIT)
     added, removed = acl_diff(ob, acl)
     if added or removed:
         ob.__acl__ = acl
         log.info('community (%s) to-public, added: %s, removed: %s' % (model_path(ob), added, removed))
     
+
+def to_obj_auth_can_create(ob):
+    acl  = []
+    if hasattr(ob, 'creator'):
+        acl.append((Allow, ob.creator, MEMBER_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlUserAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlStaff',
+                GUEST_PERMS + ('view_only',)))
+    
+    acl.append((Allow, Everyone, ('view_only',)))
+    # umm. member perms has delete as well! not sure we want this for say /stories
+    # maybe use this instead? GUEST_PERMS + (EDIT, CREATE) 
+    acl.append((Allow, 'system.Authenticated', MEMBER_PERMS + ('view_only',)))
+     
+    added, removed = acl_diff(ob, acl)
+    if added or removed:
+        ob.__acl__ = acl
+        log.info('community (%s) to-public, added: %s, removed: %s' % (model_path(ob), added, removed))
     
 def postorder(startnode):
     def visit(node):
