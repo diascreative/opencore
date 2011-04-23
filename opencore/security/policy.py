@@ -189,9 +189,8 @@ def to_obj_auth_can_create(ob):
                 GUEST_PERMS + ('view_only',)))
     
     acl.append((Allow, Everyone, ('view_only',)))
-    # umm. member perms has delete as well! not sure we want this for say /stories
-    # maybe use this instead? GUEST_PERMS + (EDIT, CREATE) 
-    acl.append((Allow, 'system.Authenticated', MEMBER_PERMS + ('view_only',)))
+    # not delete
+    acl.append((Allow, 'system.Authenticated', GUEST_PERMS + (EDIT, CREATE)  + ('view_only',)))
      
     added, removed = acl_diff(ob, acl)
     if added or removed:
