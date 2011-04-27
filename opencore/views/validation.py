@@ -116,15 +116,10 @@ class PrefixedUnicodeString(UnicodeString):
             val = self.prefix + val
         return val
 
-class SafeInput(FancyValidator):
-    """ Sanitize input text
-    """
-    
-    def _to_python(self, value, state):
-        value = UnicodeString()._to_python(value, state)
+def safe_html(text):
 
         # - clean up the html
-        value = clean.clean_html(value)
+        value = clean.clean_html(text)
 
         # - extract just the text
         # XXX might remove this later, we shall use just lxml to sanitize
@@ -137,6 +132,13 @@ class SafeInput(FancyValidator):
         value = '\n'.join(value)
 
         return value
+
+class SafeInput(FancyValidator):
+    """ Sanitize input text
+    """
+    
+    def _to_python(self, value, state):
+        return safe_html(UnicodeString()._to_python(value, state))
     
 class CommunityPreferenceSchema(PrefixSchema):
     community = UnicodeString()

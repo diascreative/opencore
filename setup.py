@@ -17,7 +17,6 @@ requires = [
     'FormEncode',
     'lxml',
     'PILwoTk',
-    'nose',
     'repoze.bfg >= 1.3',
     'repoze.browserid',
     'repoze.catalog',
@@ -45,7 +44,11 @@ requires = [
     'Baker',
     'WebError',
     'appendonly',
-    'Beaker'
+    'Beaker',
+    # testing requirements
+    'nose',
+    'testfixtures',
+    'mock',
     ]
 
 setup(name='opencore',

@@ -9,9 +9,9 @@ from repoze.bfg.url import model_url
 from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.bfg.exceptions import ExceptionResponse
 from repoze.lemonade.content import create_content
-from formencode import Invalid
 from opencore.models.interfaces import IComment
 from opencore.models.interfaces import IForumTopic
+from formencode import Invalid
 from opencore.views.validation import SafeInput
 from opencore.views.utils import extract_description
 from opencore.views.utils import upload_attachments
