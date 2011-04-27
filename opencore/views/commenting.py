@@ -12,7 +12,7 @@ from repoze.lemonade.content import create_content
 from opencore.models.interfaces import IComment
 from opencore.models.interfaces import IForumTopic
 from formencode import Invalid
-from opencore.views.validation import SafeInput
+from opencore.views.validation import safe_html
 from opencore.views.utils import extract_description
 from opencore.views.utils import upload_attachments
 from opencore.views.api import TemplateAPI
@@ -116,10 +116,7 @@ class AddCommentController(object):
         if not text:
             return self.status_response('Please enter a comment')
         converted = {'attachments' : []}   # todo: when required
-        try:
-            converted['add_comment'] = SafeInput().to_python(text)   
-        except Invalid, e:
-            raise ValidationError(self, add_comment=str(e))     
+        converted['add_comment'] = safe_html(text)   
         return self.handle_submit(converted)
     
     def status_response(self, msg):

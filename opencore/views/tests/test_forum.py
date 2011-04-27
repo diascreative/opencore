@@ -349,7 +349,7 @@ class TestAddForumTopicController(unittest.TestCase):
         response = controller()
         self.assertEqual(response.location, 'http://example.com/title/')
         self.assertEqual(context['title'].title, 'title')
-        self.assertEqual(context['title'].text, 'abc')
+        self.assertEqual(context['title'].text, '<p>abc</p>')
         self.assertEqual(context['title'].creator, None)     
 
 class dictall(dict):

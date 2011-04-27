@@ -1,19 +1,19 @@
 from datetime import datetime
-import unittest
-
-from zope.interface import implements
-from zope.interface import Interface
-from zope.interface import alsoProvides
-from repoze.bfg.testing import cleanUp
-
-from repoze.bfg import testing
-
+from mock import Mock
 from opencore.models.interfaces import IBlogEntry
 from opencore.models.interfaces import IComment
-
 from opencore.testing import DummyFile
 from opencore.testing import DummySessions
 from opencore.testing import registerLayoutProvider
+from opencore.views.commenting import AddCommentController
+from repoze.bfg.testing import cleanUp
+from repoze.bfg import testing
+from testfixtures import Replacer
+from zope.interface import implements
+from zope.interface import Interface
+from zope.interface import alsoProvides
+
+import unittest
 
 class ShowCommentViewTests(unittest.TestCase):
     def setUp(self):
@@ -108,3 +108,33 @@ class DummyComment(testing.DummyModel):
 
     def get_attachments(self):
         return self
+
+class TestAddCommentController(unittest.TestCase):
+
+    def setUp(self):
+        self.context = testing.DummyModel(title='the title')
+        self.request = testing.DummyRequest()
+        self.controller = AddCommentController(self.context,self.request)
+
+    def test_sanitize_html(self):
+        self.request.method = 'POST'
+        self.request.POST['comment.text']='some text'
+
+        def dummy_safe_html(text):
+            return u'filtered '+text
+
+        dummy_handle_submit = Mock()
+            
+        with Replacer() as r:
+            r.replace('opencore.views.commenting.safe_html',
+                      dummy_safe_html)
+            r.replace('opencore.views.commenting.AddCommentController.handle_submit',
+                      dummy_handle_submit)
+
+            self.controller()
+
+
+        dummy_handle_submit.assert_called_with(dict(
+            add_comment=u'filtered some text',
+            attachments=[],
+            ))
