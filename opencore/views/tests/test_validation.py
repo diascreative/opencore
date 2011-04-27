@@ -17,9 +17,8 @@ class TestSafeHTML(TestCase):
             )
 
     def test_evil(self):
-        # XXX - looks like htmllaundry doesn't sanitize!
         compare(
-            '<strong><a href="javascript:alert(" rel="nofollow" target="_blank">out</a></strong>',
+            '<strong><a href="">out</a></strong>',
             safe_html(
                 '<strong hello</strong><a href="javascript:alert("evil")">out</a>')
             )

@@ -15,8 +15,6 @@ from formencode.variabledecode import NestedVariables
 from formencode.schema import SimpleFormValidator
 from htmllaundry import sanitize
 from htmllaundry.cleaners import CommentCleaner
-from lxml.html import clean
-from BeautifulSoup import BeautifulSoup
 from webob.multidict import MultiDict
 from opencore.consts import countries
 from opencore.views.utils import make_name
@@ -115,9 +113,6 @@ def safe_html(text):
     """
     Take raw html and sanitize for safe use with tal:content="structure:x"
     """
-    # XXX - htmllaundry doesn't appear to remove JS
-    #       If this is an issue, use htmllaundry.StripMarkup but
-    #       lose all html tags in body; bad for RTE!
     return sanitize(text,CommentCleaner)
 
 class SafeInput(FancyValidator):
