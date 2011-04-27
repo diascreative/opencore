@@ -13,6 +13,8 @@ from formencode.validators import Regex
 from formencode.compound import All, Pipe
 from formencode.variabledecode import NestedVariables
 from formencode.schema import SimpleFormValidator
+from htmllaundry import sanitize
+from htmllaundry.cleaners import CommentCleaner
 from lxml.html import clean
 from BeautifulSoup import BeautifulSoup
 from webob.multidict import MultiDict
@@ -110,21 +112,13 @@ class PrefixedUnicodeString(UnicodeString):
         return val
 
 def safe_html(text):
-
-        # - clean up the html
-        value = clean.clean_html(text)
-
-        # - extract just the text
-        # XXX might remove this later, we shall use just lxml to sanitize
-        #     input. However, since extracting only the text from elements is
-        #     easier in BeautifulSoup, that's what I use. After we decide on
-        #     what elements we should allow/disallow, we can switch to lxml.
-        #       - lonetwin
-        soup = BeautifulSoup(value)
-        value = soup.findAll(text=True)
-        value = '\n'.join(value)
-
-        return value
+    """
+    Take raw html and sanitize for safe use with tal:content="structure:x"
+    """
+    # XXX - htmllaundry doesn't appear to remove JS
+    #       If this is an issue, use htmllaundry.StripMarkup but
+    #       lose all html tags in body; bad for RTE!
+    return sanitize(text,CommentCleaner)
 
 class SafeInput(FancyValidator):
     """ Sanitize input text

@@ -15,6 +15,7 @@ requires = [
     'BeautifulSoup',
     'feedparser',
     'FormEncode',
+    'htmllaundry',
     'lxml',
     'PILwoTk',
     'repoze.bfg >= 1.3',
