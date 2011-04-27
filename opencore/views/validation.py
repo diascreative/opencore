@@ -60,22 +60,15 @@ def validation_error_handler(exc, request):
     @param exc: ValidationError
     @param request: Request
     '''
-    try:
-        controller = exc.controller
-        if 'prefix' in controller.__dict__:
-            form_errors = add_dict_prefix(controller.prefix, exc.errors)
-        else:
-            form_errors = exc.errors  
-        log.error('failed_validation handler: %s' % str(form_errors))
-        log.debug('controller.api.formdata: %s' % str(controller.api.formdata))
-        controller.api.formerrors.update(form_errors)
-        return exc.controller.make_response()
-    except Exception, e:
-         # todo: call a nicer catch all fail handler
-         response = Response('User failed validation with: %s, but the '
-           'vaildation_error_handler handler also failed with: %s' % (exc.errors, e)) 
-         response.status_int = 500 
-         return response
+    controller = exc.controller
+    if 'prefix' in controller.__dict__:
+        form_errors = add_dict_prefix(controller.prefix, exc.errors)
+    else:
+        form_errors = exc.errors  
+    log.error('failed_validation handler: %s' % str(form_errors))
+    log.debug('controller.api.formdata: %s' % str(controller.api.formdata))
+    controller.api.formerrors.update(form_errors)
+    return exc.controller.make_response()
         
 def add_dict_prefix(prefix, original_data):
     data = {}
