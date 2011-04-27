@@ -53,6 +53,9 @@ class ValidationError(Exception):
         self.errors = errors
         self.controller = controller
 
+    def __str__(self):
+        return '<ValidationError:%s>' % self.errors
+
 def validation_error_handler(exc, request):
     '''
     General view handler setup for ValidationErrors that sets
@@ -254,3 +257,6 @@ class EditProfileSchema(PrefixSchema):
 
     alert_preferences = ForEach(CommunityPreferenceSchema())
     pre_validators = [NestedVariables()]        
+
+    twitter = PrefixedUnicodeString(prefix='@')
+    facebook = UnicodeString() 

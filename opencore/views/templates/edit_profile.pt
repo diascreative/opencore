@@ -1,57 +1,87 @@
-<div xmlns="http://www.w3.org/1999/xhtml" 
-     xmlns:tal="http://xml.zope.org/namespaces/tal"
-     xmlns:metal="http://xml.zope.org/namespaces/metal" 
-     metal:use-macro="api.generic_layout">
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal" 
+      metal:use-macro="api.generic_layout">
 
     <div metal:fill-slot="admin-js" tal:omit-tag="">
         <metal:resources use-macro="api.snippets.macros['admin_scripts']" />
     </div>
+    
+    <div metal:fill-slot="content">
+        <h1>
+            <span class="title">User Profile</span>
+            <span class="divide">&gt;</span>
+            <span class="subtitle">Edit Profile</span>
+        </h1>
+        <p class="page-intro">
+            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+        </p>
 
-  <div metal:fill-slot="content">
- 
-    <div class="content-2-3">
-        <div class="top"></div>
-        <div class="mid">
-            <h3>${api.page_title}</h3>
-            <form id="edit-profile" class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix 'profile.'">
-                <!-- required when editing a profile as 'admin' type user
-                <fieldset metal:use-macro="api.formfields.macros['login-field']"/>
-                <<fieldset metal:use-macro="api.formfields.macros['group-fields']"/>
-                <fieldset metal:use-macro="api.formfields.macros['home-path-field']"/>-->
-      
-                <div tal:content="structure api.render_form_widget('input', 'profile.firstname', 'First name', compulsory=True)"></div>
-                <div tal:content="structure api.render_form_widget('input', 'profile.lastname', 'Last name')"></div>
-                <div tal:content="structure api.render_form_widget('textarea', 'profile.biography', 'About you')"></div>
-                <div tal:content="structure api.render_form_widget('input', 'profile.position', 'Occupation')"></div>
-                <div tal:content="structure api.render_form_widget('input', 'profile.organization', 'Company')"></div>
-                <!-- on any validation error, profile.websites is not a tuple but the text input so the join will break each char in the string
-                           with \r\n. -->
-                <div metal:define-macro="my_websites" 
-                   tal:condition="api.formerrors">
-                    <div tal:content="structure api.render_form_widget('textarea', 'profile.websites', 'Websites (please start urls with http://)', default=api.formdata.get('profile.websites', []))"></div>
-                </div>   
-                <div tal:condition="not api.formerrors" tal:content="structure api.render_form_widget('textarea', 'profile.websites', 'Websites (please start urls with http://)', default='\r\n'.join(api.formdata.get('profile.websites', [])))"></div>
-                               
+        <form id="edit-profile" class="admin-form columns" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8"
+              tal:define="formprefix 'profile.'">
+
+            <div class="column column-3-4 first">
+    
                 <!--
-                <div tal:content="structure api.render_form_widget('input', 'profile.twitter', 'Twitter Username')"></div>
-                <div tal:content="structure api.render_form_widget('input', 'profile.facebook', 'Facebook page')"></div>
+                required when editing a profile as 'admin' type user
+                <div metal:use-macro="api.formfields.macros['login-field']"/>
+                <div metal:use-macro="api.formfields.macros['group-fields']"/>
+                <div metal:use-macro="api.formfields.macros['home-path-field']"/>
                 -->
-                <div tal:content="structure api.render_form_widget('input', 'profile.email', 'Email address', compulsory=True)"></div>
-                <div tal:content="structure api.render_form_widget('select_list', 'profile.country', 'Country', choices=countries)"></div>
-                <div tal:content="structure api.render_form_widget('image', 'profile.photo', 'Photo')"></div>
 
-                <div tal:content="structure api.render_form_widget('password', 'profile.password', 'Password')"/>
-                <div tal:content="structure api.render_form_widget('password', 'profile.password_confirm', 'Confirm Password')"/>
+                <div class="box">
+                    <div tal:content="structure api.render_form_widget('input', 'profile.firstname', 'First name', compulsory=True, description='Enter your first name/s')" tal:omit-tag="" />
+                    <div tal:content="structure api.render_form_widget('input', 'profile.lastname', 'Last name', compulsory=True)" tal:omit-tag="" />
+                    <div tal:content="structure api.render_form_widget('input', 'profile.email', 'Email address', compulsory=True)" tal:omit-tag="" />
+                </div>
+
+                <div class="box">
+                    <h3>Profile image</h3>
+                    <div class="content">
+                        <div tal:content="structure api.render_form_widget('image', 'profile.photo', 'Upload an image')" tal:omit-tag="" />
+                    </div>
+                </div>
+
+                <div class="box">
+                    <h3>Details</h3>
+                    <div class="content">
+                        <div tal:content="structure api.render_form_widget('input', 'profile.position', 'Position')" tal:omit-tag="" />
+                        <div tal:content="structure api.render_form_widget('input', 'profile.organization', 'Organization')" tal:omit-tag="" />
+                        <div tal:content="structure api.render_form_widget('textarea', 'profile.biography', 'Short bio')" tal:omit-tag="" />
+                        <!-- on any validation error, profile.websites is not a tuple but the text input so the join will break each char in the string with \r\n. -->
+                        <div metal:define-macro="my_websites" tal:condition="api.formerrors">
+                            <div tal:condition="not api.formerrors" tal:content="structure api.render_form_widget('textarea', 'profile.websites', 'Websites', default='\r\n'.join(api.formdata.get('profile.websites', [])), description='Please start urls with http://')"></div>
+                        </div>
+                        <div tal:content="structure api.render_form_widget('textarea_short', 'profile.websites', 'Websites', default=api.formdata.get('profile.websites', []), description='Enter url including the \'http://\'. Add more sites on new lines.')" tal:omit-tag="" />
+                        <div tal:content="structure api.render_form_widget('input', 'profile.twitter', 'Twitter Username')" tal:omit-tag="" />
+                        <div tal:content="structure api.render_form_widget('input', 'profile.facebook', 'Facebook page')" tal:omit-tag="" />
+                    </div>
+                </div>
+
+                <div class="box">
+                    <h3>Project</h3>
+                    <div class="content">
+                        <div tal:content="structure api.render_form_widget('select_list', 'profile.country', 'Location', choices=countries, description='Where does your project take place?')" tal:omit-tag="" />
+                    </div>
+                </div>
+
+                <div class="box">
+                    <h3>Password</h3>
+                    <div class="content">
+                        <div tal:content="structure api.render_form_widget('password_new', 'profile.password', 'New Password', None, None, None, 'Please enter your new password')"/>
+                        <div tal:content="structure api.render_form_widget('password_new', 'profile.password_confirm', 'Confirm New Password')"/>
+                    </div>
+                </div>
 
                 <div metal:define-slot="expert_profile_fields" tal:omit-tag=""/>
-
-                <div class="l-spacer"></div>
-                              
                 <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
-            </form>
-        </div>
-        <div class="bot"></div>
-    </div>
-
-  </div>
+            </div>
+    
+            <div class="column column-1-4 last">
+                <div class="block free borderless">
+                    <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
+                </div>
+            </div>
+    </form>
 </div>
+</html>

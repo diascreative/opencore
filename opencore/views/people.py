@@ -29,6 +29,8 @@ from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IGridEntryInfo
 from opencore.models.interfaces import IContent
 from opencore.models.interfaces import IProfile
+from opencore.models.profile import SocialCategory
+from opencore.models.profile import SocialCategoryItem
 from opencore.models.profile import social_category
 from opencore.utilities.image import thumb_url
 from opencore.utils import find_communities
@@ -48,6 +50,7 @@ from opencore.views.utils import convert_to_script
 from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import Invalid
 from opencore.views.utils import comments_to_display
+from opencore.views.utils import get_author_info
 from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
 from opencore.views.validation import EditProfileSchema
@@ -98,6 +101,28 @@ def show_profiles_view(context, request):
         profiles=profiles,
         )
 
+def get_profile_actions(profile,request):
+    # XXX - this should probably be a utility to aid overriding!
+    actions = {}
+    same_user = (authenticated_userid(request) == profile.__name__)
+    is_admin = has_permission('administer', profile, request) 
+
+    if same_user or is_admin:
+        actions['edit'] = model_url(profile, request, 'edit_profile.html')
+
+        actions['manage_communities'] = model_url(profile, request,
+                                                  'manage_communities.html')  
+
+        actions['manage_tags'] = model_url(profile, request, 
+                                           'manage_tags.html')
+        actions['manage_bookmarks'] = model_url(profile, request,
+                                                'manage_bookmarks.html')
+        actions['mailbox'] = model_url(profile, request,
+                                                'mailbox.html')
+    actions['feed'] = model_url(profile, request, 'contentfeed.html')
+
+    return actions
+
 class ShowProfileView(object):
     
     def __init__(self, context, request):
@@ -107,7 +132,7 @@ class ShowProfileView(object):
                                "View %s" % context.title)
         layout_provider = get_layout_provider(self.context, self.request)
         self.layout = layout_provider('generic')
-        self.photo_thumb_size = (75, 100)     
+        self.photo_thumb_size = (220,150)    
         
     def __call__(self):
         context = self.context
@@ -226,7 +251,7 @@ class ShowProfileView(object):
         self.my_communities = my_communities or []
         self.preferred_communities = preferred_communities
         self.tags = tags
-        self.actions = get_profile_actions(context, request)
+        self.actions = get_profile_actions(context,request)
         self.head_data = convert_to_script(client_json_data)
         return self.make_response()
         
@@ -255,19 +280,6 @@ def profile_thumbnail(context, request):
     else:
         url = api.static_url + "/images/defaultUser.gif"
     return HTTPFound(location=url)
-
-def get_profile_actions(profile, request):
-    actions = []
-    same_user = (authenticated_userid(request) == profile.__name__)
-    if has_permission('administer', profile, request):
-        #actions.append(('Edit', 'admin_edit_profile.html'))
-        actions.append(('Edit', 'edit_profile.html'))
-    elif same_user:
-        actions.append(('Edit', 'edit_profile.html'))
-    if same_user:
-        actions.append(('Manage Communities', 'manage_communities.html'))
-        actions.append(('Manage Tags', 'manage_tags.html'))
-    return actions
 
 class EditProfileFormController(object):
     """
@@ -304,7 +316,18 @@ class EditProfileFormController(object):
         self.prefix = 'profile.'
         self.photo = context.get('photo')
         self.schema = EditProfileSchema
-
+        self.social_category = social_category(context, None)
+        if not self.social_category:
+            # the social category is lazily instantiated
+            self.social_category = context.categories['social'] = SocialCategory()
+            
+    def social_id(self, social_name):
+        social = self.social_category.get(social_name)
+        id = u''
+        if social:
+            id = social.id
+        return id
+        
     def form_defaults(self):
         context = self.context
         assert(context.websites != None)
@@ -323,6 +346,8 @@ class EditProfileFormController(object):
                     'languages': context.languages,
                     'photo': self.photo,
                     'biography': context.biography,
+                    'facebook' : self.social_id('facebook'),
+                    'twitter' : self.social_id('twitter'),
                     }
         return defaults
 
@@ -357,6 +382,7 @@ class EditProfileFormController(object):
                        form_title=self.form_title, include_blurb=True,
                        countries=[('', 'Select your Country')] + countries,
                        preferences= ['immediately', 'digest', 'never'],
+                       author_info=get_author_info(self.context.__name__, self.request),
                        defaults=[])     
       
     def handle_submit(self, converted):
@@ -364,17 +390,6 @@ class EditProfileFormController(object):
         request = self.request
         log.debug('handle_submit: %s' % str(converted))
         objectEventNotify(ObjectWillBeModifiedEvent(context))
-        self.handle_submit_base_fields(converted)
-        # Emit a modified event for recataloging
-        objectEventNotify(ObjectModifiedEvent(context))
-        # Whew, we made it!
-        path = model_url(context, request)
-        msg = '?status_message=Profile%20edited'
-        return HTTPFound(location=path+msg)
-
-    def handle_submit_base_fields(self, converted):
-        context = self.context
-        request = self.request
         objectEventNotify(ObjectWillBeModifiedEvent(context))
         # Handle the easy ones
         for name in self.simple_field_names:
@@ -394,6 +409,23 @@ class EditProfileFormController(object):
             raise ValidationError(self, **e.error_dict)
         context.modified_by = authenticated_userid(request)
         
+        for social in ['facebook', 'twitter']:
+            if social in converted:
+                id = converted[social]
+                item = self.social_category.get(social)
+                if not item:
+                    item = context.categories['social'][social] = SocialCategoryItem(id=id, title=social, description=u'')                   
+                else:
+                    item.id = id 
+                    
+                log.debug('set social category item: %s' % item)       
+        
+        # Emit a modified event for recataloging
+        objectEventNotify(ObjectModifiedEvent(context))
+        # Whew, we made it!
+        path = model_url(context, request)
+        msg = '?status_message=Profile%20edited'
+        return HTTPFound(location=path+msg)
             
 def get_group_options(context):
     group_options = []

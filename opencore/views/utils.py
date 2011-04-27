@@ -793,3 +793,16 @@ def comments_to_display(request, profile_thumb_size=None):
         comments.append(newc)
     comments.sort(key=lambda x: x['timestamp'])
     return comments
+
+def get_author_info(id, request):
+    author = request.api.find_profile(id)
+    author_url = '%s/%s/' % (request.api.people_url,
+                                 author.__name__)
+    return { 
+      'title'  : author.title,
+      'country' : author.country,
+      'organization' : author.organization,
+      'url' : author_url,
+      'photo_url' : '%sprofile_thumbnail' % author_url
+    } 
+    

@@ -3,6 +3,8 @@ import unittest
 from repoze.bfg import testing
 from opencore import testing as opentesting
 from opencore.testing import DummySessions
+from opencore.views.api import get_template_api
+from testfixtures import Replacer
 
 class DummyForm(object):
     allfields = ()
@@ -28,6 +30,11 @@ profile_data = {
     }
 
 class DummyProfile(testing.DummyModel):
+
+    def __init__(self,*args,**kw):
+        testing.DummyModel.__init__(self,*args,**kw)
+        self.categories={}
+        
     #websites = ()
     title = 'firstname lastname'
     def __setitem__(self, name, value):
@@ -58,6 +65,17 @@ class TestEditProfileFormController(unittest.TestCase):
                    'biography']
 
     def setUp(self):
+        self.r = Replacer()
+        # test values for author info, requiring less setup
+        self.r.replace('opencore.views.people.get_author_info',
+                       lambda id,request: { 
+                'title'  : 'Author title',
+                'country' : 'Author country',
+                'organization' : 'author org',
+                'url' : 'author-url',
+                'photo_url' : 'author-photo-url',
+                })
+                       
         testing.cleanUp()
         sessions = DummySessions()
         context = DummyProfile(sessions=sessions, **profile_data)
@@ -68,11 +86,11 @@ class TestEditProfileFormController(unittest.TestCase):
         self.request = request
         self.user_info = {'groups': set()}
         request.environ['repoze.who.identity'] = self.user_info
-        
-      
+        request.api = get_template_api(context, request)
 
     def tearDown(self):
         testing.cleanUp()
+        self.r.restore()
 
     def _makeOne(self, context, request):
         from opencore.views.people import EditProfileFormController
@@ -136,6 +154,8 @@ class TestEditProfileFormController(unittest.TestCase):
           'profile.email': u'joe@example.com',
           'profile.country': u'TJ',
           'profile.password': u'',
+          'profile.twitter': u'',
+          'profile.facebook': u'',
           'profile.password_confirm': u'',
           'profile.submit': u'Submit'})
         
@@ -161,6 +181,8 @@ class TestEditProfileFormController(unittest.TestCase):
           'profile.country': u'TJ',
           'profile.password': u'',
           'profile.photo': None,
+          'profile.twitter': u'',
+          'profile.facebook': u'',
           'profile.password_confirm': u'',
           'profile.submit': u'Submit'})
         
