@@ -1,5 +1,6 @@
 <configure xmlns="http://namespaces.repoze.org/bfg">
 
+  <scan package="." />
 
   <view
      view=".forbidden.forbidden"

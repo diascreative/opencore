@@ -22,6 +22,7 @@ from repoze.bfg.traversal import model_path
 from repoze.bfg.traversal import find_interface
 from repoze.bfg.url import model_url
 from repoze.bfg.exceptions import ExceptionResponse
+from repoze.bfg.view import bfg_view
 
 from formencode import Invalid as FormEncodeInvalid
 
@@ -32,6 +33,7 @@ from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
 
 from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import IMembers
 from opencore.models.interfaces import IProfile
 from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IInvitation
@@ -614,6 +616,9 @@ def _send_signup_ai_email(request, username, profile):
     mailer.send(info['mfrom'], [profile.email,], msg)    
     
 
+@bfg_view(for_=IMembers,
+          name='invite_new.html',
+          renderer='templates/members_invite_new.pt')
 class InviteNewUsersController(object):
     def __init__(self, context, request):
         self.context = context
@@ -635,8 +640,6 @@ class InviteNewUsersController(object):
        
         if self.request.method == 'POST':
             post_data = self.request.POST
-            log.debug('request.POST: %s' % post_data)
-            log.debug('api.formdata: %s' % self.api.formdata)
             try:
                 # validate and convert
                 validation_info = State(users=set(self.profiles.keys())) 
@@ -657,15 +660,12 @@ class InviteNewUsersController(object):
                     return _add_existing_users(context, community, [profile,],
                                                "", request)    
             
-        return self.make_response()
-    
-    def make_response(self):
-        return render_template_to_response(
-                       'templates/members_invite_new.pt',
-                       api=self.api,
-                       actions=self.actions,
-                       page_title='Invite New %s Users' % self.system_name,
-                       page_description=self.desc)     
+        return dict(
+            api=self.api,
+            actions=self.actions,
+            page_title='Invite New %s Users' % self.system_name,
+            page_description=self.desc
+            )     
    
     def handle_submit(self, converted, validation_info):
         log.debug('InviteNewUsersController.handle_submit: %s, %s' % (str(converted), str(validation_info)))
