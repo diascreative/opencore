@@ -11,7 +11,6 @@ from repoze.bfg.exceptions import ExceptionResponse
 from repoze.lemonade.content import create_content
 from opencore.models.interfaces import IComment
 from opencore.models.interfaces import IForumTopic
-from formencode import Invalid
 from opencore.views.validation import safe_html
 from opencore.views.utils import extract_description
 from opencore.views.utils import upload_attachments
