@@ -295,27 +295,17 @@ class ManageMembersController(object):
         request = self.request
        
         if self.request.method == 'POST':
-            post_data = self.request.POST
-            log.debug('request.POST: %s' % post_data)
-            try:
-                # validate and convert
-                # create a dict of the members list key'd on name
-                converted = dict(map(lambda x: (x['name'], x), self.defaults['members']))
-                form_keys = ['moderator', 'resend', 'remove']
-                for k, v in post_data.iteritems():
-                    if k == 'submit' : continue
-                    action, name = k.split('_')
-                    if action not in form_keys: continue
-                    action = UnicodeString().to_python(action, state=None)
-                    v = StringBool().to_python(v, state=None)
-                    log.debug('setting converted[%s][%s]=%s' % (name, action, v))
-                    converted[name][action] = v
-               
-            except FormEncodeInvalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, members=str(e))
-            else:
-                return self.handle_submit(converted.values())
+            # create a dict of the members list key'd on name
+            converted = dict(map(lambda x: (x['name'], x), self.defaults['members']))
+            form_keys = ['moderator', 'resend', 'remove']
+            
+            for k, v in self.request.POST.iteritems():
+                if k == 'submit' : continue
+                action, name = k.split('_')
+                if action not in form_keys: continue
+                converted[name][action] = v=='True'
+                
+            return self.handle_submit(converted.values())
             
         return self.make_response()
     
