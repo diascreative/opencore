@@ -12,6 +12,7 @@ except IOError:
 requires = [
     'appendonly',
     'Beaker',
+    'deform',
     'feedparser',
     'FormEncode',
     'htmllaundry',
