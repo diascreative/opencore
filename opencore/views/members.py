@@ -627,10 +627,6 @@ class InviteNewUsersController(object):
         self.api = request.api
         self.actions = _get_manage_actions(self.community, request)
         self.profiles = find_profiles(context)
-        self.desc = ('Type the first few letters of the name of the person you '
-                'would like to add to this community, select their name, '
-                'and press submit. Alternatively type in email addresses each on a separate line for new members. The short message below is included '
-                'along with the text of your invite.')
         self.system_name = get_setting(context, 'system_name', 'OpenCore')
   
     def __call__(self):
@@ -663,8 +659,6 @@ class InviteNewUsersController(object):
         return dict(
             api=self.api,
             actions=self.actions,
-            page_title='Invite New %s Users' % self.system_name,
-            page_description=self.desc
             )     
    
     def handle_submit(self, converted, validation_info):

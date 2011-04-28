@@ -8,7 +8,13 @@
 
             <h4 class="main-heading">Add Members</h4>
 
-            <p tal:content="page_description|''"/>
+            <p>
+Type the first few letters of the name of the person you would like to
+add to this community, select their name, and press
+submit. Alternatively type in email addresses each on a separate line
+for new members. The short message below is included along with the
+text of your invite.
+            </p>
     
             <form id="member_invite_new" class="admin-form columns" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''" target="_top">
     
