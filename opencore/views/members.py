@@ -22,7 +22,6 @@ from repoze.bfg.traversal import model_path
 from repoze.bfg.traversal import find_interface
 from repoze.bfg.url import model_url
 from repoze.bfg.exceptions import ExceptionResponse
-from repoze.bfg.view import bfg_view
 
 from formencode import Invalid as FormEncodeInvalid
 
@@ -33,7 +32,6 @@ from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
 
 from opencore.models.interfaces import ICommunity
-from opencore.models.interfaces import IMembers
 from opencore.models.interfaces import IProfile
 from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IInvitation
@@ -616,9 +614,6 @@ def _send_signup_ai_email(request, username, profile):
     mailer.send(info['mfrom'], [profile.email,], msg)    
     
 
-@bfg_view(for_=IMembers,
-          name='invite_new.html',
-          renderer='templates/members_invite_new.pt')
 class InviteNewUsersController(object):
     def __init__(self, context, request):
         self.context = context
