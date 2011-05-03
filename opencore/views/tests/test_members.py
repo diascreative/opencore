@@ -88,15 +88,11 @@ class AddExistingUserTests(unittest.TestCase):
         context = self._getContext()
         request = testing.DummyRequest()
         controller = self._makeOne(context, request)
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/members_invite_new.pt')
         info = controller()
         actions = [('Manage Members', 'manage.html'),
                    ('Add', 'invite_new.html')]
         
-        self.assertEqual(renderer._received['actions'], actions)
-        self.failUnless('page_title' in renderer._received)
-        self.failUnless('page_description' in renderer._received)
+        self.assertEqual(info['actions'], actions)
        
 
     def test___call__with_userid_get(self):
@@ -317,14 +313,10 @@ class InviteNewUsersTests(unittest.TestCase):
     def test_call(self):
         context = self._makeCommunity()
         request = testing.DummyRequest()
-        renderer = testing.registerDummyRenderer('templates/members_invite_new.pt')
         controller = self._makeOne(context, request)
-        controller()
-        self.failUnless(hasattr(renderer, 'api'))
-        self.failUnless(hasattr(renderer, 'actions'))
-        self.failUnless(hasattr(renderer, 'page_title'))
-        self.failUnless(hasattr(renderer, 'page_description'))
-
+        info = controller()
+        self.failUnless('api' in info)
+        self.failUnless('actions' in info)
    
     def test_handle_submit_new_to_system(self):
         from repoze.lemonade.testing import registerContentFactory
