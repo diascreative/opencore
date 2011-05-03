@@ -266,12 +266,12 @@ def photo_from_filestore_view(context, request, form_id):
 
 def handle_photo_upload(context, form):
     upload_map = form.get("photo", None)
-    
+
     if upload_map is not None:
         if upload_map['file'] is not None and upload_map['file'] != '':
             log.debug('uploading photo.')
             upload = upload_map['file']
-           
+
             request = get_current_request()
             userid = authenticated_userid(request)
             upload_file = upload.file
@@ -280,7 +280,7 @@ def handle_photo_upload(context, form):
             else:
                 upload_type = upload.mimetype # Formish File object
             assert upload_type
-    
+
             photo = create_content(
                 ICommunityFile,
                 title='Photo of ' + context.title,
@@ -299,7 +299,7 @@ def handle_photo_upload(context, form):
             context['photo'] = photo
             check_upload_size(context, photo, 'photo')
 
-        elif (upload_map.get('delete'), False) and asbool(upload_map.get('delete')):    
+        elif (upload_map.get('delete'), False) and asbool(upload_map.get('delete')):
             if 'photo' in context:
                 log.debug('deleting photo.')
                 del context['photo']
@@ -651,7 +651,7 @@ def upload_attachments(attachments, folder, creator, request):
                     ob = folder[name]
                     if has_permission('delete', ob, request):
                         del folder[name]
-                        
+
 _WIKI_WORDS = re.compile(r'[(][(]([^)]+)[)][)]')
 
 def _crack_words(text):
@@ -690,13 +690,13 @@ def extract_description(htmlstring):
     if len(words) > summary_limit:
         summary = summary + "..."
 
-    return summary                        
+    return summary
 
 def comments_to_display(request, profile_thumb_size=None):
     from opencore.views.people import PROFILE_THUMB_SIZE
-    
+
     profile_thumb_size = profile_thumb_size or PROFILE_THUMB_SIZE
-    
+
     def thumb_url(image, request, size):
         """
         Return the url for displaying the image with dimensions bounded by given
@@ -709,12 +709,12 @@ def comments_to_display(request, profile_thumb_size=None):
     appdates = getUtility(IAppDates)
     profiles = find_profiles(context)
     api = request.api
-    
+
      # Convert comments into a digestable form for the template
-    comments = [] 
+    comments = []
     if 'comments' not in context:
         return comments
-     
+
     for comment in context['comments'].values():
         profile = profiles.get(comment.creator)
         author_name = profile.title
@@ -728,7 +728,7 @@ def comments_to_display(request, profile_thumb_size=None):
         else:
             newc['edit_url'] = None
             newc['delete_url'] = None
-            
+
         # Display portrait
         photo = profile.get('photo')
         photo_url = {}
@@ -752,12 +752,12 @@ def comments_to_display(request, profile_thumb_size=None):
 
         # Fetch the attachments info
         newc['attachments'] = fetch_attachments(comment, request)
-        
+
         # handle comment replies
         newc['comment_reply_url'] = model_url(comment, request, 'comment.html')
         replies = []
         if 'comments' in comment:
-            for reply in comment['comments'].values(): 
+            for reply in comment['comments'].values():
                 newr = {}
                 newr['id'] = reply.__name__
                 if has_permission('edit', reply, request):
@@ -788,8 +788,8 @@ def comments_to_display(request, profile_thumb_size=None):
                 if hasattr(api, 'like_count'):
                     newc['nlikes'] = api.like_count(reply)
                 replies.append(newr)
-            replies.sort(key=lambda x: x['timestamp'])    
-        newc['comment_replies'] = replies 
+            replies.sort(key=lambda x: x['timestamp'])
+        newc['comment_replies'] = replies
         comments.append(newc)
     comments.sort(key=lambda x: x['timestamp'])
     return comments
@@ -798,11 +798,11 @@ def get_author_info(id, request):
     author = request.api.find_profile(id)
     author_url = '%s/%s/' % (request.api.people_url,
                                  author.__name__)
-    return { 
+    return {
       'title'  : author.title,
       'country' : author.country,
       'organization' : author.organization,
       'url' : author_url,
       'photo_url' : '%sprofile_thumbnail' % author_url
-    } 
-    
+    }
+
