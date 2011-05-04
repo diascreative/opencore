@@ -248,6 +248,12 @@ class TemplateAPI(object):
         macro_template = get_template(self.formfields_fn)
         return macro_template
 
+    lightbox_layout_fn = 'opencore.views:templates/lightbox_layout.pt'
+    @property
+    def lightbox_layout(self):
+        macro_template = get_template(self.lightbox_layout_fn)
+        return macro_template
+
     @property
     def form_field_templates(self):
         if self._form_field_templates is None:
