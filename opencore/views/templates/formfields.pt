@@ -812,7 +812,7 @@
     <fieldset metal:define-macro="form-submit"
 	      id="submitcancel-field">
 
-    <div class="buttons clearafter">
+    <div class="buttons clearfix">
       <button id="form-submit" name="form.submitted" value="submit" type="submit" class="button primary_button"><span>submit</span></button>
       <button id="form-cancel" name="form.cancel" value="cancel" type="submit" class="button normal_button"><span>cancel</span></button>
     </div>
