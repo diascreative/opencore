@@ -17,7 +17,7 @@
     <script type="text/javascript" src="${api.static_url}/js/jquery.moreless.js"></script>
     <script type="text/javascript" src="${api.static_url}/js/jquery.carousel.js"></script>
     <script type="text/javascript" src="${api.static_url}/js/jquery.feeds.js"></script>
-    <script type="text/javascript" src="${api.static_url}/js/jquery.limit.height.js"></script>
+    <script type="text/javascript" src="${api.static_url}/js/jquery.limit.lines.js"></script>
     <script type="text/javascript" src="${api.static_url}/js/jquery.custom.checkboxes.js"></script>
     <script type="text/javascript" src="${api.static_url}/js/main.js"></script>
 
