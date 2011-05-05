@@ -530,25 +530,6 @@ class ManageMembersControllerTests(Base):
                          'Membership+information+changed%3A+'
                          'Removed+invitation+foo%40example.com')
 
-    ''' todo: not in view yet
-    def test_handle_submit_remove_moderator(self):
-        context = self._makeCommunity()
-        request = testing.DummyRequest()
-        controller = self._makeOne(context, request)
-        converted = {'members':[{'remove':True, 'name':'b', 'resend':False,
-                                 'moderator':False, 'title':'buz'}]}
-        mailer = self._registerMailer()
-        response = controller.handle_submit(converted)
-        site = context.__parent__.__parent__
-        users = site.users
-        self.assertEqual(users.removed_groups, [(u'b', 'moderators')])
-        self.assertEqual(len(mailer), 0)
-        self.assertEqual(response.location,
-                         'http://example.com/communities/community/'
-                         'manage.html?status_message='
-                         'Membership+information+changed%3A+'
-                         'Removed+moderator+buz')'''
-
     def test_handle_submit_resend(self):
         testing.registerDummyRenderer(
             'opencore.views:templates/members_manage.pt')
@@ -626,27 +607,6 @@ class TestJqueryMemberSearchView(Base):
             response.body,
             '[{"text": "title", "id": "b"}, '
             '{"text": "title", "id": "c"}]')
-
-'''class TestAcceptInvitationPhotoView(unittest.TestCase):
-    def _callFUT(self, context, request):
-        from opencore.views.members import accept_invitation_photo_view
-        return accept_invitation_photo_view(context, request)
-
-    def test_it(self):
-        request = testing.DummyRequest()
-        request.environ['repoze.browserid'] = '1'
-        request.subpath = ('a',)
-        sessions = DummySessions()
-        class DummyBlob:
-            def open(self, mode):
-                return ('abc',)
-        sessions['1'] = {'accept-invitation':
-                         {'a':([('a', '1')],None, DummyBlob())}
-                         }
-        context = testing.DummyModel(sessions=sessions)
-        response = self._callFUT(context, request)
-        self.assertEqual(response.headerlist, [('a', '1')])
-        self.assertEqual(response.app_iter, ('abc',))'''
 
 class DummyMembers(testing.DummyModel):
     def __init__(self):
