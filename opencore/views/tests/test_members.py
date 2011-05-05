@@ -1,7 +1,22 @@
 import unittest
 
 from repoze.bfg import testing
+from repoze.lemonade.testing import registerContentFactory
+from repoze.sendmail.interfaces import IMailDelivery
 from opencore import testing as oitesting
+from opencore.models.interfaces import (
+    ICommunity,
+    IInvitation,
+    IProfiles,
+    )
+from opencore.utilities.interfaces import IRandomId
+from opencore.views.api import get_template_api
+from opencore.views.members import (
+    InviteNewUsersController,
+    ManageMembersController,
+    )
+from webob.multidict import MultiDict
+from zope.interface import directlyProvides
 
 class Base(unittest.TestCase):
     
@@ -10,6 +25,11 @@ class Base(unittest.TestCase):
 
     def tearDown(self):
         testing.cleanUp()
+
+    def _registerMailer(self):
+        mailer = oitesting.DummyMailer()
+        testing.registerUtility(mailer, IMailDelivery)
+        return mailer
 
 class ShowMembersViewTests(Base):
 
@@ -268,20 +288,10 @@ class AcceptInvitationControllerTests(Base):
 class InviteNewUsersTests(Base):
 
     def _makeOne(self, context, request):
-        from opencore.views.members import InviteNewUsersController
-        from opencore.views.api import get_template_api
         request.api = get_template_api(context, request)
         return InviteNewUsersController(context, request)
 
-    def _registerMailer(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        return mailer
-
     def _makeCommunity(self):
-        from opencore.models.interfaces import ICommunity
-        from zope.interface import directlyProvides
         community = testing.DummyModel()
         community.member_names = set(['a'])
         community.moderator_names = set(['b', 'c'])
@@ -303,9 +313,6 @@ class InviteNewUsersTests(Base):
         self.failUnless('actions' in info)
    
     def test_handle_submit_new_to_system(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation, IProfiles
-        from opencore.utilities.interfaces import IRandomId
         request = testing.DummyRequest()
         context = self._makeCommunity()
         
@@ -337,10 +344,6 @@ class InviteNewUsersTests(Base):
         self.assertEqual(mailer[0].mto, [u"yo@plope.com",])
 
     def test_handle_submit_already_in_system(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation
-        from opencore.models.interfaces import IProfiles
-        from opencore.utilities.interfaces import IRandomId
         request = testing.DummyRequest()
         context = self._makeCommunity()
         
@@ -373,9 +376,6 @@ class InviteNewUsersTests(Base):
                          [('d', 'group:community:members')])
 
     def test_handle_submit_inactive_user(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation, IProfiles
-        from opencore.utilities.interfaces import IRandomId
         request = testing.DummyRequest()
         context = self._makeCommunity()
         registerContentFactory(DummyProfiles, IProfiles)
@@ -401,11 +401,6 @@ class InviteNewUsersTests(Base):
         self.assertRaises(ValidationError, controller)
 
     def test_handle_submit_already_in_community(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation
-        from opencore.utilities.interfaces import IRandomId
-        from opencore.models.interfaces import IProfiles
-              
         request = testing.DummyRequest()
         context = self._makeCommunity()
         registerContentFactory(DummyProfiles, IProfiles)
@@ -437,25 +432,12 @@ class InviteNewUsersTests(Base):
 
 class ManageMembersControllerTests(Base):
 
-    def _getTargetClass(self):
-        from opencore.views.members import ManageMembersController
-        return ManageMembersController
-
     def _makeOne(self, context, request):
         from opencore.views.api import get_template_api
         request.api = get_template_api(context, request)
-        return self._getTargetClass()(context, request)
-
-    def _registerMailer(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        return mailer
+        return ManageMembersController(context, request)
 
     def _makeCommunity(self):
-        from opencore.models.interfaces import ICommunity
-        from opencore.models.interfaces import IInvitation
-        from zope.interface import directlyProvides
         community = testing.DummyModel()
         community.member_names = set(['a'])
         community.moderator_names = set(['b', 'c'])
