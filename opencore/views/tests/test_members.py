@@ -77,18 +77,29 @@ class ShowMembersViewTests(Base):
         self.assertEqual(renderer.submenu[1]['make_link'], False)
         self.assertEqual(searchkw['sort_index'], 'lastfirst')
 
-class AddExistingUserTests(Base):
+class InviteNewUsersControllerBase(Base):
+    
+    def setUp(self):
+        Base.setUp(self)
+        self.request = testing.DummyRequest()
+        self.context = self._makeCommunity()
+        self.mailer = self._registerMailer()
+        registerCatalogSearch()
+        def nonrandom(size=6):
+            return 'A' * size
+        testing.registerUtility(nonrandom, IRandomId)
+        registerContentFactory(DummyProfiles, IProfiles)
+        registerContentFactory(DummyInvitation, IInvitation)
+        self.context['profiles'] = self.profiles = DummyProfiles()
+        
+    def _makeOne(self):
+        self.request.api = get_template_api(self.context, self.request)
+        return InviteNewUsersController(self.context, self.request)
 
-    def _makeOne(self, context, request):
-        from opencore.views.members import InviteNewUsersController
-        from opencore.views.api import get_template_api
-        request.api = get_template_api(context, request)
-        return InviteNewUsersController(context, request)
+class AddExistingUserTests(InviteNewUsersControllerBase):
 
-    def _getContext(self):
+    def _makeCommunity(self):
         context = testing.DummyModel()
-        from opencore.models.interfaces import ICommunity
-        from zope.interface import directlyProvides
         directlyProvides(context, ICommunity)
         context.users = oitesting.DummyUsers()
         context.title = 'thetitle'
@@ -101,55 +112,53 @@ class AddExistingUserTests(Base):
 
         return context
     
-    def test__call__(self):
-        context = self._getContext()
-        request = testing.DummyRequest()
-        controller = self._makeOne(context, request)
-        info = controller()
-        actions = [('Manage Members', 'manage.html'),
-                   ('Add', 'invite_new.html')]
+    def test_get_with_userid(self):
+        self.request.params['user_id']='admin'
+        self.profiles['admin'] = oitesting.DummyProfile()
         
-        self.assertEqual(info['actions'], actions)
-       
-
-    def test___call__with_userid_get(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        request = testing.DummyRequest({"user_id": "admin"})
-        context = self._getContext()
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        controller = self._makeOne(context, request)
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_add_existing.pt')
+        controller = self._makeOne()
+        
         response = controller()
-        self.assertEqual(context.users.added_groups, [('admin','members')])
-        self.assertEqual(mailer[0].mto[0], 'admin@example.com')
+        self.assertEqual(self.context.users.added_groups,
+                         [('admin','members')])
+        self.assertEqual(self.mailer[0].mto[0], 'admin@x.org')
         self.failUnless(
             response.location.startswith('http://example.com/manage.html'))
 
     def test_handle_submit_badprofile(self):
-        from opencore.views.validation import ValidationError
-        request = testing.DummyRequest()
-        context = self._getContext()
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {'users':('admin', 'nyc99'), 'text':'some text'}
-        self.assertRaises(ValidationError, controller)
+        controller = self._makeOne()
+        
+        self.request.POST = MultiDict([
+                ('__start__', u'users:sequence'),
+                ('a_user', u'nyc99'),
+                ('__end__', u'users:sequence'),
+                ('save', u'save')
+                ])
+        response = controller()
+
+        self.assertEqual(self.context.users.added_groups, [])
+
+        # The KarlUserWidget doesn't currently show error messages.
+        # Since I don't think this code path can actually get executed
+        # in real use, I'm punting for now...
+        # self.failUnless('This is not a valid profile.' in response['form'])
 
     def test_handle_submit_success(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        request = testing.DummyRequest()
-        context = self._getContext()
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        controller = self._makeOne(context, request)
-        request.method = "POST"
-        request.POST = {'users': (u'admin',), 'text':'some_text'}
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_add_existing.pt')
+        self.profiles['admin'] = oitesting.DummyProfile()
+        
+        controller = self._makeOne()
+
+        self.request.POST = MultiDict([
+                ('__start__', u'users:sequence'),
+                ('a_user', u'admin'),
+                ('__end__', u'users:sequence'),
+                ('save', u'save')
+                ])
+        
         response = controller()
-        self.assertEqual(context.users.added_groups, [('admin','members')])
-        self.assertEqual(mailer[0].mto[0], 'admin@example.com')
+        self.assertEqual(self.context.users.added_groups,
+                         [('admin','members')])
+        self.assertEqual(self.mailer[0].mto[0], 'admin@x.org')
         self.failUnless(
             response.location.startswith('http://example.com/manage.html'))
 
@@ -285,11 +294,7 @@ class AcceptInvitationControllerTests(Base):
         self.failIf('invite' in community)
         self.assertEqual(len(mailer), 1)
 
-class InviteNewUsersTests(Base):
-
-    def _makeOne(self, context, request):
-        request.api = get_template_api(context, request)
-        return InviteNewUsersController(context, request)
+class InviteNewUsersTests(InviteNewUsersControllerBase):
 
     def _makeCommunity(self):
         community = testing.DummyModel()
@@ -304,130 +309,108 @@ class InviteNewUsersTests(Base):
         community.description = 'description'
         return community
 
-    def test_call(self):
-        context = self._makeCommunity()
-        request = testing.DummyRequest()
-        controller = self._makeOne(context, request)
+    def test_get(self):
+        controller = self._makeOne()
         info = controller()
         self.failUnless('api' in info)
         self.failUnless('actions' in info)
+        self.assertTrue(info['form'].startswith('<form id="deform"'))
    
-    def test_handle_submit_new_to_system(self):
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
+    def test_handle_submit_no_users_or_emails(self):
         
-        registerContentFactory(DummyProfiles, IProfiles)
-        context['profiles'] = profiles = DummyProfiles()
-        
-        mailer = self._registerMailer()
-        registerCatalogSearch()
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {
-            'email_addresses': u'yo@plope.com',
-            'text': u'some text',
-            }
+        controller = self._makeOne()
 
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_invite_new.pt')
+        self.request.POST = MultiDict([
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
         response = controller()
+        
+        self.failUnless('you must supply' in response['form'])
+
+    def test_handle_submit_new_to_system(self):
+        
+        controller = self._makeOne()
+
+        self.request.POST = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'yo@plope.com'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
+        response = controller()
+        
         self.assertEqual(response.location,
           'http://example.com/manage.html?status_message=One+user+invited.++'
                          )
-        invitation = context['A'*6]
+        invitation = self.context['A'*6]
         self.assertEqual(invitation.email, 'yo@plope.com')
-        self.assertEqual(1, len(mailer))
-        self.assertEqual(mailer[0].mto, [u"yo@plope.com",])
+        self.assertEqual(1, len(self.mailer))
+        self.assertEqual(self.mailer[0].mto, [u"yo@plope.com",])
 
     def test_handle_submit_already_in_system(self):
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
-        
-        registerContentFactory(DummyProfiles, IProfiles)
-        profiles = DummyProfiles()
-        profiles['d'] = profile = oitesting.DummyProfile()
-        context['profiles'] = profiles
-        
-        mailer = self._registerMailer()
-        registerCatalogSearch()
+        self.profiles['d'] = profile = oitesting.DummyProfile()
         registerCatalogSearch(results={'email=d@x.org': [profile,]})
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {
-            'email_addresses': u'd@x.org',
-            'text': u'some text',
-            }
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_add_existing.pt')
+        
+        controller = self._makeOne()
+        
+        self.request.POST = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'd@x.org'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
         response = controller()
+        
         self.assertEqual(response.location,
           'http://example.com/manage.html?status_message=One+existing+user+added+to+community.++'
                          )
-        self.failIf('A'*6 in context)
-        self.assertEqual(context.users.added_groups,
+        self.failIf('A'*6 in self.context)
+        self.assertEqual(self.context.users.added_groups,
                          [('d', 'group:community:members')])
 
     def test_handle_submit_inactive_user(self):
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
-        registerContentFactory(DummyProfiles, IProfiles)
-        profiles = DummyProfiles()
-        profiles['e'] = profile = oitesting.DummyProfile(security_state='inactive')
-        context['profiles'] = profiles
-        mailer = self._registerMailer()
-        registerCatalogSearch()
+        self.profiles['e'] = profile = oitesting.DummyProfile(security_state='inactive')
         registerCatalogSearch(results={'email=e@x.org': [profile,]})
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST  = {
-            'email_addresses': u'e@x.org',
-            'text': u'some text',
-            }
-        testing.registerDummyRenderer(
-            'opencore.views:templates/members_invite_new.pt')
-        from opencore.views.validation import ValidationError
-        self.assertRaises(ValidationError, controller)
+        
+        controller = self._makeOne()
+        
+        self.request.POST  = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'e@x.org'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
+        response = controller()
+
+        self.failUnless('previously been deactivated' in response['form'])
+        
+        self.failIf('A'*6 in self.context)
+        self.assertEqual(self.context.users.added_groups,[])
 
     def test_handle_submit_already_in_community(self):
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
-        registerContentFactory(DummyProfiles, IProfiles)
-        profiles = DummyProfiles()
-        profiles['a'] = profile = oitesting.DummyProfile()
-        context['profiles'] = profiles
-            
-       
-        mailer = self._registerMailer()
-        registerCatalogSearch()
+        self.profiles['a'] = profile = oitesting.DummyProfile()
         registerCatalogSearch(results={'email=a@x.org': [profile,]})
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {
-            'email_addresses': u'a@x.org',
-            'text': u'some text',
-            }
+        
+        controller = self._makeOne()
+        
+        self.request.POST  = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'a@x.org'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
         response = controller()
+        
         self.assertEqual(response.location,
           'http://example.com/manage.html?status_message=One+user+already+member.'
                          )
-        self.failIf('A'*6 in context)
-        self.assertEqual(context.users.added_groups, [])
+        self.failIf('A'*6 in self.context)
+        self.assertEqual(self.context.users.added_groups, [])
 
 
 class ManageMembersControllerTests(Base):

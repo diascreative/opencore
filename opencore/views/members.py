@@ -4,6 +4,18 @@ Includes invitations, per-user preferences on alerts, etc.
 """
 import transaction
 
+from colander import (
+    All,
+    Email,
+    Function,
+    Invalid,
+    MappingSchema,
+    SchemaNode,
+    SequenceSchema,
+    String,
+    )
+from deform.widget import TextAreaWidget
+
 from email.Message import Message
 from webob import Response
 from simplejson import JSONEncoder
@@ -45,10 +57,15 @@ from opencore.utils import find_site
 from opencore.utils import get_setting
 from opencore.consts import countries
 
+from opencore.views.forms import (
+    _get_manage_actions,
+    BaseController,
+    KarlUserWidget,
+    instantiate,
+    )
 from opencore.views.interfaces import IInvitationBoilerplate
 from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import photo_from_filestore_view
-from opencore.views.validation import InviteMemberSchema
 from opencore.views.validation import SignupMemberSchema
 from opencore.views.validation import AcceptInvitationSchema
 from opencore.views.validation import ValidationError
@@ -59,16 +76,6 @@ from opencore.views.validation import State
 
 log = logging.getLogger(__name__)
 PROFILE_THUMB_SIZE = (75, 100)
-
-def _get_manage_actions(community, request):
-
-    # Filter the actions based on permission in the **community**
-    actions = []
-    if has_permission('moderate', community, request):
-        actions.append(('Manage Members', 'manage.html'))
-        actions.append(('Add', 'invite_new.html'))
-
-    return actions
 
 def _get_common_email_info(community, community_href):
     info = {}
@@ -614,64 +621,163 @@ def _send_signup_ai_email(request, username, profile):
     mailer.send(info['mfrom'], [profile.email,], msg)    
     
 
-class InviteNewUsersController(object):
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.community = find_interface(context, ICommunity)
-        self.api = request.api
-        self.actions = _get_manage_actions(self.community, request)
-        self.profiles = find_profiles(context)
-        self.system_name = get_setting(context, 'system_name', 'OpenCore')
-  
-    def __call__(self):
-        community = self.community
-        context = self.context
-        request = self.request
-       
-        if self.request.method == 'POST':
-            post_data = self.request.POST
-            try:
-                # validate and convert
-                validation_info = State(users=set(self.profiles.keys())) 
-                self.api.formdata = InviteMemberSchema().to_python(post_data, state=validation_info)
-            except FormEncodeInvalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, **e.error_dict)
+class InviteNewUsersController(BaseController):
+
+    # schema
+    
+    class _Schema(MappingSchema):
+        
+        @instantiate(widget=KarlUserWidget(),missing=())
+        class users(SequenceSchema):
+            user = SchemaNode(
+                String(),
+                )
+
+        @instantiate(missing=())
+        class email_addresses(SequenceSchema):
+            address = SchemaNode(
+                String(),
+                )
+
+        text = SchemaNode(
+            String(),
+            widget=TextAreaWidget(),
+            missing='',
+            )
+
+    # form-specific validators
+        
+    def valid_profile(self,value):
+        if value in self.profiles:
+            return True
+    
+    def not_deactivated(self,value):
+        search = ICatalogSearch(self.context)
+        total, docids, resolver = search(email=value.lower(),
+                                             interfaces=[IProfile,])
+        if total:
+            profile = resolver(docids[0])
+            if profile.security_state == 'active':
+                self.emails_existing[value]=profile
             else:
-                return self.handle_submit(self.api.formdata, validation_info)
+                return False
+        return True
+
+    def users_or_emails(self,form,value):
+        if not (value['email_addresses'] or value['users']):
+            message = 'you must supply either an email address or pick a user.'
+            exc = Invalid(form,message)
+            exc['email_addresses']=value['users']=message
+            raise exc
+        return True
+        
+    # schema instantiation
+    
+    def Schema(self):
+        # This needs to be a function as we need multi-field validation
+        # and some validators needs context
+        s = self._Schema(validator=self.users_or_emails).clone()
+        s['email_addresses']['address'].validator=All(
+                    Email(),
+                    Function(self.not_deactivated,
+                             'This address belongs to a user which has '
+                             'previously been deactivated.  This user must '
+                             'be reactivated by a system administrator '
+                             'before they can be added to this community.')
+                    )
+        s['users']['user'].validator=Function(
+            self.valid_profile,
+            'This is not a valid profile.'
+            )
+        return s
+
+        
+    def __init__(self,*args):
+        super(InviteNewUsersController,self).__init__(*args)
+        # storage for members found during validation
+        # address -> profile
+        self.emails_existing = {}
+        
+    def __call__(self):
+        # Handle userid passed in via GET request
+        # Moderator would get here by clicking a link in an email to grant a
+        # user's request to join this community.
+        add_user_id = self.request.params.get("user_id")
+        if add_user_id is not None:
+            profile = self.profiles.get(add_user_id)
+            if profile is not None:
+                return _add_existing_users(
+                    self.context,
+                    self.community,
+                    [profile,],
+                    "",
+                    self.request
+                    )
         else:
-            # Handle userid passed in via GET request
-            # Moderator would get here by clicking a link in an email to grant a
-            # user's request to join this community.
-            add_user_id = request.params.get("user_id", None)
-            if add_user_id is not None:
-                profile = self.profiles.get(add_user_id, None)
-                if profile is not None:
-                    return _add_existing_users(context, community, [profile,],
-                                               "", request)    
-            
-        return dict(
-            api=self.api,
-            actions=self.actions,
-            )     
+            return super(InviteNewUsersController,self).__call__()
    
-    def handle_submit(self, converted, validation_info):
-        log.debug('InviteNewUsersController.handle_submit: %s, %s' % (str(converted), str(validation_info)))
+    def handle_submit(self, validated):
         request = self.request
         context = self.context
         community = self.community
         profiles = self.profiles
         
-        email_addresses = converted['email_addresses']
-        usernames = converted['users']
-        
-        if not email_addresses and not usernames:
-            raise ValidationError(self, email_addresses='you must supply either an email address or pick a user.')
+        email_addresses = validated['email_addresses']
+        usernames = validated['users']
         
         status = ''
         if email_addresses:
-            status = self.handle_email_submit(converted)
+            random_id = getUtility(IRandomId)
+            members = community.member_names | community.moderator_names
+            community_href = model_url(community, request)
+            html_body = validated['text']
+            ninvited = nadded = nignored = 0
+            
+            for email_address in email_addresses:
+                profile = self.emails_existing.get(email_address)
+                if profile is not None:
+                    if profile.__name__ in members:
+                        # User is a member of this community, do nothing
+                        nignored += 1
+
+                    else:
+                        _add_existing_users(context, community, [profile,],
+                                            html_body, request)
+                        nadded += 1
+                else:
+                    # Invite new user 
+                    invitation = create_content(
+                        IInvitation,
+                        email_address,
+                        html_body
+                    )
+                    while 1:
+                        name = random_id()
+                        if name not in context:
+                            context[name] = invitation
+                            break
+
+                    _send_invitation_email(request, community, community_href,
+                                           invitation)
+                    ninvited += 1
+
+            status = ''
+            if ninvited:
+                if ninvited == 1:
+                    status = 'One user invited.  '
+                else:
+                    status = '%d users invited.  ' % ninvited
+            if nadded:
+                if nadded == 1:
+                    status += 'One existing user added to community.  '
+                else:
+                    status += ('%d existing users added to community.  '
+                               % nadded)
+            if nignored:
+                if nignored == 1:
+                    status += 'One user already member.'
+                else:
+                    status += '%d users already members.' % nignored
         
        
         if not usernames:
@@ -679,103 +785,13 @@ class InviteNewUsersController(object):
                              query={'status_message': status})
             return HTTPFound(location=location)
                 
-        if validation_info.user_type == 'user':
-            usernames = [usernames]
-        
         users = []        
         for username in usernames:
             users.append(self.profiles[username])
         return _add_existing_users(self.context, self.community, users,
-                                   converted['text'], self.request, status)
+                                   validated['text'], self.request, status)
 
 
-
-    def handle_email_submit(self, converted):
-        log.debug('InviteNewUsersController.handle_email_submit: %s' % str(converted))
-        context = self.context
-        request = self.request
-        community = self.community
-        random_id = getUtility(IRandomId)
-        members = community.member_names | community.moderator_names
-        community_href = model_url(community, request)
-
-        search = ICatalogSearch(context)
-
-        addresses = converted['email_addresses']
-        html_body = converted['text']
-
-        ninvited = nadded = nignored = 0
-
-        for email_address in addresses:
-            # Check for existing members
-            total, docids, resolver = search(email=email_address.lower(),
-                                             interfaces=[IProfile,])
-
-            if total:
-                # User is already in the system
-                profile = resolver(docids[0])
-            
-                if profile.__name__ in members:
-                    # User is a member of this community, do nothing
-                    nignored += 1
-
-                else:
-                    # User is in the system but not in this community.  If user is
-                    # active, just add them to the community as though we had
-                    # used the add existing user form.
-                    if profile.security_state == 'active':
-                        _add_existing_users(context, community, [profile,],
-                                            html_body, request)
-                        nadded += 1
-                    else:
-                        msg = ('Address, %s, belongs to a user which has '
-                               'previously been deactivated.  This user must '
-                               'be reactivated by a system administrator '
-                               'before they can be added to this community.' %
-                               email_address)
-                        raise ValidationError(self, email_addresses=msg)
-
-            else:
-                # Invite new user 
-                invitation = create_content(
-                    IInvitation,
-                    email_address,
-                    html_body
-                )
-                while 1:
-                    name = random_id()
-                    if name not in context:
-                        context[name] = invitation
-                        break
-
-                _send_invitation_email(request, community, community_href,
-                                       invitation)
-                ninvited += 1
-
-        status = ''
-
-        if ninvited:
-            if ninvited == 1:
-                status = 'One user invited.  '
-            else:
-                status = '%d users invited.  ' % ninvited
-
-        if nadded:
-            if nadded == 1:
-                status += 'One existing user added to community.  '
-            else:
-                status += ('%d existing users added to community.  '
-                           % nadded)
-        if nignored:
-            if nignored == 1:
-                status += 'One user already member.'
-            else:
-                status += '%d users already members.' % nignored
-        
-        return status 
-
-
-      
 def _send_invitation_email(request, community, community_href, invitation):
     mailer = getUtility(IMailDelivery)
     info = _get_common_email_info(community, community_href)

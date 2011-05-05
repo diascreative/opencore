@@ -8,37 +8,15 @@
 
             <h4 class="main-heading">Add Members</h4>
 
-            <p>
+<p>
 Type the first few letters of the name of the person you would like to
 add to this community, select their name, and press
-submit. Alternatively type in email addresses each on a separate line
-for new members. The short message below is included along with the
+submit. Alternatively, click 'Add Address' and type in an email address 
+for a new member. The short message below is included along with the
 text of your invite.
-            </p>
+</p>
     
-            <form id="member_invite_new" class="admin-form columns" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''" target="_top">
-    
-                <div id="users--field" class="field users type-sequence type-container widget-input">
-                    <label for="users">Users</label>
-        
-                    <div class="inputs">
-                        <span>
-                            <!-- widgets/KarlUserProfileLookup/widget.html -->
-                            <input id="membersearch-input" type="text" name="users" value="" />
-                        </span>
-                    </div>
-                </div>
+    <tal:form replace="structure form"/>
 
-                <div class="columns clearfix">
-                    <div class="column column-1-2">
-                        <div tal:content="structure api.render_form_widget('textarea', 'email_addresses', 'Email Addresses')"></div>
-                    </div>
-                    <div class="column column-1-2 last">
-                        <div tal:content="structure api.render_form_widget('textarea', 'text', 'Text')"></div>
-                    </div>
-                </div>
-        
-                <metal:resources use-macro="api.snippets.macros['submit-buttons']"/>
-            </form>
     </tal:block>  
 </div>
