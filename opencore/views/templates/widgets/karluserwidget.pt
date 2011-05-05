@@ -1,0 +1,5 @@
+<span tal:omit-tag="">
+    <input type="hidden" name="__start__" value="${field.name}:sequence"/>
+    <input id="membersearch-input" type="text" name="a_user" value="" />
+    <input type="hidden" name="__end__" value="${field.name}:sequence"/>
+</span>

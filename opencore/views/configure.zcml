@@ -67,6 +67,12 @@
     view=".site.versioning_static_view"
     factory=".site.StaticRootFactory"/>
 
+  <!-- deform static stuff -->
+
+  <static
+    name="deform_static"
+    path="deform:static"/>
+
   <!-- profile -->
   <view
     for="opencore.models.interfaces.IProfiles"
