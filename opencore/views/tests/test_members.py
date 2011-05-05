@@ -3,13 +3,15 @@ import unittest
 from repoze.bfg import testing
 from opencore import testing as oitesting
 
-class ShowMembersViewTests(unittest.TestCase):
-
+class Base(unittest.TestCase):
+    
     def setUp(self):
         testing.cleanUp()
 
     def tearDown(self):
         testing.cleanUp()
+
+class ShowMembersViewTests(Base):
 
     def _callFUT(self, context, request):
         from opencore.views.members import show_members_view
@@ -55,12 +57,7 @@ class ShowMembersViewTests(unittest.TestCase):
         self.assertEqual(renderer.submenu[1]['make_link'], False)
         self.assertEqual(searchkw['sort_index'], 'lastfirst')
 
-class AddExistingUserTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
+class AddExistingUserTests(Base):
 
     def _makeOne(self, context, request):
         from opencore.views.members import InviteNewUsersController
@@ -136,12 +133,7 @@ class AddExistingUserTests(unittest.TestCase):
         self.failUnless(
             response.location.startswith('http://example.com/manage.html'))
 
-class AcceptInvitationControllerTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
+class AcceptInvitationControllerTests(Base):
 
     def _makeContext(self):
         from opencore.models.interfaces import ICommunity
@@ -273,21 +265,13 @@ class AcceptInvitationControllerTests(unittest.TestCase):
         self.failIf('invite' in community)
         self.assertEqual(len(mailer), 1)
 
-class InviteNewUsersTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
-
-    def _getTargetClass(self):
-        from opencore.views.members import InviteNewUsersController
-        return InviteNewUsersController
+class InviteNewUsersTests(Base):
 
     def _makeOne(self, context, request):
+        from opencore.views.members import InviteNewUsersController
         from opencore.views.api import get_template_api
         request.api = get_template_api(context, request)
-        return self._getTargetClass()(context, request)
+        return InviteNewUsersController(context, request)
 
     def _registerMailer(self):
         from repoze.sendmail.interfaces import IMailDelivery
@@ -451,12 +435,7 @@ class InviteNewUsersTests(unittest.TestCase):
         self.assertEqual(context.users.added_groups, [])
 
 
-class ManageMembersControllerTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
+class ManageMembersControllerTests(Base):
 
     def _getTargetClass(self):
         from opencore.views.members import ManageMembersController
@@ -643,12 +622,7 @@ class ManageMembersControllerTests(unittest.TestCase):
                          'Membership+information+changed%3A+'
                          'Flash+is+now+a+moderator')
 
-class TestJqueryMemberSearchView(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
+class TestJqueryMemberSearchView(Base):
 
     def _callFUT(self, context, request):
         from opencore.views.members import jquery_member_search_view
