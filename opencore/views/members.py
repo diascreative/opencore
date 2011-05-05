@@ -6,15 +6,23 @@ import transaction
 
 from colander import (
     All,
+    Boolean,
+    Date,
     Email,
     Function,
     Invalid,
     MappingSchema,
+    Regex,
     SchemaNode,
     SequenceSchema,
     String,
     )
-from deform.widget import TextAreaWidget
+from deform.widget import (
+    CheckedPasswordWidget,
+    DatePartsWidget,
+    SelectWidget,
+    TextAreaWidget,
+    )
 
 from email.Message import Message
 from webob import Response
@@ -61,13 +69,13 @@ from opencore.views.forms import (
     _get_manage_actions,
     BaseController,
     KarlUserWidget,
+    TOUWidget,
     instantiate,
     )
 from opencore.views.interfaces import IInvitationBoilerplate
 from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import photo_from_filestore_view
 from opencore.views.validation import SignupMemberSchema
-from opencore.views.validation import AcceptInvitationSchema
 from opencore.views.validation import ValidationError
 from opencore.views.validation import UnicodeString
 from opencore.views.validation import StringBool
@@ -462,70 +470,97 @@ def _add_existing_users(context, community, profiles, text, request, status=None
     return HTTPFound(location=location)
 
 
-class AcceptInvitationController(object):
+class AcceptInvitationController(BaseController):
     '''
     Handles email invitation links for site signup and new project members.
     signup & members are both folders with invitations.
     i.e. http://127.0.0.1:6544/signup/hifebi &
          http://127.0.0.1:6544/projects/x/members/ywryw
-         
-    todo: use IInvitationBoilerplate for t&c.     
     '''
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.community = find_interface(context, ICommunity)
-        self.profiles = find_profiles(context)
-        self.api = request.api
 
-    def __call__(self):
-        context = self.context
-        request = self.request
-        
-        self.system_name = get_setting(context, 'system_name', 'OpenCore')
-        if self.community:
-            community_name = self.community.title
-            self.desc = ('You have been invited to join the "%s" in %s.  Please begin '
-                'by creating a %s login with profile information.' %
-                (community_name, self.system_name, self.system_name))
-        
-        else:
-            self.desc = ('You have been invited to join the "%s".  Please begin '
-                'by creating a %s login with profile information.' %
-                (self.system_name, self.system_name))
-       
-        if request.method == 'POST':
-            post_data = request.POST
-            try:
-                validation_info = State(users=set(self.profiles.keys()))
-                self.api.formdata = AcceptInvitationSchema.to_python(post_data, state=validation_info)
-            except FormEncodeInvalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, **e.error_dict)
-            else:
-                return self.handle_submit(self.api.formdata)
+    # schema
     
-        return self.make_response()
-         
-    def make_response(self):
-        return render_template_to_response(
-              'templates/accept_invitation.pt',
-              api=self.api,
-              page_title='Accept %s Invitation' % self.system_name,
-              page_description=self.desc,
-              countries=[('', 'Select your Country')] + countries
+    class _Schema(MappingSchema):
+
+        username = SchemaNode(
+            String(),
             )
-  
-    def handle_submit(self, converted):
+        password = SchemaNode(
+            String(),
+            widget=CheckedPasswordWidget()
+            )
+        first_name = SchemaNode(
+            String(),
+            )
+        last_name = SchemaNode(
+            String(),
+            )
+        country = SchemaNode(
+            String(),
+            widget=SelectWidget(
+                values=[('', 'Select your country')] + countries
+                )
+            )
+        date_of_birth = SchemaNode(
+            Date(),
+            widget=DatePartsWidget(),
+            missing=None,
+            )
+        gender = SchemaNode(
+            String(),
+            widget=SelectWidget(
+                values=[('', 'Select your gender'),
+                        ('male', 'male'),
+                        ('female', 'female'),]
+                ),
+            missing=''
+            )
+        terms_of_use = SchemaNode(
+            Boolean(),
+            widget=TOUWidget(),
+            validator=Function(
+                lambda value: value==True,
+                'You must agree to the terms of use',
+                )
+            )
+
+    # buttons
+        
+    buttons = ('join up',)
+    
+    # form-specific validators
+        
+    def not_a_profile(self,value):
+        if value in self.profiles:
+            return False
+        return True
+    
+    # schema instantiation
+    
+    def Schema(self):
+        # This needs to be a function some validators needs context
+        s = self._Schema().clone()
+        s['username'].validator=All(
+            Regex(
+                '^[\w-]+$',
+                'Username must contain only letters, numbers, and dashes'
+                ),
+            Function(
+                self.not_a_profile,
+                'This username is already taken'
+                ),
+            )
+        return s
+    
+    def handle_submit(self, validated):
         context = self.context
         community = self.community
         request = self.request
         users = find_users(context)
         profiles = self.profiles
 
-        password = converted['password']
-        password_confirm = converted['password_confirm']
-        username = converted['username']
+        password = validated['password']
+        username = validated['username']
 
         if community:
             community_href = model_url(community, request)
@@ -537,12 +572,12 @@ class AcceptInvitationController(object):
         remember_headers = plugin.remember(request.environ, identity)
         profile = create_content(
             IProfile,
-            firstname=converted['firstname'],
-            lastname=converted['lastname'],
+            firstname=validated['first_name'],
+            lastname=validated['last_name'],
             email=context.email,
-            country=converted['country'],
-            dob=converted['dob'],
-            gender=converted['gender']
+            country=validated['country'],
+            dob=validated['date_of_birth'],
+            gender=validated['gender']
             )
         profiles[username] = profile
         to_profile_active(profile)
