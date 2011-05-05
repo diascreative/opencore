@@ -1,9 +1,12 @@
+from colander import null
 from deform import (
     Form,
     ValidationFailure,
     )
-from colander import null
-from deform.widget import Widget
+from deform.widget import (
+    CheckboxWidget,
+    Widget,
+    )
 from opencore.models.interfaces import ICommunity
 from opencore.utils import find_profiles
 from opencore.utils import get_setting
@@ -44,6 +47,8 @@ def _get_manage_actions(community, request):
 
 class BaseController(object):
 
+    buttons=('cancel','save')
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
@@ -60,9 +65,9 @@ class BaseController(object):
     def __call__(self):
         request = self.request
 
-        form = Form(self.Schema(), buttons=('cancel','save'))
+        form = Form(self.Schema(), buttons=self.buttons)
 
-        if 'save' in request.POST:
+        if self.buttons[-1] in request.POST:
             controls = request.POST.items()
             try:
                 validated = form.validate(controls)
@@ -108,3 +113,6 @@ class KarlUserWidget(Widget):
     def deserialize(self, field, pstruct):
         return pstruct
     
+class TOUWidget(CheckboxWidget):
+
+    template='terms_of_use'

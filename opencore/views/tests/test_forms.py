@@ -3,15 +3,23 @@ from colander import (
     SchemaNode,
     String,
     )
-from deform.widget import Widget
+from deform.widget import (
+    CheckboxWidget,
+    Widget,
+    )
 from mock import Mock
 from opencore.views.api import get_template_api
 from opencore.views.forms import (
     BaseController,
     KarlUserWidget,
+    TOUWidget,
     )
 from repoze.bfg import testing
-from testfixtures import ShouldRaise
+from testfixtures import (
+    Replacer,
+    ShouldRaise,
+    Comparison as C,
+    )
 from unittest import TestCase
 from webob.exc import HTTPFound
 
@@ -90,6 +98,30 @@ class TestBaseController(TestCase):
             )
         self.assertTrue(self.controller.handle_submit.called)
 
+    def test_different_buttons(self):
+        with Replacer() as r:
+            self.controller.buttons = ('one','two')
+            Form = Mock()            
+            r.replace('opencore.views.forms.Form',Form)
+
+            self.controller()
+
+            Form.assert_called_with(
+                C(SchemaNode),
+                buttons = ('one','two'),
+                )
+            
+    def test_call_save_different_buttons(self):
+        # check that we use the last button provided
+        # as the trigger to process the submit
+        self.controller.buttons = ('one','two')
+        self.request.POST['two']='two'
+        result = self.controller()
+        self.assertTrue(result is self.controller.data)
+        self.assertTrue(result['form'].startswith('<form id="deform"'))
+        self.assertTrue('Errors have been highlighted' in result['form'])
+        self.assertFalse(self.controller.handle_submit.called)
+        
 class TestKarlUserWidget(TestCase):
 
     def setUp(self):
@@ -133,4 +165,16 @@ class TestKarlUserWidget(TestCase):
         # use identity to check we just pass through
         self.assertTrue(returned is pstruct)
 
+class TestTOUWidget(TestCase):
 
+    def setUp(self):
+        self.field = Mock()
+        self.field.name='terms_of_use'
+        self.widget = TOUWidget()
+
+    def test_subclass(self):
+        # assume other bits behave as per base widget :-)
+        self.assertTrue(isinstance(self.widget,CheckboxWidget))
+
+    def test_template(self):
+        self.assertEqual(self.widget.template,'terms_of_use')
