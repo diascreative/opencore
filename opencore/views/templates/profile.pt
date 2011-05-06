@@ -1,7 +1,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-     xmlns:tal="http://xml.zope.org/namespaces/tal"
-     xmlns:metal="http://xml.zope.org/namespaces/metal"
-     metal:use-macro="api.generic_layout.macros['master']">
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      metal:use-macro="api.generic_layout">
+
 <head>
 <metal:block metal:fill-slot="extra-headers">
 <script src="${api.static_url}/jquery-plugins/jquery.timeago.js"></script>
@@ -13,125 +14,109 @@ jQuery(document).ready(function($) {
 </metal:block>
 </head>
 <body>
-  <div metal:fill-slot="content">
 
-    <div metal:use-macro="api.snippets.macros['status_message']"/>
-    <div metal:use-macro="api.snippets.macros['actions_box']"/>
+<div metal:fill-slot="content" tal:omit-tag="">
+            <h1>${profile.title}</h1>
 
-    <h1 class="kscreentitle">${profile.title}</h1>
+            <div class="columns">
+                <div class="column column-1-4 first">
 
-    <div metal:use-macro="api.snippets.macros['list_tags']"/>
+                    <div class="block about">
+                        <div><img src="${profile.photo['url']}" alt="${profile.firstname} ${profile.lastname}" /></div>
+                        <div class="biography limited" tal:condition="profile.biography">${profile.biography}</div>
+                    </div>
 
+                    <div class="block fill no-heading flush">
+                        <div class="content actions">
+                            <a tal:condition="'feed' in actions" class="button" href="${actions['feed']}">My Activity</a>
+                            <a tal:condition="'mailbox' in actions" class="button" href="${actions['mailbox']}">My mailbox</a>
+                            <a tal:condition="'manage_bookmarks' in actions" class="button" href="${actions['manage_bookmarks']}">My bookmarks</a>
+                            <a tal:condition="'edit' in actions" class="button highlight" href="${actions['edit']}">Edit my profile</a>
+                        </div>
+                    </div>
 
+                    <div class="block fill no-heading borderless flush join">
+                        <div class="content extended">
+                            <dl class="info">
+                                <dt>Member since:</dt>
+                                <dd>${profile.created}</dd>
+                                <block tal:condition="profile.position" tal:omit-tag="">
+                                    <dt>Occupation:</dt>
+                                    <dd>${profile.position}</dd>
+                                </block>
+                                <block tal:condition="profile.organization" tal:omit-tag="">
+                                    <dt tal:condition="profile.organization">Organisation:</dt>
+                                    <dd tal:condition="profile.organization">${profile.organization}</dd>
+                                </block>
+                                <block tal:condition="profile.country" tal:omit-tag="">
+                                    <dt tal:condition="profile.country">Location:</dt>
+                                    <dd tal:condition="profile.country">${profile.country}</dd>
+                                </block>
+                                <block tal:condition="profile.websites" tal:omit-tag="">
+                                    <dt>Website:</dt>
+                                    <dd><a tal:repeat="website profile.websites" href="${website}" target="_blank">${website.replace('http://', '' ).replace('https://', '' )}</a></dd>
+                                </block>
+                                <block tal:condition="'twitter' in profile" tal:omit-tag="">
+                                    <dt tal:condition="profile.twitter">Twitter:</dt>
+                                    <dd tal:condition="profile.twitter">${profile.twitter}</dd>
+                                </block>
+                                <block tal:condition="'facebook' in profile" tal:omit-tag="">
+                                    <dt tal:condition="profile.facebook">Facebook:</dt>
+                                    <dd tal:condition="profile.facebook">${profile.facebook}</dd>
+                                </block> 
+                            </dl>
+                        </div>
+                    </div>
 
+                    <div class="block share small">
+                        <h4>Share my profile</h4>
+                        <div class="content">
+                            <div metal:use-macro="api.snippets.macros['rss_icon']"/>
+                        </div>
+                    </div>
 
-    <div class="profile_page_body">
-      <span class="portraid">
-        <!-- XXX Browser scaling with fixed dims will not preserve aspect
-                 ratio. -->
-        <img src="${profile.photo.url}" style="width: 75px"/>
-      </span>
-      <div class="wrapper">
-        <div class="profileDetails">
-          <p tal:condition="profile.last_login_time | False">
-            <span class="profileLabel">Last login:</span>
-            <abbr class="timeago"
-                  title="${profile.last_login_time}"
-            >${profile.last_login_time}</abbr>
-          </p>
-          <p tal:condition="profile.department">
-            <span class="profileLabel">Department:</span>
-            <span class="value">${profile.department}</span>
-          </p>
-          <p tal:condition="profile.position">
-            <span class="profileLabel">Position:</span>
-            <span>${profile.position}</span>
-          </p>
-          <p>
-            <span class="profileLabel">Email:</span>
-            <a href="mailto:${profile.email}">${profile.email}</a>
-          </p>
+                    <a class="button openideo" href="#">View my openIDEO profile</a>
 
-          <p tal:condition="profile.extension">
-            <span class="profileLabel">Extension:</span>
-            <span>${profile.extension}</span>
-          </p>
-          <p tal:condition="profile.phone">
-            <span class="profileLabel">Phone:</span>
-            <span>${profile.phone}</span>
-          </p>
-          <p tal:condition="profile.fax">
-            <span class="profileLabel">Fax:</span>
-            <span>${profile.fax}</span>
-          </p>
-          <p tal:condition="profile.room_no">
-            <span class="profileLabel">Room:</span>
-            <span>${profile.room_no}</span>
-          </p>
-          <p tal:condition="profile.location">
-            <span class="profileLabel">Location:</span>
-            <span>${profile.location}</span>
-          </p>
-          <p tal:condition="profile.country">
-            <span class="profileLabel">Country:</span>
-            <span>${profile.country}</span>
-          </p>
-          <p tal:condition="profile.organization">
-            <span class="profileLabel">Organization:</span>
-            <span>${profile.organization}</span>
-          </p>
-          <p tal:condition="profile.languages">
-            <span class="profileLabel">Languages:</span>
+                </div>
 
-            <span>${profile.languages}</span>
-          </p>
-          <p tal:condition="profile.websites">
-            <span class="profileLabel">Websites:</span>
-            <tal:loop tal:repeat="website profile.websites">
-            <a href="${website}" target="_blank">${website}</a>
-            <br tal:condition="not repeat['website'].end" />
-            </tal:loop>
-          </p>
-          <p tal:condition="profile.office">
-            <span class="profileLabel">Office:</span>
-            <span>${profile.office}</span>
-          </p>
-        </div>
+                <div class="column column-3-4 last">
+                    <div class="block projects list" tal:condition="len(my_communities)">
+                        <h4>My Projects</h4>
+                        <div tal:define="projects my_communities" tal:omit-tag="">
+                            <div metal:use-macro="api.snippets.macros['listing_project_xlarge']"/>
+                        </div>
+                    </div>
 
-        <div class="profileBio" tal:content="structure profile.biography" />
-        <h3> Content Added Recently </h3>
-        <table class="content-listing" id="staffprofile-content"
-               style="clear: none">
-          <thead>
-            <tr>
-              <th class="cldate">Created</th>
-              <th class="cltitle">Title</th>
-              <th class="cltype">Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr tal:repeat="ri recent_items">
-              <td class="cldate">${ri.created}</td>
-              <td class="cltitle">
-                <a href="${ri.url}">${ri.title}</a></td>
-              <td class="cltype">${ri.type}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style="font-size: 0.9em">
-          <a href="${api.here_url}recent_content.html"
-          >More Content Added Recently</a>
-        </p>
-        
-        <div class="l-spacer"></div>
-            <h3 id="comments-header">Comments</h3>
-            <metal:resources use-macro="api.snippets.macros['comment_form']"/>
-            <div id="comments">
-            <div metal:use-macro="api.snippets.macros['show_comments']"/>
-        </div>
+                    <div class="block stories" tal:condition="0">
+                        <h4>My Stories</h4>
+                        <div class="content carousel" tal:define="stories my_stories">
+                            <div metal:use-macro="api.snippets.macros['listing_story_large']" />
+                        </div>
+                    </div>
 
-      </div>
-    </div>
-  </div>
+                    <div class="block comments">
+
+                        <h4>My Testimonials</h4>
+                        <div class="content comment-create" tal:condition="api.userid is not None" tal:define="profile api.find_profile(api.userid)">
+                            <a class="avatar medium" href="${api.profile_url}" >
+                                <img src="${api.find_image_url(profile)}" alt="${profile.firstname} ${profile.lastname}" />
+                            </a>
+                            <metal:resources use-macro="api.snippets.macros['comment_form']"/>
+                        </div>
+                        <div class="content list">
+                            <div metal:use-macro="api.snippets.macros['show_comments']" />
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <a href="${api.here_url}recent_content.html">More Content Added Recently</a>
+
+    
+</div>
+
 </body>
 </html>

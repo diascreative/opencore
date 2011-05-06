@@ -10,21 +10,21 @@ except IOError:
     README = ''
 
 requires = [
-    'setuptools',
-    'ZODB3',
-    'coverage',
+    'appendonly',
+    'Beaker',
+    'deform',
     'feedparser',
     'FormEncode',
+    'htmllaundry',
     'lxml',
     'PILwoTk',
-    'nose',
     'repoze.bfg >= 1.3',
     'repoze.browserid',
     'repoze.catalog',
+    'repoze.errorlog',
     'repoze.evolution',
     'repoze.folder',
     'repoze.lemonade',
-    'repoze.monty',
     'repoze.retry',
     'repoze.sendmail  >= 2.2',
     'repoze.session',
@@ -34,18 +34,15 @@ requires = [
     'repoze.whoplugins.zodb',
     'repoze.workflow',
     'repoze.zodbconn',
-    'zope.testing', # fwd compat when not directly relied on by BFG
     'simplejson',
-    'webtest',
-    'BeautifulSoup',
-    'repoze.errorlog',
-    'supervisor',
-    'recaptcha-client',
-    'bitlyapi',
-    'Baker',
     'WebError',
-    'appendonly',
-    'Beaker'
+    'ZODB3',
+    # testing requirements
+    'coverage',
+    'mock',
+    'nose',
+    'testfixtures',
+    'zope.testing', # fwd compat when not directly relied on by BFG
     ]
 
 setup(name='opencore',

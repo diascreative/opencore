@@ -10,37 +10,21 @@
             <form xml:id="contentform"></form>
         </tal:block>
 
-        <form class="admin-form columns k3_genericForm" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''" tal:condition="api.userid is None">
-        <p class="page-intro">${page_description}</p>
+        <tal:x condition="api.userid is None">
+        <p class="page-intro">
+        You have been invited to join
+        <tal:c condition="view.community">
+        "${view.community.title}" in
+        </tal:c>
+        ${view.system_name}.
+        Please begin by creating an ${view.system_name} 
+        login with profile information.
+        </p>
 
-        <div class="column column-3-4 first">
-            <div class="box no-collapse">
+        <tal:x replace="structure form"/>
 
-                <h3>Join Up</h3>
+        </tal:x>
 
-                <div tal:replace="structure api.render_form_widget('input', 'username', 'Username', compulsory=True)"></div>
-                <div tal:replace="structure api.render_form_widget('password', 'password', 'Password', compulsory=True)"></div>
-                <div tal:replace="structure api.render_form_widget('password_2', 'password_confirm', 'Confirm Password', compulsory=True)"></div>
-                <div tal:replace="structure api.render_form_widget('input', 'firstname', 'First name', compulsory=True)"></div>
-                <div tal:replace="structure api.render_form_widget('input', 'lastname', 'Last name')"></div>
-                <div tal:replace="structure api.render_form_widget('select_list', 'country', 'Country', choices=countries,compulsory=1)"></div>
-                <div tal:replace="structure api.render_form_widget('date','dob','Date of Birth (dd/mm/yyyy)',default='')"></div>
-                <div class="clear"></div>
-                <div tal:content="structure api.render_form_widget('select_list','gender','Gender',choices=[('','select gender'),('female','female'),('male','male')])"></div>
-
-                <p class="terms-label">
-                    <input type="checkbox" class="checkbox" name="terms" value="yes" />
-                    I accept <a href="/terms/ajax.html" class="terms-conditions-link">Terms of Use</a>.
-                </p>
-                
-                <div class="admin-help">* required fields</div>
-            
-                <div class="buttons clearfix">
-                    <button name="image" type="submit" class="button primary_button"><span>Join Up</span></button>
-                </div>
-            </div>
-        </div>
-        </form>
 
     </tal:block>
 </html>

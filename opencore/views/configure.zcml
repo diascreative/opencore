@@ -1,6 +1,5 @@
 <configure xmlns="http://namespaces.repoze.org/bfg">
 
-
   <view
      view=".forbidden.forbidden"
      context="repoze.bfg.exceptions.Forbidden"/>
@@ -68,6 +67,12 @@
     view=".site.versioning_static_view"
     factory=".site.StaticRootFactory"/>
 
+  <!-- deform static stuff -->
+
+  <static
+    name="deform_static"
+    path="deform:static"/>
+
   <!-- profile -->
   <view
     for="opencore.models.interfaces.IProfiles"
@@ -87,13 +92,7 @@
     view=".people.EditProfileFormController"
     name="edit_profile.html"
     permission="edit"/>
-<!--    
-  <view
-    for="opencore.models.interfaces.IProfile"
-    view=".people.AdminEditProfileFormController"
-    name="admin_edit_profile.html"
-    permission="administer"/>
- --> 
+
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.recent_content_view"
@@ -475,6 +474,7 @@
     for="opencore.models.interfaces.IMembers"
     view=".members.InviteNewUsersController"
     name="invite_new.html"
+    renderer="templates/members_invite_new.pt"
     permission="moderate"/>
         
   <view   

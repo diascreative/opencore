@@ -1,15 +1,39 @@
 import unittest
 
 from repoze.bfg import testing
+from repoze.lemonade.testing import registerContentFactory
+from repoze.sendmail.interfaces import IMailDelivery
 from opencore import testing as oitesting
+from opencore.models.interfaces import (
+    ICommunity,
+    IInvitation,
+    IProfile,
+    IProfiles,
+    )
+from opencore.utilities.interfaces import IRandomId
+from opencore.views.api import get_template_api
+from opencore.views.members import (
+    AcceptInvitationController,
+    InviteNewUsersController,
+    ManageMembersController,
+    )
+from webob.multidict import MultiDict
+from zope.interface import directlyProvides
 
-class ShowMembersViewTests(unittest.TestCase):
-
+class Base(unittest.TestCase):
+    
     def setUp(self):
         testing.cleanUp()
 
     def tearDown(self):
         testing.cleanUp()
+
+    def _registerMailer(self):
+        mailer = oitesting.DummyMailer()
+        testing.registerUtility(mailer, IMailDelivery)
+        return mailer
+
+class ShowMembersViewTests(Base):
 
     def _callFUT(self, context, request):
         from opencore.views.members import show_members_view
@@ -55,23 +79,31 @@ class ShowMembersViewTests(unittest.TestCase):
         self.assertEqual(renderer.submenu[1]['make_link'], False)
         self.assertEqual(searchkw['sort_index'], 'lastfirst')
 
-class AddExistingUserTests(unittest.TestCase):
+class CommunityBase(Base):
+    
     def setUp(self):
-        testing.cleanUp()
+        Base.setUp(self)
+        self.request = testing.DummyRequest()
+        self.context = self._makeContext()
+        self.request.api = get_template_api(self.context, self.request)
+        self.mailer = self._registerMailer()
+        registerCatalogSearch()
+        def nonrandom(size=6):
+            return 'A' * size
+        testing.registerUtility(nonrandom, IRandomId)
+        registerContentFactory(DummyProfiles, IProfiles)
+        registerContentFactory(DummyInvitation, IInvitation)
+        self.context['profiles'] = self.profiles = DummyProfiles()
+        
+class InviteNewUsersControllerBase(CommunityBase):
+    
+    def _makeOne(self):
+        return InviteNewUsersController(self.context, self.request)
 
-    def tearDown(self):
-        testing.cleanUp()
+class AddExistingUserTests(InviteNewUsersControllerBase):
 
-    def _makeOne(self, context, request):
-        from opencore.views.members import InviteNewUsersController
-        from opencore.views.api import get_template_api
-        request.api = get_template_api(context, request)
-        return InviteNewUsersController(context, request)
-
-    def _getContext(self):
+    def _makeContext(self):
         context = testing.DummyModel()
-        from opencore.models.interfaces import ICommunity
-        from zope.interface import directlyProvides
         directlyProvides(context, ICommunity)
         context.users = oitesting.DummyUsers()
         context.title = 'thetitle'
@@ -84,159 +116,129 @@ class AddExistingUserTests(unittest.TestCase):
 
         return context
     
-    def test__call__(self):
-        context = self._getContext()
-        request = testing.DummyRequest()
-        controller = self._makeOne(context, request)
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/members_invite_new.pt')
-        info = controller()
-        actions = [('Manage Members', 'manage.html'),
-                   ('Add', 'invite_new.html')]
+    def test_get_with_userid(self):
+        self.request.params['user_id']='admin'
+        self.profiles['admin'] = oitesting.DummyProfile()
         
-        self.assertEqual(renderer._received['actions'], actions)
-        self.failUnless('page_title' in renderer._received)
-        self.failUnless('page_description' in renderer._received)
-       
-
-    def test___call__with_userid_get(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        request = testing.DummyRequest({"user_id": "admin"})
-        context = self._getContext()
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        controller = self._makeOne(context, request)
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_add_existing.pt')
+        controller = self._makeOne()
+        
         response = controller()
-        self.assertEqual(context.users.added_groups, [('admin','members')])
-        self.assertEqual(mailer[0].mto[0], 'admin@example.com')
+        self.assertEqual(self.context.users.added_groups,
+                         [('admin','members')])
+        self.assertEqual(self.mailer[0].mto[0], 'admin@x.org')
         self.failUnless(
             response.location.startswith('http://example.com/manage.html'))
 
     def test_handle_submit_badprofile(self):
-        from opencore.views.validation import ValidationError
-        request = testing.DummyRequest()
-        context = self._getContext()
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {'users':('admin', 'nyc99'), 'text':'some text'}
-        self.assertRaises(ValidationError, controller)
+        controller = self._makeOne()
+        
+        self.request.POST = MultiDict([
+                ('__start__', u'users:sequence'),
+                ('a_user', u'nyc99'),
+                ('__end__', u'users:sequence'),
+                ('save', u'save')
+                ])
+        response = controller()
+
+        self.assertEqual(self.context.users.added_groups, [])
+
+        # The KarlUserWidget doesn't currently show error messages.
+        # Since I don't think this code path can actually get executed
+        # in real use, I'm punting for now...
+        # self.failUnless('This is not a valid profile.' in response['form'])
 
     def test_handle_submit_success(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        request = testing.DummyRequest()
-        context = self._getContext()
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        controller = self._makeOne(context, request)
-        request.method = "POST"
-        request.POST = {'users': (u'admin',), 'text':'some_text'}
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_add_existing.pt')
+        self.profiles['admin'] = oitesting.DummyProfile()
+        
+        controller = self._makeOne()
+
+        self.request.POST = MultiDict([
+                ('__start__', u'users:sequence'),
+                ('a_user', u'admin'),
+                ('__end__', u'users:sequence'),
+                ('save', u'save')
+                ])
+        
         response = controller()
-        self.assertEqual(context.users.added_groups, [('admin','members')])
-        self.assertEqual(mailer[0].mto[0], 'admin@example.com')
+        self.assertEqual(self.context.users.added_groups,
+                         [('admin','members')])
+        self.assertEqual(self.mailer[0].mto[0], 'admin@x.org')
         self.failUnless(
             response.location.startswith('http://example.com/manage.html'))
 
-class AcceptInvitationControllerTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
+class AcceptInvitationControllerTests(CommunityBase):
 
     def _makeContext(self):
-        from opencore.models.interfaces import ICommunity
-        from zope.interface import directlyProvides
         context = testing.DummyModel(sessions=DummySessions())
         directlyProvides(context, ICommunity)
         context.title = 'The Community'
+        context.communities_name = 'test_commmunity'
+        context.users = oitesting.DummyUsers()
         return context
 
-    def _makeRequest(self):
-        request = testing.DummyRequest()
-        request.environ['repoze.browserid'] = '1'
-        return request
+    def _makeOne(self):
+        return AcceptInvitationController(self.context, self.request)
 
-    def _makeOne(self, context, request):
-        from opencore.views.members import AcceptInvitationController
-        from opencore.views.api import get_template_api
-        request.api = get_template_api(context, request)
-        context.communities_name = 'test_commmunity'
-        return AcceptInvitationController(context, request)
-
-    def test__call__(self):
-        context = self._makeContext()
-        request = self._makeRequest()
-        renderer = testing.registerDummyRenderer(
-            'templates/accept_invitation.pt')
-      
-        controller = self._makeOne(context, request)
+    def test_get(self):
+        controller = self._makeOne()
         info = controller()
-      
-        self.failUnless('page_title' in renderer._received)
-        self.failUnless('page_description' in renderer._received)
-        self.failUnless('api' in renderer._received)
-        self.failIf('terms_and_conditions' in renderer._received)
-        self.failIf('accept_privacy_policy' in renderer._received)
+        self.failUnless('api' in info)
+        self.assertTrue(info['form'].startswith('<form id="deform"'))
    
     def test_handle_submit_password_mismatch(self):
-        from opencore.views.validation import ValidationError
-        from opencore.models.interfaces import IProfiles
-        from repoze.lemonade.testing import registerContentFactory
-        registerContentFactory(DummyProfiles, IProfiles)
-        context = self._makeContext()
-        context['profiles'] = DummyProfiles()
-       
-        request = self._makeRequest()
-        request.method = 'POST'
-        request.POST =  {'password':'1', 'password_confirm':'2',
-                         'submit': u'Submit'}
-        controller = self._makeOne(context, request)
-        self.assertRaises(ValidationError, controller)
-
+        controller = self._makeOne()
+        self.request.POST = MultiDict([
+                ('__start__', u'password:mapping'),
+                ('value', u'1'),
+                ('confirm', u'2'),
+                ('__end__', u'password:mapping'),
+                ('join up', u'join up')
+                ])
+        info = controller()
+        self.failUnless('Password did not match confirm' in info['form'])
+        
     def test_handle_submit_username_exists(self):
-        from opencore.views.validation import ValidationError
-        from opencore.models.interfaces import IProfiles
-        from repoze.lemonade.testing import registerContentFactory
-        registerContentFactory(DummyProfiles, IProfiles)
-        context = self._makeContext()
-        request = self._makeRequest()
-        profiles = DummyProfiles()
-        profiles['a'] = oitesting.DummyProfile()
-        context['profiles'] = profiles
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {'password':'1', 'password_confirm':'1', 'username':'a'}
-        self.assertRaises(ValidationError, controller)
-
+        self.profiles['a'] = oitesting.DummyProfile()
+        
+        controller = self._makeOne()
+        self.request.POST = MultiDict([
+                ('username', u'a'),
+                ('join up', u'join up')
+                ])
+        info = controller()
+        self.failUnless('This username is already taken' in info['form'])
+        
+    def test_handle_submit_bad_username(self):
+        controller = self._makeOne()
+        self.request.POST = MultiDict([
+                ('username', u'a !!'),
+                ('join up', u'join up')
+                ])
+        info = controller()
+        self.failUnless(
+            'only letters, numbers, and dashes' in info['form']
+            )
+        
+    def test_handle_submit_missing_tou(self):
+        controller = self._makeOne()
+        self.request.POST = MultiDict([
+                ('join up', u'join up')
+                ])
+        info = controller()
+        self.failUnless(
+            'You must agree to the terms of use' in info['form']
+            )
+        
     def test_handle_submit_success(self):
-        from opencore.models.interfaces import IProfile
-        from opencore.models.interfaces import IProfiles
-        from repoze.lemonade.testing import registerContentFactory
-        from repoze.sendmail.interfaces import IMailDelivery
-        from repoze.workflow.testing import registerDummyWorkflow
-        from opencore.models.interfaces import ICommunity
-        from zope.interface import directlyProvides
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
         registerContentFactory(oitesting.DummyProfile, IProfile)
-        registerContentFactory(DummyProfiles, IProfiles)
         class DummyWhoPlugin(object):
             def remember(self, environ, identity):
                 self.identity = identity
                 return []
         plugin = DummyWhoPlugin()
         whoplugins = {'auth_tkt':plugin}
-        request = self._makeRequest()
-        request.environ['repoze.who.plugins'] = whoplugins
-        community = self._makeContext()
-        profiles = DummyProfiles()
-        community['profiles'] = profiles
-      
-        community.users = oitesting.DummyUsers()
+        self.request.environ['repoze.who.plugins'] = whoplugins
+        community = self.context
         community.members_group_name = 'community:members'
         context = testing.DummyModel()
         community['invite'] = context
@@ -244,28 +246,30 @@ class AcceptInvitationControllerTests(unittest.TestCase):
         community.description = 'Community'
         community.sessions = DummySessions()
         context.email = 'a@example.com'
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {
-          'username': 'username',              
-          'firstname' : u'Joe',
-          'lastname': u'Marks',
-          'description': u'',
-          'biography': u"don't mess with me",
-          'position': u'marksman', 
-          'organization': u'xxx',
-          'websites': u'noddy4.com',
-          'country': u'TJ',
-          'password': u'safe',
-          'password_confirm': u'safe',
-          'dob' : '',
-          'terms': '',
-          'gender': '',
-          'profile.submit': u'Submit'}
+        self.context = context
         
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_accept_invitation.pt')
+        controller = self._makeOne()
+        self.request.POST = MultiDict([
+                ('username', u'username'),
+                ('__start__', u'password:mapping'),
+                ('value', u'safe'),
+                ('confirm', u'safe'),
+                ('__end__', u'password:mapping'),
+                ('first_name', u'Joe'),
+                ('last_name', u'Marks'),
+                ('country', u'ZW'),
+                ('__start__', u'date_of_birth:mapping'),
+                ('year', u''),
+                ('month', u''),
+                ('day', u''),
+                ('__end__', u'date_of_birth:mapping'),
+                ('gender', u''),
+                ('terms_of_use', u'true'),
+                ('join up', u'join up')
+                ])
+        
         response = controller()
+
         self.assertEqual(response.location,
                          'http://example.com/?status_message=Welcome%21')
         self.assertEqual(community.users.added,
@@ -275,33 +279,11 @@ class AcceptInvitationControllerTests(unittest.TestCase):
         self.failUnless('username' in profiles)
         self.assertEqual(profiles['username'].security_state, 'active')
         self.failIf('invite' in community)
-        self.assertEqual(len(mailer), 1)
+        self.assertEqual(len(self.mailer), 1)
 
-class InviteNewUsersTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
+class InviteNewUsersTests(InviteNewUsersControllerBase):
 
-    def tearDown(self):
-        testing.cleanUp()
-
-    def _getTargetClass(self):
-        from opencore.views.members import InviteNewUsersController
-        return InviteNewUsersController
-
-    def _makeOne(self, context, request):
-        from opencore.views.api import get_template_api
-        request.api = get_template_api(context, request)
-        return self._getTargetClass()(context, request)
-
-    def _registerMailer(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        return mailer
-
-    def _makeCommunity(self):
-        from opencore.models.interfaces import ICommunity
-        from zope.interface import directlyProvides
+    def _makeContext(self):
         community = testing.DummyModel()
         community.member_names = set(['a'])
         community.moderator_names = set(['b', 'c'])
@@ -314,177 +296,118 @@ class InviteNewUsersTests(unittest.TestCase):
         community.description = 'description'
         return community
 
-    def test_call(self):
-        context = self._makeCommunity()
-        request = testing.DummyRequest()
-        renderer = testing.registerDummyRenderer('templates/members_invite_new.pt')
-        controller = self._makeOne(context, request)
-        controller()
-        self.failUnless(hasattr(renderer, 'api'))
-        self.failUnless(hasattr(renderer, 'actions'))
-        self.failUnless(hasattr(renderer, 'page_title'))
-        self.failUnless(hasattr(renderer, 'page_description'))
-
+    def test_get(self):
+        controller = self._makeOne()
+        info = controller()
+        self.failUnless('api' in info)
+        self.failUnless('actions' in info)
+        self.assertTrue(info['form'].startswith('<form id="deform"'))
    
-    def test_handle_submit_new_to_system(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation, IProfiles
-        from opencore.utilities.interfaces import IRandomId
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
+    def test_handle_submit_no_users_or_emails(self):
         
-        registerContentFactory(DummyProfiles, IProfiles)
-        context['profiles'] = profiles = DummyProfiles()
-        
-        mailer = self._registerMailer()
-        registerCatalogSearch()
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {
-            'email_addresses': u'yo@plope.com',
-            'text': u'some text',
-            }
+        controller = self._makeOne()
 
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_invite_new.pt')
+        self.request.POST = MultiDict([
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
         response = controller()
+        
+        self.failUnless('you must supply' in response['form'])
+
+    def test_handle_submit_new_to_system(self):
+        
+        controller = self._makeOne()
+
+        self.request.POST = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'yo@plope.com'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
+        response = controller()
+        
         self.assertEqual(response.location,
           'http://example.com/manage.html?status_message=One+user+invited.++'
                          )
-        invitation = context['A'*6]
+        invitation = self.context['A'*6]
         self.assertEqual(invitation.email, 'yo@plope.com')
-        self.assertEqual(1, len(mailer))
-        self.assertEqual(mailer[0].mto, [u"yo@plope.com",])
+        self.assertEqual(1, len(self.mailer))
+        self.assertEqual(self.mailer[0].mto, [u"yo@plope.com",])
 
     def test_handle_submit_already_in_system(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation
-        from opencore.models.interfaces import IProfiles
-        from opencore.utilities.interfaces import IRandomId
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
-        
-        registerContentFactory(DummyProfiles, IProfiles)
-        profiles = DummyProfiles()
-        profiles['d'] = profile = oitesting.DummyProfile()
-        context['profiles'] = profiles
-        
-        mailer = self._registerMailer()
-        registerCatalogSearch()
+        self.profiles['d'] = profile = oitesting.DummyProfile()
         registerCatalogSearch(results={'email=d@x.org': [profile,]})
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {
-            'email_addresses': u'd@x.org',
-            'text': u'some text',
-            }
-        testing.registerDummyRenderer(
-            'opencore.views:templates/email_add_existing.pt')
+        
+        controller = self._makeOne()
+        
+        self.request.POST = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'd@x.org'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
         response = controller()
+        
         self.assertEqual(response.location,
           'http://example.com/manage.html?status_message=One+existing+user+added+to+community.++'
                          )
-        self.failIf('A'*6 in context)
-        self.assertEqual(context.users.added_groups,
+        self.failIf('A'*6 in self.context)
+        self.assertEqual(self.context.users.added_groups,
                          [('d', 'group:community:members')])
 
     def test_handle_submit_inactive_user(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation, IProfiles
-        from opencore.utilities.interfaces import IRandomId
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
-        registerContentFactory(DummyProfiles, IProfiles)
-        profiles = DummyProfiles()
-        profiles['e'] = profile = oitesting.DummyProfile(security_state='inactive')
-        context['profiles'] = profiles
-        mailer = self._registerMailer()
-        registerCatalogSearch()
+        self.profiles['e'] = profile = oitesting.DummyProfile(security_state='inactive')
         registerCatalogSearch(results={'email=e@x.org': [profile,]})
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST  = {
-            'email_addresses': u'e@x.org',
-            'text': u'some text',
-            }
-        testing.registerDummyRenderer(
-            'opencore.views:templates/members_invite_new.pt')
-        from opencore.views.validation import ValidationError
-        self.assertRaises(ValidationError, controller)
+        
+        controller = self._makeOne()
+        
+        self.request.POST  = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'e@x.org'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
+        response = controller()
+
+        self.failUnless('previously been deactivated' in response['form'])
+        
+        self.failIf('A'*6 in self.context)
+        self.assertEqual(self.context.users.added_groups,[])
 
     def test_handle_submit_already_in_community(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IInvitation
-        from opencore.utilities.interfaces import IRandomId
-        from opencore.models.interfaces import IProfiles
-              
-        request = testing.DummyRequest()
-        context = self._makeCommunity()
-        registerContentFactory(DummyProfiles, IProfiles)
-        profiles = DummyProfiles()
-        profiles['a'] = profile = oitesting.DummyProfile()
-        context['profiles'] = profiles
-            
-       
-        mailer = self._registerMailer()
-        registerCatalogSearch()
+        self.profiles['a'] = profile = oitesting.DummyProfile()
         registerCatalogSearch(results={'email=a@x.org': [profile,]})
-        def nonrandom(size=6):
-            return 'A' * size
-        testing.registerUtility(nonrandom, IRandomId)
-        registerContentFactory(DummyInvitation, IInvitation)
-        controller = self._makeOne(context, request)
-        request.method = 'POST'
-        request.POST = {
-            'email_addresses': u'a@x.org',
-            'text': u'some text',
-            }
+        
+        controller = self._makeOne()
+        
+        self.request.POST  = MultiDict([
+                ('__start__', u'email_addresses:sequence'),
+                ('address', u'a@x.org'),
+                ('__end__', u'email_addresses:sequence'),
+                ('text', u'some text'),
+                ('save', u'save')
+                ])
         response = controller()
+        
         self.assertEqual(response.location,
           'http://example.com/manage.html?status_message=One+user+already+member.'
                          )
-        self.failIf('A'*6 in context)
-        self.assertEqual(context.users.added_groups, [])
+        self.failIf('A'*6 in self.context)
+        self.assertEqual(self.context.users.added_groups, [])
 
 
-class ManageMembersControllerTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
-
-    def _getTargetClass(self):
-        from opencore.views.members import ManageMembersController
-        return ManageMembersController
+class ManageMembersControllerTests(Base):
 
     def _makeOne(self, context, request):
         from opencore.views.api import get_template_api
         request.api = get_template_api(context, request)
-        return self._getTargetClass()(context, request)
+        return ManageMembersController(context, request)
 
-    def _registerMailer(self):
-        from repoze.sendmail.interfaces import IMailDelivery
-        mailer = oitesting.DummyMailer()
-        testing.registerUtility(mailer, IMailDelivery)
-        return mailer
-
-    def _makeCommunity(self):
-        from opencore.models.interfaces import ICommunity
-        from opencore.models.interfaces import IInvitation
-        from zope.interface import directlyProvides
+    def _makeContext(self):
         community = testing.DummyModel()
         community.member_names = set(['a'])
         community.moderator_names = set(['b', 'c'])
@@ -509,7 +432,7 @@ class ManageMembersControllerTests(unittest.TestCase):
         return community
 
     def test_form_defaults(self):
-        context = self._makeCommunity()
+        context = self._makeContext()
         request = testing.DummyRequest()
         controller = self._makeOne(context, request)
 
@@ -534,7 +457,7 @@ class ManageMembersControllerTests(unittest.TestCase):
         self.assertEqual(members[3]['moderator'], False)
 
     def test_call(self):
-        context = self._makeCommunity()
+        context = self._makeContext()
         request = testing.DummyRequest()
         renderer = testing.registerDummyRenderer(
             'opencore.views:templates/members_manage.pt')
@@ -547,7 +470,7 @@ class ManageMembersControllerTests(unittest.TestCase):
   
     def test_handle_submit_remove_sole_moderator(self):
         from opencore.views.validation import ValidationError
-        context = self._makeCommunity()
+        context = self._makeContext()
         request = testing.DummyRequest()
         controller = self._makeOne(context, request)
         request.POST = {'remove_b' : 'True', 'remove_c' : 'True'}
@@ -557,7 +480,7 @@ class ManageMembersControllerTests(unittest.TestCase):
     def test_handle_submit_remove_member(self):
         renderer = testing.registerDummyRenderer(
             'opencore.views:templates/members_manage.pt')
-        context = self._makeCommunity()
+        context = self._makeContext()
         request = testing.DummyRequest()
         controller = self._makeOne(context, request)
         request.POST = {'remove_a' : 'True'}
@@ -576,7 +499,7 @@ class ManageMembersControllerTests(unittest.TestCase):
                          'Removed+member+title')
 
     def test_handle_submit_remove_invitation(self):
-        context = self._makeCommunity()
+        context = self._makeContext()
         request = testing.DummyRequest()
         context.member_names = set([])
         controller = self._makeOne(context, request)
@@ -594,29 +517,10 @@ class ManageMembersControllerTests(unittest.TestCase):
                          'Membership+information+changed%3A+'
                          'Removed+invitation+foo%40example.com')
 
-    ''' todo: not in view yet
-    def test_handle_submit_remove_moderator(self):
-        context = self._makeCommunity()
-        request = testing.DummyRequest()
-        controller = self._makeOne(context, request)
-        converted = {'members':[{'remove':True, 'name':'b', 'resend':False,
-                                 'moderator':False, 'title':'buz'}]}
-        mailer = self._registerMailer()
-        response = controller.handle_submit(converted)
-        site = context.__parent__.__parent__
-        users = site.users
-        self.assertEqual(users.removed_groups, [(u'b', 'moderators')])
-        self.assertEqual(len(mailer), 0)
-        self.assertEqual(response.location,
-                         'http://example.com/communities/community/'
-                         'manage.html?status_message='
-                         'Membership+information+changed%3A+'
-                         'Removed+moderator+buz')'''
-
     def test_handle_submit_resend(self):
         testing.registerDummyRenderer(
             'opencore.views:templates/members_manage.pt')
-        context = self._makeCommunity()
+        context = self._makeContext()
         context.title = 'community'
         context.description = 'description'
         request = testing.DummyRequest()
@@ -633,7 +537,7 @@ class ManageMembersControllerTests(unittest.TestCase):
                          'Resent+invitation+to+foo%40example.com')
 
     def test_handle_submit_add_moderator(self):
-        context = self._makeCommunity()
+        context = self._makeContext()
         context.title = 'community'
         context.description = 'description'
         self.site['profiles']['a'].title = 'Flash'
@@ -651,12 +555,7 @@ class ManageMembersControllerTests(unittest.TestCase):
                          'Membership+information+changed%3A+'
                          'Flash+is+now+a+moderator')
 
-class TestJqueryMemberSearchView(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
-
-    def tearDown(self):
-        testing.cleanUp()
+class TestJqueryMemberSearchView(Base):
 
     def _callFUT(self, context, request):
         from opencore.views.members import jquery_member_search_view
@@ -695,27 +594,6 @@ class TestJqueryMemberSearchView(unittest.TestCase):
             response.body,
             '[{"text": "title", "id": "b"}, '
             '{"text": "title", "id": "c"}]')
-
-'''class TestAcceptInvitationPhotoView(unittest.TestCase):
-    def _callFUT(self, context, request):
-        from opencore.views.members import accept_invitation_photo_view
-        return accept_invitation_photo_view(context, request)
-
-    def test_it(self):
-        request = testing.DummyRequest()
-        request.environ['repoze.browserid'] = '1'
-        request.subpath = ('a',)
-        sessions = DummySessions()
-        class DummyBlob:
-            def open(self, mode):
-                return ('abc',)
-        sessions['1'] = {'accept-invitation':
-                         {'a':([('a', '1')],None, DummyBlob())}
-                         }
-        context = testing.DummyModel(sessions=sessions)
-        response = self._callFUT(context, request)
-        self.assertEqual(response.headerlist, [('a', '1')])
-        self.assertEqual(response.app_iter, ('abc',))'''
 
 class DummyMembers(testing.DummyModel):
     def __init__(self):

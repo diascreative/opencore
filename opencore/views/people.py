@@ -29,6 +29,9 @@ from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IGridEntryInfo
 from opencore.models.interfaces import IContent
 from opencore.models.interfaces import IProfile
+from opencore.models.interfaces import IProfileDict
+from opencore.models.profile import SocialCategory
+from opencore.models.profile import SocialCategoryItem
 from opencore.models.profile import social_category
 from opencore.utilities.image import thumb_url
 from opencore.utils import find_communities
@@ -48,6 +51,7 @@ from opencore.views.utils import convert_to_script
 from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import Invalid
 from opencore.views.utils import comments_to_display
+from opencore.views.utils import get_author_info
 from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
 from opencore.views.validation import EditProfileSchema
@@ -98,79 +102,54 @@ def show_profiles_view(context, request):
         profiles=profiles,
         )
 
+def get_profile_actions(profile,request):
+    # XXX - this should probably be a utility to aid overriding!
+    actions = {}
+    same_user = (authenticated_userid(request) == profile.__name__)
+    is_admin = has_permission('administer', profile, request)
+
+    if same_user or is_admin:
+        actions['edit'] = model_url(profile, request, 'edit_profile.html')
+
+        actions['manage_communities'] = model_url(profile, request,
+                                                  'manage_communities.html')
+
+        actions['manage_tags'] = model_url(profile, request,
+                                           'manage_tags.html')
+        actions['manage_bookmarks'] = model_url(profile, request,
+                                                'manage_bookmarks.html')
+        actions['mailbox'] = model_url(profile, request,
+                                                'mailbox.html')
+    actions['feed'] = model_url(profile, request, 'contentfeed.html')
+
+    return actions
+
 class ShowProfileView(object):
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.api = TemplateAPI(self.context, self.request, 
+        self.api = TemplateAPI(self.context, self.request,
                                "View %s" % context.title)
         layout_provider = get_layout_provider(self.context, self.request)
         self.layout = layout_provider('generic')
-        self.photo_thumb_size = (75, 100)     
-        
+        self.photo_thumb_size = (220,150)
+
     def __call__(self):
+
+        profile_details = getUtility(IProfileDict, name='profile-details')
+        profile_details.update_details(self.context, self.request, self.api,
+                                       self.photo_thumb_size)
+
         context = self.context
         request = self.request
         api = self.api
-        appdates = getUtility(IAppDates)
-        
-        # Create display values from model object
-        profile = {}
-        for name in [name for name in context.__dict__.keys()
-                     if not name.startswith("_")]:
-            profile_value = getattr(context, name)
-            if profile_value is not None:
-                # Don't produce u'None'
-                profile[name] = unicode(profile_value)
-            else:
-                profile[name] = None
-       
-        # 'websites' is a tuple, so unicode(websites) is not what we want
-        profile["websites"] = context.websites
-    
-        # 'title' is a property, so need to access it directly
-        profile["title"] = context.title
-        
-        # 'created' is also a property and needs formatting too
-        profile['created'] = context.created.strftime('%B %d, %Y')
-    
-        if profile.has_key("languages"):
-            profile["languages"] = context.languages
-    
-        if profile.has_key("department"):
-            profile["department"] = context.department
-    
-        if profile.get("last_login_time"):
-            stamp = context.last_login_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-            profile["last_login_time"] = stamp
-    
-        if profile.has_key("country"):
-            # translate from country code to country name
-            country_code = profile["country"]
-            country = countries.as_dict.get(country_code, u'')
-            profile["country"] = country
-    
-        # Display portrait
-        photo = context.get('photo')
-        display_photo = {}
-        if photo is not None:
-            display_photo["url"] = thumb_url(photo, request, self.photo_thumb_size)
-        else:
-            display_photo["url"] = api.static_url + "/images/defaultUser.gif"
-        profile["photo"] = display_photo
-    
-        if get_setting(context, 'twitter_search_id'):
-            # assume it's a social app
-            social = social_category(context, None)
-            if social:
-                profile.update(social.ids())
-                
+
         # provide client data for rendering current tags in the tagbox
         client_json_data = dict(
             tagbox = get_tags_client_data(context, request),
             )
-    
+
         # Get communities this user is a member of, along with moderator info
         #
         communities = {}
@@ -183,21 +162,21 @@ class ShowProfileView(object):
                     if (communities.has_key(community_name) and
                         role != "moderators"):
                         continue
-    
+
                     community = communities_folder.get(community_name, None)
                     if community is None:
                         continue
-    
+
                     if has_permission('view', community, request):
                         communities[community_name] = {
                             "title": community.title,
                             "moderator": role == "moderators",
                             "url": model_url(community, request),
                         }
-    
+
         communities = communities.values()
         communities.sort(key=lambda x:x["title"])
-    
+
         preferred_communities = []
         my_communities = None
         name = context.__name__
@@ -206,7 +185,7 @@ class ShowProfileView(object):
             preferred_communities = get_preferred_communities(communities_folder,
                                                               request)
             my_communities = get_my_communities(communities_folder, request)
-    
+
         tagger = find_tags(context)
         if tagger is None:
             tags = ()
@@ -219,32 +198,38 @@ class ShowProfileView(object):
                                       reverse=True,
                                      )[:10]:
                 tags.append({'name': name, 'count': count})
-               
-        
-        self.profile = profile
+
+
+
+        self.profile = profile_details
         self.communities = communities
         self.my_communities = my_communities or []
         self.preferred_communities = preferred_communities
         self.tags = tags
-        self.actions = get_profile_actions(context, request)
+        self.actions = get_profile_actions(context,request)
         self.head_data = convert_to_script(client_json_data)
         return self.make_response()
-        
+
+    def prepare_response(self):
+        """ Prepare all the data needed by a template without actually rendering
+        anything so that subclasses can add additional information as they see fit.
+        """
+        self.response = {'api':self.api,
+            'profile':self.profile,
+            'actions':self.actions,
+            'head_data':self.head_data,
+            'communities':self.communities,
+            'my_communities':self.my_communities,
+            'preferred_communities':self.preferred_communities,
+            'tags':self.tags,
+            'recent_items':[],
+            'feed_url':model_url(self.context, self.request, "atom.xml"),
+            'comments':comments_to_display(self.request),
+            }
+
     def make_response(self):
-         return render_template_to_response(
-            'templates/profile.pt',
-            api=self.api,
-            profile=self.profile,
-            actions=self.actions,
-            head_data=self.head_data,
-            communities=self.communities,
-            my_communities=self.my_communities,
-            preferred_communities=self.preferred_communities,
-            tags=self.tags,
-            recent_items=[],
-            feed_url=model_url(self.context, self.request, "atom.xml"),
-            comments=comments_to_display(self.request)
-       )
+        response = self.prepare_response()
+        return render_template_to_response('templates/profile.pt', **self.response)
 
 def profile_thumbnail(context, request):
     api = request.api
@@ -255,19 +240,6 @@ def profile_thumbnail(context, request):
     else:
         url = api.static_url + "/images/defaultUser.gif"
     return HTTPFound(location=url)
-
-def get_profile_actions(profile, request):
-    actions = []
-    same_user = (authenticated_userid(request) == profile.__name__)
-    if has_permission('administer', profile, request):
-        #actions.append(('Edit', 'admin_edit_profile.html'))
-        actions.append(('Edit', 'edit_profile.html'))
-    elif same_user:
-        actions.append(('Edit', 'edit_profile.html'))
-    if same_user:
-        actions.append(('Manage Communities', 'manage_communities.html'))
-        actions.append(('Manage Tags', 'manage_tags.html'))
-    return actions
 
 class EditProfileFormController(object):
     """
@@ -304,6 +276,17 @@ class EditProfileFormController(object):
         self.prefix = 'profile.'
         self.photo = context.get('photo')
         self.schema = EditProfileSchema
+        self.social_category = social_category(context, None)
+        if not self.social_category:
+            # the social category is lazily instantiated
+            self.social_category = context.categories['social'] = SocialCategory()
+
+    def social_id(self, social_name):
+        social = self.social_category.get(social_name)
+        id = u''
+        if social:
+            id = social.id
+        return id
 
     def form_defaults(self):
         context = self.context
@@ -323,14 +306,16 @@ class EditProfileFormController(object):
                     'languages': context.languages,
                     'photo': self.photo,
                     'biography': context.biography,
+                    'facebook' : self.social_id('facebook'),
+                    'twitter' : self.social_id('twitter'),
                     }
         return defaults
 
     def __call__(self):
-               
+
         self.api.formdata = add_dict_prefix(self.prefix, self.form_defaults())
         log.debug('api.formdata: %s' % str(self.api.formdata))
-       
+
         '''if self.api.user_is_admin:
             log.debug('user_is_admin so redirecting to admin_edit_profile.html.')
             return HTTPFound(location=model_url(self.context,
@@ -347,9 +332,9 @@ class EditProfileFormController(object):
                 raise ValidationError(self, **e.error_dict)
             else:
                 return self.handle_submit(self.api.formdata)
-        
+
         return self.make_response()
-        
+
     def make_response(self):
         return render_template_to_response(
                        'templates/edit_profile.pt',
@@ -357,14 +342,44 @@ class EditProfileFormController(object):
                        form_title=self.form_title, include_blurb=True,
                        countries=[('', 'Select your Country')] + countries,
                        preferences= ['immediately', 'digest', 'never'],
-                       defaults=[])     
-      
+                       author_info=get_author_info(self.context.__name__, self.request),
+                       defaults=[])
+
     def handle_submit(self, converted):
         context = self.context
         request = self.request
         log.debug('handle_submit: %s' % str(converted))
         objectEventNotify(ObjectWillBeModifiedEvent(context))
-        self.handle_submit_base_fields(converted)
+        objectEventNotify(ObjectWillBeModifiedEvent(context))
+        # Handle the easy ones
+        for name in self.simple_field_names:
+            if name in converted:
+                if name == 'websites' and converted.get(name)==None:
+                    # maybe extend the form widget so it doesn't return an empty value
+                    # which (formencode converts to None) for no input?
+                    converted[name] = ()
+                log.debug('setting profile.%s=%s' % (name, converted.get(name)))
+                setattr(context, name, converted.get(name))
+            else:
+                log.warn('profile attribute name=%s was not included in form post data?' % name)
+        # Handle the picture
+        try:
+            handle_photo_upload(context, converted)
+        except Invalid, e:
+            raise ValidationError(self, **e.error_dict)
+        context.modified_by = authenticated_userid(request)
+
+        for social in ['facebook', 'twitter']:
+            if social in converted:
+                id = converted[social]
+                item = self.social_category.get(social)
+                if not item:
+                    item = context.categories['social'][social] = SocialCategoryItem(id=id, title=social, description=u'')
+                else:
+                    item.id = id
+
+                log.debug('set social category item: %s' % item)
+
         # Emit a modified event for recataloging
         objectEventNotify(ObjectModifiedEvent(context))
         # Whew, we made it!
@@ -372,29 +387,6 @@ class EditProfileFormController(object):
         msg = '?status_message=Profile%20edited'
         return HTTPFound(location=path+msg)
 
-    def handle_submit_base_fields(self, converted):
-        context = self.context
-        request = self.request
-        objectEventNotify(ObjectWillBeModifiedEvent(context))
-        # Handle the easy ones
-        for name in self.simple_field_names:
-            if name in converted:
-                if name == 'websites' and converted.get(name)==None:
-                    # maybe extend the form widget so it doesn't return an empty value 
-                    # which (formencode converts to None) for no input?
-                    converted[name] = ()
-                log.debug('setting profile.%s=%s' % (name, converted.get(name)))
-                setattr(context, name, converted.get(name))
-            else:
-                log.warn('profile attribute name=%s was not included in form post data?' % name)     
-        # Handle the picture 
-        try:
-            handle_photo_upload(context, converted)
-        except Invalid, e:
-            raise ValidationError(self, **e.error_dict)
-        context.modified_by = authenticated_userid(request)
-        
-            
 def get_group_options(context):
     group_options = []
     for group in get_setting(context, "selectable_groups").split():
@@ -460,7 +452,7 @@ def request_password_reset(user, profile, request):
     recipients = [profile.email]
     mailer = getUtility(IMailDelivery)
     mailer.send(admin_email, recipients, mail)
-    
+
 def deactivate_profile_view(context, request):
     name = context.__name__
     myself = authenticated_userid(request) == context.__name__
@@ -534,8 +526,8 @@ class ResetConfirmController(object):
             self.api.page_title = 'Password Reset URL Problem'
             return render_template_to_response('templates/reset_failed.pt',
                                                api=api)
-            
-            
+
+
         if self.request.method == 'POST':
             post_data = self.request.POST
             log.debug('request.POST: %s' % post_data)
@@ -547,9 +539,9 @@ class ResetConfirmController(object):
                 raise ValidationError(self, **e.error_dict)
             else:
                 return self.handle_submit(self.api.formdata)
-        
+
         return self.make_response()
-        
+
     def make_response(self):
         #snippets = get_template('forms/templates/snippets.pt')
         #snippets.doctype = xhtml
@@ -559,7 +551,7 @@ class ResetConfirmController(object):
                                            blurb_macro='',
                                            post_url=self.request.url,
                                            formprefix='')
-       
+
 
     def handle_submit(self, converted):
         try:
