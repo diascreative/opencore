@@ -4,18 +4,26 @@ from colander import (
     String,
     null,
     )
+from cStringIO import StringIO
 from deform.widget import (
     CheckboxWidget,
+    FileUploadWidget,
     Widget,
     )
 from mock import Mock
+from opencore.models.interfaces import ICommunityFile
 from opencore.views.api import get_template_api
 from opencore.views.forms import (
+    AvatarWidget,
     BaseController,
+    DummyTempStore,
     KarlUserWidget,
     TOUWidget,
+    handle_photo_upload,
+    is_image,
     )
 from repoze.bfg import testing
+from repoze.lemonade.interfaces import IContentFactory
 from testfixtures import (
     Replacer,
     ShouldRaise,
@@ -24,6 +32,42 @@ from testfixtures import (
     )
 from unittest import TestCase
 from webob.exc import HTTPFound
+
+from .test_people import (
+    DummyImageFile,
+    DummyProfile,
+    one_pixel_jpeg,
+    )
+
+class TestDummyTempStore(TestCase):
+
+    def setUp(self):
+        self.store = DummyTempStore()
+        
+    def test_get(self):
+        compare(
+            self.store.get('x'),
+            None
+            )
+
+    def test_get_default(self):
+        compare(
+            self.store.get('x',1),
+            1
+            )
+
+    def test_getitem(self):
+        with ShouldRaise(KeyError('x')):
+            self.store['x']
+
+    def test_setitem(self):
+        self.store['x']=1
+
+    def test_preview_url(self):
+        compare(
+            self.store.preview_url('x'),
+            None
+            )
 
 class TestBaseController(TestCase):
 
@@ -175,3 +219,103 @@ class TestTOUWidget(TestCase):
 
     def test_template(self):
         self.assertEqual(self.widget.template,'terms_of_use')
+
+class TestAvatarWidget(TestCase):
+
+    def setUp(self):
+        self.widget = AvatarWidget()
+
+    def test_subclass(self):
+        # assume other bits behave as per base widget :-)
+        self.assertTrue(isinstance(self.widget,FileUploadWidget))
+
+    def test_serialize(self):
+        field = Mock()
+        cstruct = Mock()
+        get_current_request = Mock()
+        request = get_current_request.return_value
+
+        with Replacer() as r:
+            r.replace('opencore.views.forms.get_current_request',
+                      get_current_request)
+            result = self.widget.serialize(field,cstruct)
+            
+        self.assertTrue(result is field.renderer.return_value)
+
+        field.renderer.assert_called_with(
+            'avatar',
+            field=field,
+            api=request.api,
+            profile=request.context,
+            )
+
+class Test_handle_photo_upload(TestCase):
+
+    # arguably should move to test_utils.py
+    # once the existing handle_photo_upload is no longer used.
+    def setUp(self):
+        testing.cleanUp()
+        testing.registerAdapter(
+            lambda *arg: DummyImageFile,
+            (ICommunityFile,),
+            IContentFactory
+            )
+        self.cstruct = {
+            'fp': StringIO('some image data'),
+            'mimetype': 'image/jpeg',
+            'filename': u'test.jpg',
+            }
+        self.context = DummyProfile()
+        self.authenticated_userid = Mock()
+        self.authenticated_userid.return_value = 'auser'
+        self.r = Replacer()
+        self.r.replace('opencore.views.forms.authenticated_userid',
+                       self.authenticated_userid)
+
+    def tearDown(self):
+        self.r.restore()
+        testing.cleanUp()
+        
+    def test_no_cstruct(self):
+        handle_photo_upload(self.context,None,None)
+        self.assertFalse(self.context.get('photo'))
+
+    def test_no_existing_photo(self):
+        handle_photo_upload(self.context,None,self.cstruct)
+        content = self.context['photo']
+        compare(content.title,'Photo of firstname lastname')
+        compare(content.mimetype,'image/jpeg')
+        compare(content.filename,'test.jpg')
+        compare(content.creator,'auser')
+
+    def test_existing_photo(self):
+        self.context['photo']=testing.DummyModel()
+        handle_photo_upload(self.context,None,self.cstruct)
+        content = self.context['photo']
+        compare(content.title,'Photo of firstname lastname')
+        compare(content.mimetype,'image/jpeg')
+        compare(content.filename,'test.jpg')
+        compare(content.creator,'auser')
+
+class Test_is_image(TestCase):
+
+    def test_wrong_mimetype(self):
+        compare(
+            is_image(dict(mimetype='foo')),
+            'This file is not an image'
+            )
+
+    def test_not_image_data(self):
+        compare(
+            is_image(dict(mimetype='image/jpeg',
+                          fp=StringIO('foo'))),
+            'This file is not an image'
+            )
+
+    def test_okay(self):
+        fp = StringIO(one_pixel_jpeg)
+        self.assertTrue(
+            is_image(dict(mimetype='image/jpeg',
+                          fp=fp))
+            )
+        compare(fp.tell(),0)

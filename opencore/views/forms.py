@@ -1,3 +1,4 @@
+from PIL import Image
 from colander import null
 from deform import (
     Form,
@@ -5,15 +6,25 @@ from deform import (
     )
 from deform.widget import (
     CheckboxWidget,
+    FileUploadWidget,
     Widget,
     )
-from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import (
+    ICommunity,
+    ICommunityFile,
+    )
 from opencore.utils import find_profiles
 from opencore.utils import get_setting
 from pkg_resources import resource_filename
-from repoze.bfg.security import has_permission
+from repoze.bfg.security import (
+    has_permission,
+    authenticated_userid,
+    )
 from repoze.bfg.traversal import find_interface
+from repoze.bfg.threadlocal import get_current_request
+from repoze.lemonade.content import create_content
 from webob.exc import HTTPFound
+
 
 ### Set form template paths
 
@@ -44,6 +55,40 @@ def _get_manage_actions(community, request):
         actions.append(('Add', 'invite_new.html'))
 
     return actions
+
+def handle_photo_upload(context, request, cstruct):
+    # arguably should move to utils.py
+    # once the existing handle_photo_upload is no longer used.
+    if cstruct is None:
+        return
+    
+    photo = create_content(
+        ICommunityFile,
+        title='Photo of ' + context.title,
+        stream=cstruct['fp'],
+        mimetype=cstruct['mimetype'],
+        filename=cstruct['filename'],
+        creator=authenticated_userid(request),
+        )
+
+    if 'photo' in context:
+        del context['photo']
+        
+    context['photo'] = photo
+
+class DummyTempStore:
+
+    def get(self,name,default=None):
+        return default
+
+    def __getitem__(self,name):
+        raise KeyError(name)
+
+    def __setitem__(self,name,value):
+        pass
+
+    def preview_url(self,name):
+        return None
 
 class BaseController(object):
 
@@ -117,3 +162,36 @@ class KarlUserWidget(Widget):
 class TOUWidget(CheckboxWidget):
 
     template='terms_of_use'
+
+
+class AvatarWidget(FileUploadWidget):
+
+    template = 'avatar'
+    
+    def __init__(self,**kw):
+        FileUploadWidget.__init__(self, None, **kw)
+        self.tmpstore = DummyTempStore()
+
+    def serialize(self, field, cstruct, readonly=False):
+        # Bluegh, wish there was a better way to get
+        # api and profile in here :-/
+        request = get_current_request()
+        return field.renderer(self.template,
+                              field=field,
+                              api=request.api,
+                              profile=request.context)
+
+
+### Validators
+
+def is_image(value):
+    msg = 'This file is not an image'
+    if not value['mimetype'].startswith('image'):
+        return msg
+    fp = value['fp']
+    try:
+        Image.open(fp)
+    except IOError:
+        return msg
+    fp.seek(0)
+    return True
