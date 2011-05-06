@@ -22,6 +22,7 @@ import re
 
 from webob.exc import HTTPFound
 
+from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.bfg.url import model_url
 from repoze.bfg.view import static
 
@@ -57,6 +58,12 @@ class StaticRootFactory(object):
     def __init__(self, environ):
         pass
 
-
-
+def not_found(context, request):
+    api = request.api
+    api.page_title = 'Page Not Found!'
+   
+    return render_template_to_response(
+        'templates/404.pt',
+        api=api
+        )
    
