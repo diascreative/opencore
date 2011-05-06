@@ -13,6 +13,7 @@ from opencore.models.interfaces import (
 from opencore.utilities.interfaces import IRandomId
 from opencore.views.api import get_template_api
 from opencore.views.members import (
+    MembersBaseController,
     AcceptInvitationController,
     InviteNewUsersController,
     ManageMembersController,
@@ -33,6 +34,31 @@ class Base(unittest.TestCase):
         testing.registerUtility(mailer, IMailDelivery)
         return mailer
 
+class MemberBaseContollerTests(unittest.TestCase):
+    
+    def setUp(self):
+        self.context = testing.DummyModel()
+        self.request = testing.DummyRequest()
+        self.request.api = get_template_api(self.context, self.request)
+        self.controller = MembersBaseController(self.context,self.request)
+
+    def test_community(self):
+        self.assertEqual(self.controller.community,None)
+
+    def test_actions(self):
+        self.assertEqual(
+            self.controller.actions,
+            [('Manage Members', 'manage.html'),
+             ('Add', 'invite_new.html')]
+            )
+
+    def test_profiles(self):
+        self.assertEqual(self.controller.profiles,None)
+
+    def test_system_name(self):
+        self.assertEqual(self.controller.system_name,'OpenCore')
+
+    
 class ShowMembersViewTests(Base):
 
     def _callFUT(self, context, request):

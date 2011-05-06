@@ -37,35 +37,13 @@ class TestBaseController(TestCase):
         # stub out the handle_submit method with mock
         self.controller.handle_submit = Mock()
 
-    def test_community(self):
-        self.assertEqual(self.controller.community,None)
-
     def test_api(self):
         self.assertTrue(self.controller.api is self.request.api)
-
-    def test_actions(self):
-        self.assertEqual(
-            self.controller.actions,
-            [('Manage Members', 'manage.html'),
-             ('Add', 'invite_new.html')]
-            )
-
-    def test_profiles(self):
-        self.assertEqual(self.controller.profiles,None)
-
-    def test_system_name(self):
-        self.assertEqual(self.controller.system_name,'OpenCore')
 
     def test_data(self):
         self.assertEqual(
             self.controller.data,
-            dict(
-                api=self.request.api,
-                actions=[
-                    ('Manage Members', 'manage.html'),
-                    ('Add', 'invite_new.html')
-                    ]
-                )
+            dict(api=self.request.api)
             )
 
     def test_call_get(self):

@@ -52,14 +52,9 @@ class BaseController(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.community = find_interface(context, ICommunity)
         self.api = request.api
-        self.actions = _get_manage_actions(self.community, request)
-        self.profiles = find_profiles(context)
-        self.system_name = get_setting(context, 'system_name', 'OpenCore')
         self.data = dict(
             api=self.api,
-            actions=self.actions,
             )
         
     def __call__(self):
