@@ -168,18 +168,6 @@
         <span class="err-text">${ error and error or '' }</span>
     </div>
 
-    <!--
-    <div metal:define-macro="image" class="${ error and 'error' or '' }">
-        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-        <c tal:condition="default_value" tal:omit-tag="">
-                <a href="${api.get_url(default_value)}"><img src="${api.get_url(default_value)}" alt="" /></a>
-                <input type="checkbox" name="${name}.delete" value="true" /> Delete image
-        </c>
-        <label for="${name}"><input type="file" name="${name}.upload" id="${name}" /></label>
-        <span class="err-text">${ error and error or '' }</span>
-    </div>
-    -->
-
     <div metal:define-macro="image" class="file-holder ${ error and 'error' or '' }">
         <div class="file-upload">
             <input type="file" name="${name}.file" id="${name}" />
