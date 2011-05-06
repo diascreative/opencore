@@ -19,8 +19,8 @@ from opencore.utils import find_community
 from opencore.utils import find_users
 from opencore.views.utils import make_unique_name
 from optparse import OptionParser
-from openhcd.scripting import get_default_config
-from openhcd.scripting import open_root
+from opencore.scripting import get_default_config
+from opencore.scripting import open_root
 from repoze.bfg.traversal import model_path
 from repoze.bfg.traversal import find_model
 from repoze.folder.interfaces import IFolder

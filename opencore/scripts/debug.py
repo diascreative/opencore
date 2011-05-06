@@ -3,8 +3,8 @@
 from code import interact
 import os
 import sys
-from openhcd.scripting import get_default_config
-from openhcd.scripting import open_root
+from opencore.scripting import get_default_config
+from opencore.scripting import open_root
 
 import logging
 logging.basicConfig()

@@ -7,8 +7,8 @@
   site_announce <text>      (update the announcment text).
 """
 
-from openhcd.scripting import get_default_config
-from openhcd.scripting import open_root
+from opencore.scripting import get_default_config
+from opencore.scripting import open_root
 from optparse import OptionParser
 
 import transaction

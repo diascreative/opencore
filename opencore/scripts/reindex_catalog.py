@@ -1,7 +1,7 @@
 """ Reindex the catalog  """
 
-from openhcd.scripting import get_default_config
-from openhcd.scripting import open_root
+from opencore.scripting import get_default_config
+from opencore.scripting import open_root
 from opencore.models.catalog import reindex_catalog
 from optparse import OptionParser
 import re
