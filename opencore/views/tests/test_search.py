@@ -97,10 +97,10 @@ class SearchResultsViewTests(unittest.TestCase):
         cleanUp()
 
     def _callFUT(self, context, request):
-        from opencore.views.search import searchresults_view
+        from opencore.views.search import SearchResultsView
         from opencore.views.api import get_template_api
         request.api = get_template_api(context, request)
-        return searchresults_view(context, request)
+        return SearchResultsView(context, request)()
 
     def test_no_searchterm(self):
         from webob.multidict import MultiDict
