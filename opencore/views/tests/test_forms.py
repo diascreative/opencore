@@ -2,6 +2,7 @@ from colander import (
     MappingSchema,
     SchemaNode,
     String,
+    null,
     )
 from deform.widget import (
     CheckboxWidget,
@@ -19,6 +20,7 @@ from testfixtures import (
     Replacer,
     ShouldRaise,
     Comparison as C,
+    compare,
     )
 from unittest import TestCase
 from webob.exc import HTTPFound
@@ -88,6 +90,23 @@ class TestBaseController(TestCase):
                 C(SchemaNode),
                 buttons = ('one','two'),
                 )
+            
+    def test_default_form_defaults(self):
+        self.assertEqual(self.controller.form_defaults(),null)
+        
+    def test_form_defaults(self):
+        with Replacer() as r:
+            self.controller.form_defaults = Mock()
+            defaults = self.controller.form_defaults.return_value
+            Form = Mock()
+            Form.return_value = form = Mock()
+            r.replace('opencore.views.forms.Form',Form)
+
+            self.controller()
+
+            compare(form.method_calls,[
+                    ('render', (defaults,), {})
+                    ])
             
     def test_call_save_different_buttons(self):
         # check that we use the last button provided

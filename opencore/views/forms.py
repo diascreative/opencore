@@ -76,9 +76,15 @@ class BaseController(object):
             
             return HTTPFound(location=self.api.here_url)
 
-        self.data['form']=form.render()
+        self.data['form']=form.render(self.form_defaults())
         return self.data
 
+    def form_defaults(self):
+        """
+        Return an appstruct to populate the form.
+        """
+        return null
+    
     def handle_submit(self, validated):
         """
         Do whatever is required with the validated data
