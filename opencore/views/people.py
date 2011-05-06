@@ -29,6 +29,7 @@ from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IGridEntryInfo
 from opencore.models.interfaces import IContent
 from opencore.models.interfaces import IProfile
+from opencore.models.interfaces import IProfileDict
 from opencore.models.profile import SocialCategory
 from opencore.models.profile import SocialCategoryItem
 from opencore.models.profile import social_category
@@ -135,61 +136,14 @@ class ShowProfileView(object):
         self.photo_thumb_size = (220,150)
 
     def __call__(self):
+
+        profile_details = getUtility(IProfileDict, name='profile-details')
+        profile_details.update_details(self.context, self.request, self.api,
+                                       self.photo_thumb_size)
+
         context = self.context
         request = self.request
         api = self.api
-        appdates = getUtility(IAppDates)
-
-        # Create display values from model object
-        profile = {}
-        for name in [name for name in context.__dict__.keys()
-                     if not name.startswith("_")]:
-            profile_value = getattr(context, name)
-            if profile_value is not None:
-                # Don't produce u'None'
-                profile[name] = unicode(profile_value)
-            else:
-                profile[name] = None
-
-        # 'websites' is a tuple, so unicode(websites) is not what we want
-        profile["websites"] = context.websites
-
-        # 'title' is a property, so need to access it directly
-        profile["title"] = context.title
-
-        # 'created' is also a property and needs formatting too
-        profile['created'] = context.created.strftime('%B %d, %Y')
-
-        if profile.has_key("languages"):
-            profile["languages"] = context.languages
-
-        if profile.has_key("department"):
-            profile["department"] = context.department
-
-        if profile.get("last_login_time"):
-            stamp = context.last_login_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-            profile["last_login_time"] = stamp
-
-        if profile.has_key("country"):
-            # translate from country code to country name
-            country_code = profile["country"]
-            country = countries.as_dict.get(country_code, u'')
-            profile["country"] = country
-
-        # Display portrait
-        photo = context.get('photo')
-        display_photo = {}
-        if photo is not None:
-            display_photo["url"] = thumb_url(photo, request, self.photo_thumb_size)
-        else:
-            display_photo["url"] = api.static_url + "/images/defaultUser.gif"
-        profile["photo"] = display_photo
-
-        if get_setting(context, 'twitter_search_id'):
-            # assume it's a social app
-            social = social_category(context, None)
-            if social:
-                profile.update(social.ids())
 
         # provide client data for rendering current tags in the tagbox
         client_json_data = dict(
@@ -246,7 +200,8 @@ class ShowProfileView(object):
                 tags.append({'name': name, 'count': count})
 
 
-        self.profile = profile
+
+        self.profile = profile_details
         self.communities = communities
         self.my_communities = my_communities or []
         self.preferred_communities = preferred_communities

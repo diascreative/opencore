@@ -440,7 +440,7 @@ class ISocial(Interface):
     """Interface to support social network linkage."""
     id = Attribute(
         "Social network user id.")
-         
+
 class IPeopleSection(IFolder):
     """Section of the people directory.
 
@@ -513,7 +513,7 @@ class ISiteEvents(Interface):
 
     def newer(latest_gen, latest_index, principals=None, created_by=None):
         """ Yield items newer than (`latest_gen`, `latest_index`).
-        
+
         Implemented as a method on the layer to work around lack of generator
         expressions in Python 2.5.x.
 
@@ -527,7 +527,7 @@ class ISiteEvents(Interface):
 
     def older(earliest_gen, earliest_index, principals=None, created_by=None):
         """ Yield items older than (`earliest_gen`, `earliest_index`).
-        
+
         Implemented as a method on the layer to work around lack of generator
         expressions in Python 2.5.x.
 
@@ -747,14 +747,20 @@ class IOrdering(Interface):
     def next_name(current_name):
         """ Given a name, return the next name or None """
 
-# do we also need a non community page?        
+# do we also need a non community page?
 class IPage(ICommunityContent, IPages):
     """A page that isn't in a wiki
     """
     taggedValue('name', 'Page')
     title = Attribute(u'Title')
     text = Attribute(u'Text')
-    
-class ILike(Interface):   
-    """Like content""" 
-        
+
+class ILike(Interface):
+    """Like content"""
+
+class IProfileDict(Interface):
+    """ A dict-like profile.
+    """
+    def update_details(context, request):
+        """ Updates the profile with additional information.
+        """
