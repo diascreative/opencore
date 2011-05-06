@@ -73,8 +73,6 @@ from opencore.views.forms import (
     instantiate,
     )
 from opencore.views.interfaces import IInvitationBoilerplate
-from opencore.views.utils import handle_photo_upload
-from opencore.views.utils import photo_from_filestore_view
 from opencore.views.validation import SignupMemberSchema
 from opencore.views.validation import ValidationError
 from opencore.views.validation import UnicodeString
