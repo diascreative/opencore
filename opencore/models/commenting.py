@@ -49,6 +49,12 @@ class Comment(Folder):
     def is_reply(self):
         return IComment.providedBy(self.__parent__.__parent__)
     
+    def comment_for_reply(self):
+        comment = None
+        if self.is_reply():
+            comment = self.__parent__.__parent__
+        return comment    
+    
     def has_replies(self):
         _has_replies = False
         if self.replies():

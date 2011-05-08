@@ -1,5 +1,6 @@
 """Content feeds views
 """
+import logging
 from itertools import islice
 from urlparse import urljoin
 
@@ -9,6 +10,7 @@ from repoze.bfg.security import authenticated_userid
 from opencore.utils import find_events
 from opencore.views.api import TemplateAPI
 
+log = logging.getLogger(__name__)
 
 _FILTER_COOKIE = 'opencore.feed_filter'
 
@@ -39,6 +41,7 @@ def _get_criteria(request):
         principals = [x for x in principals if x.startswith(prefix)]
     else:
         created_by = None
+        principals = None
 
     return principals, created_by
 

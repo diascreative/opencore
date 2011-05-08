@@ -83,3 +83,9 @@ class IAlerts(Interface):
           root.
 
         """
+
+class IMessenger(Interface):
+     
+    def send(mfrom, profile, message):
+        """Sends an alert message to a users inbox.
+        """           

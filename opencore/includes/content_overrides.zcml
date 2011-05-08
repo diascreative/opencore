@@ -16,10 +16,16 @@
     provides="opencore.models.interfaces.ICommunityInfo"
     factory="opencore.models.adapters.CommunityInfo"/>   
     
-   <adapter
-      for="repoze.lemonade.interfaces.IContent
+  <adapter
+    for="repoze.lemonade.interfaces.IContent
            repoze.bfg.interfaces.IRequest"
-      provides="opencore.views.interfaces.IBylineInfo"
-      factory="opencore.views.adapters.BylineInfo"/>   
+    provides="opencore.views.interfaces.IBylineInfo"
+    factory="opencore.views.adapters.BylineInfo"/>   
+      
+  <subscriber
+    for="repoze.lemonade.interfaces.IContent
+           repoze.folder.interfaces.IObjectAddedEvent"
+    handler="opencore.models.contentfeeds.user_added_content"/>
+      
 
 </configure>

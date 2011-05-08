@@ -757,4 +757,7 @@ class IPage(ICommunityContent, IPages):
     
 class ILike(Interface):   
     """Like content""" 
+
+class IEventInfo(Interface):
+    """ SiteEvents event info"""
         

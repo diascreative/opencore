@@ -1,6 +1,6 @@
 import calendar
 import copy
-
+from asyncore import compact_traceback
 from zope.component import queryAdapter
 from zope.component import queryMultiAdapter
 from zope.component import queryUtility
@@ -142,6 +142,11 @@ def debugsearch(context, **kw):
     for docid in docids:
         L.append(resolver(docid))
     return num, L
+
+def query_count(context, **kw):
+    searcher = ICatalogSearch(context)
+    total, docids, resolver = searcher(**kw)  
+    return total 
 
 def list_indexes(context):
     from opencore.tagging.index import TagIndex

@@ -439,6 +439,7 @@ class _EventSubscriberTestsBase:
                      ('Allow', 'group.community:testing:members', ('view',)),
                      DENY_ALL,
                     ]
+        c.creator = 'phred'
         site['profiles'] = DummyModel()
         p = create_content(IProfile,
                            title="J. Phred Bloggs")
@@ -460,6 +461,8 @@ class _EventSubscriberTestsBase:
             name = taggedValue('name', 'Dummy')
         registerContentFactory(DummyModel, IDummy)
         dummy = community[name] = create_content(IDummy, **kw)
+        if 'creator' in kw:
+            dummy.creator = kw['creator']
         dummy.docid = 789
         directlyProvides(dummy, IDummy)
         return dummy # __acl__ is missing to imply acquired.
@@ -1336,6 +1339,10 @@ class DummyEvents:
 
     def push(self, **kw):
         self._pushed.append(kw)
+    
+    def supported_ctx_ifaces(self):
+        from opencore.models.interfaces import ICommunity, IProfile
+        return (ICommunity, IProfile)        
 
 
 class DummyDocumentMap:

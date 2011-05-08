@@ -15,11 +15,6 @@
 
   <subscriber
       for="repoze.lemonade.interfaces.IContent
-           repoze.folder.interfaces.IObjectAddedEvent"
-      handler=".contentfeeds.user_added_content"/>
-
-  <subscriber
-      for="repoze.lemonade.interfaces.IContent
            repoze.folder.interfaces.IObjectWillBeAddedEvent"
       handler=".subscribers.set_created"/>
 
