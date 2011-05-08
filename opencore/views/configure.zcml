@@ -1,30 +1,28 @@
 <configure xmlns="http://namespaces.repoze.org/bfg">
 
-  <scan package="." />
-
   <view
      view=".forbidden.forbidden"
      context="repoze.bfg.exceptions.Forbidden"/>
- 
+
   <view
      view=".validation.validation_error_handler"
      context=".validation.ValidationError"/>
-     
+
   <view
     for="opencore.models.interfaces.ICommunityFile"
     view=".files.download_file_view"
     name="dl"
     permission="view"
   />
-  
-   
+
+
   <view
     for="opencore.models.interfaces.IImage"
     view=".files.thumbnail_view"
     name="thumb"/>
 
 
-            
+
  <view
     for="opencore.models.interfaces.ISite"
     name="login.html"
@@ -42,7 +40,7 @@
     view=".acl.edit_acl_view"
     name="edit_acl.html"
     permission="administer"
-  
+
   />
 
   <view
@@ -51,7 +49,7 @@
     name="acl_tree.html"
     permission="administer"
   />
-  
+
    <view
     for="opencore.models.interfaces.ICommunityContent"
     name="delete.html"
@@ -69,11 +67,17 @@
     view=".site.versioning_static_view"
     factory=".site.StaticRootFactory"/>
 
+  <!-- deform static stuff -->
+
+  <static
+    name="deform_static"
+    path="deform:static"/>
+
   <!-- profile -->
   <view
     for="opencore.models.interfaces.IProfiles"
     view=".people.show_profiles_view"/>
-    
+
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.ShowProfileView"/>
@@ -82,7 +86,7 @@
     for="opencore.models.interfaces.IProfile"
     view=".people.profile_thumbnail"
     name="profile_thumbnail"/>
-     
+
   <view
     for="opencore.models.interfaces.IProfile"
     view=".people.EditProfileFormController"
@@ -94,7 +98,7 @@
     view=".people.recent_content_view"
     name="recent_content.html"
     permission="view"/>
-    
+
   <view
     for="opencore.models.interfaces.IProfile"
     name="deactivate.html"
@@ -108,12 +112,12 @@
     view=".people.reactivate_profile_view"
     permission="administer"
     renderer="templates/reactivate_profile.pt"/>
-    
-  <view  
+
+  <view
     for="opencore.models.interfaces.ISite"
      view=".people.ResetConfirmController"
      name="reset_confirm.html"/>
- 
+
   <!-- Redirect requests to site root, to correct URL -->
  <!-- <view
     for="opencore.models.interfaces.ISite"
@@ -131,12 +135,12 @@
 
   <view
     for="opencore.models.interfaces.ISite"
-    view=".search.searchresults_view"
+    view=".search.SearchResultsView"
     renderer="templates/searchresults.pt"
     permission="view"
     name="searchresults.html"
   />
-  
+
   <!-- forums -->
   <view
     for="opencore.models.interfaces.IForumsFolder"
@@ -147,31 +151,31 @@
     for="opencore.models.interfaces.IForum"
     view=".forum.show_forum_view"
     permission="view"/>
-  
+
   <view
     for="opencore.models.interfaces.IForum"
     name="delete.html"
     view="opencore.views.resource.delete_resource_view"
     permission="delete"
     renderer="opencore.views:templates/delete_resource.pt"/>
-  
+
   <view
     for="opencore.models.interfaces.IForumTopic"
     view=".forum.show_forum_topic_view"
     permission="view"/>
-  
+
    <view
     for="opencore.models.interfaces.IForum"
     name="add_forum_topic.html"
     view=".forum.AddForumTopicController"
     permission="create"/>
-   
+
   <!-- comments -->
   <view
-    name="comment.html"  
+    name="comment.html"
     view=".commenting.AddCommentController"
     permission="comment"/>
-  
+
    <view
     for="opencore.models.interfaces.ICommentsFolder"
     view=".commenting.redirect_comments_view"
@@ -183,22 +187,22 @@
     view=".commenting.show_comment_view"
     permission="view"
   />
-  
-     
+
+
   <!-- feeds -->
-  
+
   <view
     for="opencore.models.interfaces.ISite"
     view=".atom.twitter_site_atom_view"
     name="twitter_atom.xml"/>
-   
-  
+
+
   <view
     for="opencore.models.interfaces.ICommunity"
     name="rss_view.xml"
     view=".redirects.redirect_rss_view_xml"
     permission="view"/>
-  
+
   <view
     for="opencore.models.interfaces.ISite"
     view=".contentfeeds.show_feeds_view"
@@ -207,7 +211,7 @@
     name="contentfeeds.html"
     />
 
- 
+
   <view
     for="opencore.models.interfaces.ICommunity"
     view=".contentfeeds.community_feed_view"
@@ -257,7 +261,7 @@
     permission="view"
     name="showtag"
   />
-  
+
    <!-- XXX This accompanies site.py and stays in opencore.views -->
   <view
     for="opencore.models.interfaces.ISite"
@@ -297,27 +301,27 @@
     permission="view"
     name="taglisting.html"
   />
-  
+
    <view
     for="opencore.models.interfaces.ISite"
     view=".tags.jquery_tag_search_view"
     permission="view"
     name="jquery_tag_search"
   />
-  
+
   <view
     for="*"
     view=".tags.jquery_tag_add_view"
     permission="view"
     name="jquery_tag_add"/>
-    
+
   <view
     for="*"
     view=".tags.jquery_tag_del_view"
     permission="view"
     name="jquery_tag_del"/>
-  
-  
+
+
 
   <view
     for="opencore.models.interfaces.IProfile"
@@ -350,7 +354,7 @@
     permission="edit"
     name="manage_tags.html"
   />
-  
+
    <view
     for="opencore.models.interfaces.IProfile"
     view=".contentfeeds.profile_feed_view"
@@ -358,7 +362,7 @@
     permission="view"
     name="contentfeed.html"
     />
-  
+
   <view
     for="opencore.models.interfaces.IProfile"
     view=".atom.profile_atom_view"
@@ -366,24 +370,24 @@
     permission="view"/>
 
   <!-- /stop global tagging related views -->
-  
-  
+
+
   <!-- communities -->
-  
+
   <view
     name="all_communities.html"
     for="opencore.models.interfaces.ICommunities"
     view=".communities.show_all_communities_view"
     renderer="templates/communities.pt"
     permission="view"/>
-    
+
   <view
     for="opencore.models.interfaces.ICommunities"
     view=".communities.show_communities_view"
     renderer="templates/communities.pt"
     permission="view"
   />
-    
+
    <view
     for="opencore.models.interfaces.ICommunity"
     view=".community.redirect_community_view"
@@ -433,9 +437,9 @@
     for="opencore.models.interfaces.ICommunity"
     name="searchresults.html"
     renderer="templates/searchresults.pt"
-    view=".search.searchresults_view"
+    view=".search.SearchResultsView"
     permission="view"/>
-    
+
   <view
     for="opencore.models.interfaces.ICommunity"
     name="join.html"
@@ -447,13 +451,13 @@
          repoze.bfg.interfaces.IRequest"
     provides=".interfaces.ISidebar"
     factory=".community.CommunitySidebar"/>
-    
+
   <adapter
     for="opencore.models.interfaces.ICommunityContent
          repoze.bfg.interfaces.IRequest"
     provides="opencore.views.interfaces.IAtomEntry"
-    factory="opencore.views.atom.GenericAtomEntry"/>  
- 
+    factory="opencore.views.atom.GenericAtomEntry"/>
+
    <view
      for="opencore.models.interfaces.IMembers"
      view=".members.show_members_view"
@@ -464,30 +468,31 @@
     view=".members.jquery_member_search_view"
     permission="moderate"
     name="jquery_member_search"/>
-  
-  <!-- InviteNewUsers handles both new and existing user membership -->  
+
+  <!-- InviteNewUsers handles both new and existing user membership -->
   <view
     for="opencore.models.interfaces.IMembers"
     view=".members.InviteNewUsersController"
     name="invite_new.html"
+    renderer="templates/members_invite_new.pt"
     permission="moderate"/>
-        
-  <view   
+
+  <view
      for="opencore.models.interfaces.IMembers"
      view=".members.ManageMembersController"
      permission="moderate"
      name="manage.html"/>
-  
-   <view   
+
+   <view
      for="opencore.models.interfaces.IInvitation"
      view=".members.AcceptInvitationController"
      renderer="templates/accept_invitation.pt"/>
-     
-   <view   
+
+   <view
      for="repoze.folder.interfaces.IFolder"
      view=".members.JoinNewUsersController"
-     name="join.html"/>   
-     
+     name="join.html"/>
+
   <view
     name="active_communities.html"
     for="opencore.models.interfaces.ICommunities"
@@ -536,13 +541,13 @@
     renderer="templates/list_communities.pt"
     permission="view"
   />
-  
+
   <view
    name="like.html"
    for="opencore.models.interfaces.IContent"
    view=".like.like"
    permission="comment"/>
-   
+
   <!-- Admin UI -->
   <view
     for="opencore.models.interfaces.ISite"
@@ -551,7 +556,7 @@
     permission="administer"
     name="admin.html"
     />
-     
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.admin.site_announcement_view"
@@ -559,7 +564,7 @@
     permission="administer"
     name="site_announcement.html"
     />
-    
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.admin.delete_content_view"
@@ -576,7 +581,7 @@
     name="move_content.html"
     />
 
- 
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.admin.logs_view"
@@ -593,7 +598,7 @@
     renderer="templates/admin/rename_merge_user.pt"
     />
 
-     
+
 
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"

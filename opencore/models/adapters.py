@@ -1,3 +1,20 @@
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 import warnings
 
 from ZODB.POSException import POSKeyError
@@ -13,6 +30,7 @@ from repoze.lemonade.listitem import get_listitems
 from zope.component import queryUtility
 from zope.interface import implements
 
+from opencore.consts import countries
 from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IComment
 from opencore.models.interfaces import ICommunity
@@ -21,11 +39,15 @@ from opencore.models.interfaces import IGridEntryInfo
 from opencore.models.interfaces import ITagQuery
 from opencore.models.interfaces import IToolFactory
 from opencore.models.interfaces import ITextIndexData
+from opencore.models.interfaces import IProfileDict
+from opencore.models.profile import social_category
 from opencore.utils import find_catalog
 from opencore.utils import find_profiles
 from opencore.utils import find_tags
 from opencore.utils import get_content_type_name
+from opencore.utils import get_setting
 
+from opencore.utilities.image import thumb_url
 from opencore.utilities.converters.interfaces import IConverter
 from opencore.utilities.converters.entities import convert_entities
 from opencore.utilities.converters.stripogram import html2text
@@ -153,14 +175,14 @@ class GridEntryInfo(object):
     @property
     def modified_by_url(self):
         return model_url(self.modified_by_profile, self.request)
-    
+
     def __str__(self ):
         return 'GridEntryInfo: title=%s, url=%s, type=%s, modified=%s, ' \
          'created=%s, creator_title=%s, creator_url=%s, ' \
          'modified_by_profile=%s, modified_by_title=%s, modified_by_url=%s' % \
       (self.title, self.url, self.type, self.modified, self.created,
        self.creator_title, self.creator_url, self.modified_by_profile,
-       self.modified_by_title, self.modified_by_url) 
+       self.modified_by_title, self.modified_by_url)
 
 
 class TagQuery(object):
@@ -453,6 +475,57 @@ class CalendarEventCategoryData(object):
             category = model_path(calendar)
         return category
 
+class ProfileDict(dict):
+    implements(IProfileDict)
 
+    def update_details(self, context, request, api, photo_thumb_size):
 
+        # Create display values from model object
 
+        for name in [name for name in context.__dict__.keys() if not name.startswith("_")]:
+            profile_value = getattr(context, name)
+            if profile_value is not None:
+                # Don't produce u'None'
+                self[name] = unicode(profile_value)
+            else:
+                self[name] = None
+
+        # 'websites' is a tuple, so unicode(websites) is not what we want
+        self["websites"] = context.websites
+
+        # 'title' is a property, so need to access it directly
+        self["title"] = context.title
+
+        # 'created' is also a property and needs formatting too
+        self['created'] = context.created.strftime('%B %d, %Y')
+
+        if self.has_key("languages"):
+            self["languages"] = context.languages
+
+        if self.has_key("department"):
+            self["department"] = context.department
+
+        if self.get("last_login_time"):
+            stamp = context.last_login_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+            self["last_login_time"] = stamp
+
+        if self.has_key("country"):
+            # translate from country code to country name
+            country_code = self["country"]
+            country = countries.as_dict.get(country_code, u'')
+            self["country"] = country
+
+        # Display portrait
+        photo = context.get('photo')
+        display_photo = {}
+        if photo is not None:
+            display_photo["url"] = thumb_url(photo, request, photo_thumb_size)
+        else:
+            display_photo["url"] = api.static_url + "/images/defaultUser.gif"
+        self["photo"] = display_photo
+
+        if get_setting(context, 'twitter_search_id'):
+            # assume it's a social app
+            social = social_category(context, None)
+            if social:
+                self.update(social.ids())

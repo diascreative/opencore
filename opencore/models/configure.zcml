@@ -32,26 +32,26 @@
       for="repoze.lemonade.interfaces.IContent
            opencore.interfaces.IObjectModifiedEvent"
       handler=".subscribers.reindex_content"/>
- 
+
   <subscriber
       for=".interfaces.ICommunity
            repoze.folder.interfaces.IObjectWillBeRemovedEvent"
       handler=".subscribers.delete_community"/>
-  
+
 
   <!-- tagging -->
   <subscriber
       for="opencore.tagging.interfaces.ITagAddedEvent"
       handler=".contentfeeds.user_tagged_content"/>
-      
+
   <subscriber
       for=".interfaces.IUserAddedGroup"
       handler=".contentfeeds.user_joined_community"/>
- 
+
   <subscriber
       for=".interfaces.IUserRemovedGroup"
       handler=".contentfeeds.user_left_community"/>
- 
+
   <subscriber
       for=".interfaces.ICatalogQueryEvent"
       handler=".subscribers.log_query"/>
@@ -60,11 +60,11 @@
       for=".interfaces.IProfile
            opencore.interfaces.IObjectModifiedEvent"
       handler=".subscribers.reindex_content"/>
- 
+
   <lemonade:content
     factory=".profile.Profile"
     type=".interfaces.IProfile"/>
-      
+
   <lemonade:content
     factory=".members.Invitation"
     type="opencore.models.interfaces.IInvitation"/>
@@ -104,7 +104,7 @@
     component=".catalog.cache"
   />
 
- 
+
   <lemonade:content
       factory=".site.Site"
       type=".interfaces.ISite"
@@ -119,10 +119,10 @@
       factory=".profile.ProfilesFolder"
       type=".interfaces.IProfiles"
       />
-  
+
   <lemonade:content
     factory="opencore.models.commenting.CommentsFolder"
-    type="opencore.models.interfaces.ICommentsFolder"/>   
+    type="opencore.models.interfaces.ICommentsFolder"/>
 
 
   <lemonade:content
@@ -138,7 +138,7 @@
 
   <!-- default tools available to communities (IToolFactories) -->
 
-  
+
   <lemonade:listitem
      component=".forum.forums_tool_factory"
      provides="opencore.models.interfaces.IToolFactory"
@@ -147,7 +147,7 @@
      description="Forums tool"
      sort_key="50"
   />
-     
+
   <lemonade:listitem
      component=".blog.blog_tool_factory"
      provides="opencore.models.interfaces.IToolFactory"
@@ -168,10 +168,10 @@
      sort_key="40"
      />
 
- 
+
 
   <!-- default content registrations -->
-  
+
    <lemonade:content
       factory=".forum.ForumsFolder"
       type="opencore.models.interfaces.IForumsFolder"
@@ -186,7 +186,7 @@
       factory=".forum.ForumTopic"
       type="opencore.models.interfaces.IForumTopic"
       />
-  
+
 
   <lemonade:content
       factory=".blog.Blog"
@@ -197,7 +197,7 @@
       factory=".blog.BlogEntry"
       type="opencore.models.interfaces.IBlogEntry"
       />
-   
+
 
 
 
@@ -205,7 +205,7 @@
       factory=".files.CommunityRootFolder"
       type="opencore.models.interfaces.ICommunityRootFolder"
       />
-    
+
   <lemonade:content
       factory=".files.CommunityFolder"
       type="opencore.models.interfaces.ICommunityFolder"
@@ -220,16 +220,16 @@
       factory=".references.ReferenceManual"
       type="opencore.models.interfaces.IReferenceManual"
       />
-    
+
   <lemonade:content
       factory=".references.ReferenceSection"
       type="opencore.models.interfaces.IReferenceSection"
       />
-    
+
    <lemonade:content
       factory=".like.Like"
       type="opencore.models.interfaces.ILike"/>
-        
+
   <adapter
       for="opencore.models.interfaces.ICommunityFile"
       provides="opencore.models.interfaces.ITextIndexData"
@@ -255,20 +255,21 @@
       factory=".adapters.TitleAndDescriptionIndexData"
      />
 
-
-
   <adapter
       for="opencore.models.interfaces.IComment"
       provides="opencore.models.interfaces.ITextIndexData"
       factory=".adapters.TitleAndTextIndexData"
      />
 
-
+  <utility
+      provides="opencore.models.interfaces.IProfileDict"
+      factory=".adapters.ProfileDict"
+      name='profile-details'
+     />
 
   <lemonade:content
       factory=".commenting.Comment"
       type="opencore.models.interfaces.IComment"
       />
-
 
 </configure>

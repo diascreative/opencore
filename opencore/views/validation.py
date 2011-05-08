@@ -142,99 +142,16 @@ class WebSitesValidator(FancyValidator):
         return tuple([URL(add_http=True).to_python(v.strip()) for v in value.strip(self.delimiter).split(self.delimiter)])
 
                
-class EmailAddressesValidator(FancyValidator):
-    delimiter = '\r\n'
-
-    def _to_python(self, value, state):
-        log.debug('EmailAddressesValidator._to_python value: %s' % value)
-        return tuple([v for v in value.strip(self.delimiter).split(self.delimiter)]) 
-  
-    def validate_python(self, value, state): 
-        log.debug('EmailAddressesValidator.validate_python value: %s' % str(value))
-        for eaddress in value:
-            Email(not_empty=self.not_empty).to_python(eaddress) 
-
-class NewMemberValidator(FancyValidator):
-    messages={
-            'empty' : "Please enter a username",
-            'invalid' : '%(username)s is not a valid profile'
-    }
-  
-    def validate_python(self, value, state): 
-        # value is either an existing user name or list of user names 
-        log.debug('NewMemberValidator.validate_python value: %s' % str(value))
-        users = []
-        if isinstance(value, list) or isinstance(value, tuple):
-            state.user_type = 'users'
-            users = value
-        else:
-            state.user_type = 'user'
-            users.append(value)
-                
-        for user in users:
-            if user not in state.users:
-                raise Invalid(self.message('invalid', state, username=user), value, state)
-       
 class AddForumTopicSchema(Schema):
     allow_extra_fields = True
     
     title = UnicodeString(not_empty=True, max=100)
     text = SafeInput()
            
-class InviteMemberSchema(Schema):
-    # This schema accepts missing form submissions for both users and 
-    # email_address. The controller checks if they are both missing
-    # and raises an error against email_addresses.
-    allow_extra_fields = True # to deal with the 'submit' field
-    users = NewMemberValidator(not_empty=False, if_missing=None)  
-    email_addresses = EmailAddressesValidator(not_empty=False, if_missing=None)    
-    text = UnicodeString()  
-
 class SignupMemberSchema(Schema):
     allow_extra_fields = True # to deal with the 'submit' field
     email_address = Email(not_empty=True)    
     
-class UserNameValidator(FancyValidator):
-    not_empty=True
-    messages={
-            'empty' : "Please enter a username",
-            'invalid' : 'Username must contain only letters, numbers, and dashes',
-            'taken'   : 'Username %(username)s is already taken'
-    }
-    
-    def _to_python(self, value, state):
-        log.debug('UserNameValidator._to_python value: %s' % value)
-        return Regex(r'^[\w-]+$', strip=True).to_python(value, state).lower() 
-    
-    def validate_python(self, value, state): 
-        # value is either an existing user name or list of user names 
-        log.debug('UserNameValidator.validate_python value: %s' % value)
-        if value in state.users:
-            raise Invalid(self.message('taken', state, username=value), value, state)
-  
-class AcceptInvitationSchema(Schema):
-    allow_extra_fields = True
-    
-    username = UserNameValidator()
-    password = UnicodeString(not_empty=True)
-    password_confirm = UnicodeString(not_empty=True)
-    firstname = UnicodeString()
-    lastname = UnicodeString()
-    country = OneOf(countries.as_dict.keys(),
-                    not_empty=True)
-    
-    dob = DateConverter(month_style='dd/mm/yyyy')
-    gender = OneOf(('','male','female'))
-    terms = StringBoolean()
-    
-    chained_validators = [
-        FieldsMatch(
-           'password', 'password_confirm',
-            messages = {'invalidNoMatch': 'Your passwords did not match'}
-        ),
-    ]
-    
-       
 class EditProfileSchema(PrefixSchema):
     firstname = UnicodeString()
     lastname = UnicodeString()

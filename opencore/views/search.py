@@ -1,3 +1,20 @@
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 """Site and community search views"""
 import logging
 from repoze.bfg.security import effective_principals
@@ -30,7 +47,7 @@ def get_topic_options(context):
     topic_line = get_setting(context, "topics")
     if not topic_line:
         return topic_options
-    
+
     for topic in topic_line.split():
         title = topic
         topic_options.append((topic, title))
@@ -120,14 +137,14 @@ def make_query(context, request):
             'operator': 'or',
             }
         terms.extend(tags)
-        
+
     topics = params.getall('topics')
     if topics:
         query['topics'] = {
             'query': topics,
             'operator': 'or',
             }
-        terms.extend(topics)    
+        terms.extend(topics)
 
     year = params.get('year')
     if year:
@@ -176,64 +193,66 @@ def get_batch(context, request):
 
     return batch, terms
 
+class SearchResultsView(object):
 
-def searchresults_view(context, request):
-    # We can get here from either the LiveSearch or advanced search
-    # screens
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
 
-    page_title = 'Search Results'
-    api = request.api
-    api.page_title = page_title
-    if ICommunity.providedBy(context):
-        layout = api.community_layout
-        community = context.title
-    else:
-        layout = api.generic_layout
-        community = None
+    def __call__(self):
+        page_title = 'Search Results'
+        api = self.request.api
+        api.page_title = page_title
+        if ICommunity.providedBy(self.context):
+            layout = api.community_layout
+            community = self.context.title
+        else:
+            layout = api.generic_layout
+            community = None
 
-    batch = None
-    terms = ()
-    error = None
+        batch = None
+        terms = ()
+        error = None
 
-    try:
-        batch, terms = get_batch(context, request)
-    except ParseError, e:
-        error = 'Error: %s' % e
-    else:
-        if not terms:
-            error = 'No Search Parameters Supplied.'
+        try:
+            batch, terms = get_batch(self.context, self.request)
+        except ParseError, e:
+            error = 'Error: %s' % e
+        else:
+            if not terms:
+                error = 'No Search Parameters Supplied.'
 
-    if batch:
-        # Flatten the batch into data for use in the ZPT.
-        results = []
-        for result in batch['entries']:
-            try:
-                description = result.description[0:300]
-            except AttributeError:
-                description = ''
-            result = {
-                'title': getattr(result, 'title', '<No Title>'),
-                'description': description,
-                'url': model_url(result, request),
-                'type': get_content_type_name(result),
-                }
-            results.append(result)
-        total = batch['total']
-    else:
-        batch = {'batching_required': False}
-        results = ()
-        total = 0
+        if batch:
+            # Flatten the batch into data for use in the ZPT.
+            results = []
+            for result in batch['entries']:
+                try:
+                    description = result.description[0:300]
+                except AttributeError:
+                    description = ''
+                result = {
+                    'title': getattr(result, 'title', '<No Title>'),
+                    'description': description,
+                    'url': model_url(result, self.request),
+                    'type': get_content_type_name(result),
+                    }
+                results.append(result)
+            total = batch['total']
+        else:
+            batch = {'batching_required': False}
+            results = ()
+            total = 0
 
-    return dict(
-        api=api,
-        layout=layout,
-        error=error,
-        terms=terms,
-        community=community,
-        results=results,
-        total=total,
-        batch_info=batch,
-        )
+        return dict(
+            api=api,
+            layout=layout,
+            error=error,
+            terms=terms,
+            community=community,
+            results=results,
+            total=total,
+            batch_info=batch,
+            )
 
 
 class LivesearchResults(list):
