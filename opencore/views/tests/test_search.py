@@ -138,7 +138,7 @@ class SearchResultsViewTests(unittest.TestCase):
                                 ICatalogSearch)
         result = self._callFUT(context, request)
         self.assertEqual(result['terms'], ['yo'])
-        self.assertEqual(len(result['results']), 3)
+        self.assertEqual(len(result['results']), 1)
 
     def test_known_kind(self):
         from webob.multidict import MultiDict
@@ -159,7 +159,7 @@ class SearchResultsViewTests(unittest.TestCase):
                                 ICatalogSearch)
         result = self._callFUT(context, request)
         self.assertEqual(result['terms'], ['yo', 'People'])
-        self.assertEqual(len(result['results']), 3)
+        self.assertEqual(len(result['results']), 1)
 
     def test_community_search(self):
         context = testing.DummyModel()
@@ -178,7 +178,7 @@ class SearchResultsViewTests(unittest.TestCase):
         result = self._callFUT(context, request)
         self.assertEqual(result['community'], 'Citizens')
         self.assertEqual(result['terms'], ['yo'])
-        self.assertEqual(len(result['results']), 3)
+        self.assertEqual(len(result['results']), 1)
 
     def test_parse_error(self):
         from webob.multidict import MultiDict
