@@ -31,13 +31,17 @@ from zope.index.text.parsetree import ParseError
 import datetime
 
 from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import IComment
 from opencore.models.interfaces import ICommunity
 from opencore.models.interfaces import IGroupSearchFactory
 from opencore.models.interfaces import IProfile
+from opencore.models.profile import Profile
+from opencore.models.commenting import Comment
 from opencore.utils import coarse_datetime_repr
 from opencore.utils import get_content_type_name
 from opencore.utils import get_setting
 from opencore.views.api import TemplateAPI
+from opencore.views.site import not_found
 from opencore.views.batch import get_catalog_batch_grid
 
 log = logging.getLogger(__name__)
@@ -95,7 +99,7 @@ def _iter_userids(context, request, profile_text):
             yield profile.__name__
 
 
-def make_query(context, request):
+def make_query(context, request, search_interfaces=[]):
     """Given a search request, return a catalog query and a list of terms.
     """
     params = request.params
@@ -128,7 +132,7 @@ def make_query(context, request):
             }
         terms.extend(iface.getTaggedValue('name') for iface in ifaces)
     else:
-        query['interfaces'] = [IContent]
+        query['interfaces'] = search_interfaces
 
     tags = params.getall('tags')
     if tags:
@@ -157,7 +161,7 @@ def make_query(context, request):
     return query, terms
 
 
-def get_batch(context, request):
+def get_batch(context, request, search_interfaces=[IContent], filter_func=None):
     """Return a batch of results and term sequence for a search request.
 
     If the user provided no terms, the returned batch will be None and the
@@ -168,7 +172,7 @@ def get_batch(context, request):
     kind = request.params.get("kind")
     if not kind:
         # Search form
-        query, terms = make_query(context, request)
+        query, terms = make_query(context, request, search_interfaces)
         log.debug('query: %s' % query)
         if terms:
             context_path = model_path(context)
@@ -176,7 +180,7 @@ def get_batch(context, request):
                 query['path'] = {'query': context_path}
             principals = effective_principals(request)
             query['allowed'] = {'query':principals, 'operator':'or'}
-            batch = get_catalog_batch_grid(context, request, **query)
+            batch = get_catalog_batch_grid(context, request, filter_func=filter_func, **query)
 
     else:
         # LiveSearch
@@ -194,12 +198,58 @@ def get_batch(context, request):
     return batch, terms
 
 class SearchResultsView(object):
-
+    
+    # The GET 'tab' parameter must be in the range below and subclasses
+    # are free to extend it with values specific for their models.
+    tabs_allowed = ['general', 'members']
+    
+    # Depending on the 'tab' parameter, different interfaces will be taken into
+    # account by the search engine. Subclasses should keep it in sync with 
+    # the 'tabs_allowed' list above.
+    tabs_to_interfaces = {
+        'general': [IContent],
+        'members': [IProfile],
+    }
+    
+    # Mapping between the search result item's type and the name of the key 
+    # under which it will be put in the view's result dict. Can't really use
+    # interfaces instead of classes because many type will share common
+    # interfaces.
+    type_to_result_dict = {
+        Comment: 'comments',
+        Profile: 'members'
+    }
+    
+    # Subclasses may wish to override the attribute and make it a method for
+    # filtering out the result right before it's broken into smaller batches.
+    # Default implementation is a None attribute for performance reasons,
+    # the search engine's logic will figure out it's None and won't try executing
+    # a non-existing method, thus saving time on a pass-through call.
+    pre_batch_filter = None
+    
+    # Subclasses may wish to define a method with that name. The method will
+    # be called for each element in the results list, after the batching will
+    # have been completed.
+    pre_return_func = None
+    
     def __init__(self, context, request):
         self.context = context
         self.request = request
-
+        
     def __call__(self):
+        
+        # Get the name of the tab or assume it's a 'General' one in case
+        # the parameter's missing.
+        tab = self.request.params.get('tab')
+        if not tab:
+            tab = 'general'
+            
+        if not tab in self.tabs_allowed:
+            msg = "GET 'tab' must be one of %s not [%s], returning HTTP 404" % (
+                self.tabs_allowed, tab)
+            log.error(msg)
+            return not_found(self.context, self.request)
+        
         page_title = 'Search Results'
         api = self.request.api
         api.page_title = page_title
@@ -215,7 +265,9 @@ class SearchResultsView(object):
         error = None
 
         try:
-            batch, terms = get_batch(self.context, self.request)
+            search_interfaces = self.tabs_to_interfaces[tab]
+            batch, terms = get_batch(self.context, self.request, search_interfaces,
+                                     self.pre_batch_filter)
         except ParseError, e:
             error = 'Error: %s' % e
         else:
@@ -223,27 +275,37 @@ class SearchResultsView(object):
                 error = 'No Search Parameters Supplied.'
 
         if batch:
-            # Flatten the batch into data for use in the ZPT.
-            results = []
+            # Prepare the keys for result list. In the worst case, each key
+            # will point to an empty list.
+            results = {}
+            for results_key in self.type_to_result_dict.values():
+                results[results_key] = []
+            
             for result in batch['entries']:
-                try:
-                    description = result.description[0:300]
-                except AttributeError:
-                    description = ''
-                result = {
-                    'title': getattr(result, 'title', '<No Title>'),
-                    'description': description,
-                    'url': model_url(result, self.request),
-                    'type': get_content_type_name(result),
-                    }
-                results.append(result)
+                
+                result.url = model_url(result, self.request)
+                
+                if self.pre_return_func:
+                    result = self.pre_return_func(result)
+
+                # Can be boolean False in case 'pre_return_func' doesn't want it
+                # for some reason (but why shouldn't it? in that case it should
+                # be filtered out by 'pre_batch_filter' earlier on, rejecting
+                # it here means the result count will be skewed).
+                if result:
+                    for type_ in self.type_to_result_dict:
+                        # Don't use isinstance, we're interested in the exact
+                        # type.
+                        if type(result) == type_: 
+                            results[self.type_to_result_dict[type_]].append(result)
+                    
             total = batch['total']
         else:
             batch = {'batching_required': False}
-            results = ()
+            results = {}
             total = 0
-
-        return dict(
+            
+        return_data = dict(
             api=api,
             layout=layout,
             error=error,
@@ -253,6 +315,9 @@ class SearchResultsView(object):
             total=total,
             batch_info=batch,
             )
+        return_data.update(results)
+        
+        return return_data
 
 
 class LivesearchResults(list):

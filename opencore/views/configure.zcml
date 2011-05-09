@@ -133,6 +133,7 @@
     name="advancedsearch.html"
   />
 
+  <!--
   <view
     for="opencore.models.interfaces.ISite"
     view=".search.SearchResultsView"
@@ -140,6 +141,7 @@
     permission="view"
     name="searchresults.html"
   />
+  -->
 
   <!-- forums -->
   <view
@@ -433,12 +435,14 @@
     view=".community.delete_community_view"
     permission="delete community"/>
 
+    <!--
   <view
     for="opencore.models.interfaces.ICommunity"
     name="searchresults.html"
     renderer="templates/searchresults.pt"
     view=".search.SearchResultsView"
     permission="view"/>
+    -->
 
   <view
     for="opencore.models.interfaces.ICommunity"
