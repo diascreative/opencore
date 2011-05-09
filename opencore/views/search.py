@@ -174,13 +174,13 @@ def get_batch(context, request, search_interfaces=[IContent], filter_func=None):
         # Search form
         query, terms = make_query(context, request, search_interfaces)
         log.debug('query: %s' % query)
-        if terms:
-            context_path = model_path(context)
-            if context_path and context_path != '/':
-                query['path'] = {'query': context_path}
-            principals = effective_principals(request)
-            query['allowed'] = {'query':principals, 'operator':'or'}
-            batch = get_catalog_batch_grid(context, request, filter_func=filter_func, **query)
+
+        context_path = model_path(context)
+        if context_path and context_path != '/':
+            query['path'] = {'query': context_path}
+        principals = effective_principals(request)
+        query['allowed'] = {'query':principals, 'operator':'or'}
+        batch = get_catalog_batch_grid(context, request, filter_func=filter_func, **query)
 
     else:
         # LiveSearch
@@ -198,20 +198,20 @@ def get_batch(context, request, search_interfaces=[IContent], filter_func=None):
     return batch, terms
 
 class SearchResultsView(object):
-    
+
     # The GET 'tab' parameter must be in the range below and subclasses
     # are free to extend it with values specific for their models.
     tabs_allowed = ['general', 'members']
-    
+
     # Depending on the 'tab' parameter, different interfaces will be taken into
-    # account by the search engine. Subclasses should keep it in sync with 
+    # account by the search engine. Subclasses should keep it in sync with
     # the 'tabs_allowed' list above.
     tabs_to_interfaces = {
         'general': [IContent],
         'members': [IProfile],
     }
-    
-    # Mapping between the search result item's type and the name of the key 
+
+    # Mapping between the search result item's type and the name of the key
     # under which it will be put in the view's result dict. Can't really use
     # interfaces instead of classes because many type will share common
     # interfaces.
@@ -219,37 +219,47 @@ class SearchResultsView(object):
         Comment: 'comments',
         Profile: 'members'
     }
-    
+
     # Subclasses may wish to override the attribute and make it a method for
     # filtering out the result right before it's broken into smaller batches.
     # Default implementation is a None attribute for performance reasons,
     # the search engine's logic will figure out it's None and won't try executing
     # a non-existing method, thus saving time on a pass-through call.
     pre_batch_filter = None
-    
+
     # Subclasses may wish to define a method with that name. The method will
     # be called for each element in the results list, after the batching will
     # have been completed.
     pre_return_func = None
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        
+
     def __call__(self):
-        
+
+        # Either terms or at least one topic must be provided to guard
+        # against abuses.
+        has_topic = self.request.params.get('topics')
+        has_terms = self.request.params.get('body')
+
+        if not(has_topic or has_terms):
+            msg = "Expected at least one search term or a topic, returning HTTP 404"
+            log.error(msg)
+            return not_found(self.context, self.request)
+
         # Get the name of the tab or assume it's a 'General' one in case
         # the parameter's missing.
         tab = self.request.params.get('tab')
         if not tab:
             tab = 'general'
-            
+
         if not tab in self.tabs_allowed:
             msg = "GET 'tab' must be one of %s not [%s], returning HTTP 404" % (
                 self.tabs_allowed, tab)
             log.error(msg)
             return not_found(self.context, self.request)
-        
+
         page_title = 'Search Results'
         api = self.request.api
         api.page_title = page_title
@@ -270,29 +280,25 @@ class SearchResultsView(object):
                                      self.pre_batch_filter)
         except ParseError, e:
             error = 'Error: %s' % e
-        else:
-            if not terms:
-                error = 'No Search Parameters Supplied.'
 
         if batch:
             # Prepare the keys for result list. In the worst case, each key
             # will point to an empty list.
             results = []
-            
+
             for result in batch['entries']:
                 result.url = model_url(result, self.request)
                 if self.pre_return_func:
                     result = self.pre_return_func(result)
-                    
+
                 results.append(result)
 
-                    
             total = batch['total']
         else:
             batch = {'batching_required': False}
             results = {}
             total = 0
-            
+
         return_data = dict(
             api=api,
             layout=layout,
@@ -303,7 +309,7 @@ class SearchResultsView(object):
             total=total,
             batch_info=batch,
             )
-        
+
         return return_data
 
 

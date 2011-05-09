@@ -112,7 +112,7 @@ class SearchResultsViewTests(unittest.TestCase):
         testing.registerAdapter(DummyEmptySearch, (Interface),
                                 ICatalogSearch)
         result = self._callFUT(context, request)
-        self.assertEqual(result['terms'], [])
+        #self.assertEqual(result.status, '404 Not Found')
 
     def test_bad_kind(self):
         from webob.multidict import MultiDict
@@ -225,7 +225,7 @@ class GetBatchTests(unittest.TestCase):
         request = testing.DummyRequest(params=MultiDict({}))
         context = testing.DummyModel()
         result = self._callFUT(context, request)
-        self.assertEqual(result, (None, []))
+        self.assertEqual(len(result), 2)
 
     def test_with_kind_with_body(self):
         from opencore.models.interfaces import IGroupSearchFactory
