@@ -277,27 +277,15 @@ class SearchResultsView(object):
         if batch:
             # Prepare the keys for result list. In the worst case, each key
             # will point to an empty list.
-            results = {}
-            for results_key in self.type_to_result_dict.values():
-                results[results_key] = []
+            results = []
             
             for result in batch['entries']:
-                
                 result.url = model_url(result, self.request)
-                
                 if self.pre_return_func:
                     result = self.pre_return_func(result)
+                    
+                results.append(result)
 
-                # Can be boolean False in case 'pre_return_func' doesn't want it
-                # for some reason (but why shouldn't it? in that case it should
-                # be filtered out by 'pre_batch_filter' earlier on, rejecting
-                # it here means the result count will be skewed).
-                if result:
-                    for type_ in self.type_to_result_dict:
-                        # Don't use isinstance, we're interested in the exact
-                        # type.
-                        if type(result) == type_: 
-                            results[self.type_to_result_dict[type_]].append(result)
                     
             total = batch['total']
         else:
@@ -315,7 +303,6 @@ class SearchResultsView(object):
             total=total,
             batch_info=batch,
             )
-        return_data.update(results)
         
         return return_data
 
