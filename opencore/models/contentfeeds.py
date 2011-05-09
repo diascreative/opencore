@@ -158,7 +158,7 @@ def _getInfo(profile, content, ifaces=None):
             'context_name': context_name,
             'context_url': context_url,
             'context_creator': context_creator,
-            'context_type': context_type.getTaggedValue('name'), 
+             'context_type': context_type.getTaggedValue('name') if context_type else None, 
             'content_creator': content_creator,
             'url': model_path(content),
             'title': content.title,
