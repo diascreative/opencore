@@ -242,9 +242,10 @@ class SearchResultsView(object):
         # against abuses.
         has_topic = self.request.params.get('topics')
         has_terms = self.request.params.get('body')
+        has_country = self.request.params.get('country')
 
-        if not(has_topic or has_terms):
-            msg = "Expected at least one search term or a topic, returning HTTP 404"
+        if not(has_topic or has_terms or has_country):
+            msg = "Expected at least one search term, a topic or a country, returning HTTP 404"
             log.error(msg)
             return not_found(self.context, self.request)
 
