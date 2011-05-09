@@ -16,6 +16,7 @@ from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import effective_principals
 from repoze.bfg.security import has_permission
 from repoze.bfg.url import model_url
+from repoze.bfg.view import bfg_view
 from repoze.sendmail.interfaces import IMailDelivery
 from zope.component import getMultiAdapter
 from zope.component import getUtility
@@ -231,6 +232,8 @@ class ShowProfileView(object):
         response = self.prepare_response()
         return render_template_to_response('templates/profile.pt', **self.response)
 
+
+@bfg_view(for_=IProfile, name="thumbnail")
 def profile_thumbnail(context, request):
     api = request.api
     api.page_title = 'Profile thumbnail redirector'
@@ -238,7 +241,7 @@ def profile_thumbnail(context, request):
     if photo is not None:
         url = thumb_url(photo, request, PROFILE_THUMB_SIZE)
     else:
-        url = api.static_url + "/images/defaultUser.gif"
+        url = api.static_url + "/img/default_user.gif"
     return HTTPFound(location=url)
 
 class EditProfileFormController(object):
