@@ -90,7 +90,8 @@ class TestBaseController(TestCase):
     def test_data(self):
         self.assertEqual(
             self.controller.data,
-            dict(api=self.request.api)
+            dict(api=self.request.api,
+                 actions=())
             )
 
     def test_call_get(self):

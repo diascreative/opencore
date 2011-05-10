@@ -104,6 +104,7 @@ class BaseController(object):
         self.data = dict(
             api=self.api,
             )
+        self.data['actions']=()
         
     def __call__(self):
         request = self.request

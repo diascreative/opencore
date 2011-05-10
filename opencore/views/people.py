@@ -349,7 +349,6 @@ class EditProfileFormController(BaseController):
     def __init__(self, context, request):
         super(EditProfileFormController,self).__init__(context,request)
         self.social_category = social_category(context, None)
-        self.data['actions']=()
         if not self.social_category:
             # the social category is lazily instantiated
             self.social_category = context.categories['social'] = SocialCategory()
