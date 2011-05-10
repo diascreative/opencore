@@ -21,6 +21,7 @@ from opencore.views.forms import (
     TOUWidget,
     handle_photo_upload,
     is_image,
+    valid_url,
     )
 from repoze.bfg import testing
 from repoze.lemonade.interfaces import IContentFactory
@@ -314,8 +315,41 @@ class Test_is_image(TestCase):
 
     def test_okay(self):
         fp = StringIO(one_pixel_jpeg)
-        self.assertTrue(
+        compare(
             is_image(dict(mimetype='image/jpeg',
-                          fp=fp))
+                          fp=fp)),
+            True
             )
         compare(fp.tell(),0)
+
+class Test_valid_url(TestCase):
+
+    def test_no_dotcom(self):
+        compare(
+            valid_url('http://nodotcom'),
+            'This is not a valid url'
+            )
+
+    def test_bad_scheme(self):
+        compare(
+            valid_url('ftp://www.example.com'),
+            'This is not a valid url',
+            )
+
+    def test_ok_no_scheme(self):
+        compare(
+            valid_url('www.example.com'),
+            True,
+            )
+
+    def test_ok_http(self):
+        compare(
+            valid_url('http://www.happy.com'),
+            True,
+            )
+
+    def test_ok_https(self):
+        compare(
+            valid_url('https://www.happy.com'),
+            True,
+            )

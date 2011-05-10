@@ -25,6 +25,7 @@ from repoze.bfg.threadlocal import get_current_request
 from repoze.lemonade.content import create_content
 from webob.exc import HTTPFound
 
+import re
 
 ### Set form template paths
 
@@ -90,6 +91,8 @@ class DummyTempStore:
     def preview_url(self,name):
         return None
 
+### Controllers for form submission
+    
 class BaseController(object):
 
     buttons=('cancel','save')
@@ -195,3 +198,24 @@ def is_image(value):
         return msg
     fp.seek(0)
     return True
+
+# Borrowed from:
+# https://bitbucket.org/ianb/formencode/src/703c27be52b8/formencode/validators.py
+# ...with modifications to make the scheme optional
+url_re = re.compile(r'''
+        ^((http|https)://
+        (?:[%:\w]*@)?)?                           # authenticator
+        (?P<domain>[a-z0-9][a-z0-9\-]{,62}\.)*  # (sub)domain - alpha followed by 62max chars (63 total)
+        (?P<tld>[a-z]{2,})                      # TLD
+        (?::[0-9]+)?                            # port
+
+        # files/delims/etc
+        (?P<path>/[a-z0-9\-\._~:/\?#\[\]@!%\$&\'\(\)\*\+,;=]*)?
+        $
+    ''', re.I | re.VERBOSE)
+
+def valid_url(value):
+    match = url_re.search(value)
+    if match is not None and match.group('domain'):
+       return  True
+    return 'This is not a valid url'
