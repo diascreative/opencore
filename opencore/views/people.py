@@ -66,7 +66,6 @@ from opencore.views.communities import get_my_communities
 from opencore.views.forms import (
     AvatarWidget,
     BaseController,
-    DummyTempStore,
     handle_photo_upload,
     instantiate,
     is_image,
