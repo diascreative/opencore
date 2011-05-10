@@ -2,10 +2,18 @@ import unittest
 
 from repoze.bfg import testing
 from opencore import testing as opentesting
-from opencore.testing import DummySessions
+from opencore.models.interfaces import ICommunityFile
+from opencore.testing import (
+    DummySessions,
+    DummyUpload,
+    DummyUsers,
+    )
 from opencore.views.api import get_template_api
+from opencore.views.people import EditProfileFormController
+from repoze.lemonade.interfaces import IContentFactory
+from repoze.who.plugins.zodb.users import get_sha_password
 from testfixtures import Replacer
-
+from webob.multidict import MultiDict
 class DummyForm(object):
     allfields = ()
     def __init__(self):
@@ -15,16 +23,10 @@ profile_data = {
     'firstname': 'firstname',
     'lastname': 'lastname',
     'email': 'email@example.com',
-    'phone': 'phone',
-    'extension': 'extension',
-    'fax': 'fax',
-    'department': 'department1',
     'position': 'position',
     'organization': 'organization',
-    'location': 'location',
     'country': 'CH',
     'websites': ['http://example.com'],
-    'languages': 'englishy',
     'photo': None,
     'biography': 'Interesting Person',
     }
@@ -49,20 +51,6 @@ class DummyGridEntryAdapter(object):
         self.request = request
 
 class TestEditProfileFormController(unittest.TestCase):
-    simple_used = ['firstname',
-                   'lastname',
-                   'email',
-                   'phone',
-                   'extension',
-                   'fax',
-                   'department',
-                   'position',
-                   'organization',
-                   'location',
-                   'country',
-                   'websites',
-                   'languages',
-                   'biography']
 
     def setUp(self):
         self.r = Replacer()
@@ -75,252 +63,275 @@ class TestEditProfileFormController(unittest.TestCase):
                 'url' : 'author-url',
                 'photo_url' : 'author-photo-url',
                 })
-                       
+        self.r.replace('opencore.views.forms.get_current_request',
+                       lambda :self.request)
+        self.r.replace('opencore.views.people.authenticated_userid',
+                       lambda request:'auth_user_id')
+        
         testing.cleanUp()
         sessions = DummySessions()
         context = DummyProfile(sessions=sessions, **profile_data)
         context.title = 'title'
+        context.__name__='admin'
+        context.users = DummyUsers()
+        context.users.add('admin','admin','password',())
         self.context = context
         request = testing.DummyRequest()
-        request.environ['repoze.browserid'] = '1'
-        self.request = request
-        self.user_info = {'groups': set()}
-        request.environ['repoze.who.identity'] = self.user_info
         request.api = get_template_api(context, request)
+        request.context = context
+        self.request = request
 
     def tearDown(self):
         testing.cleanUp()
         self.r.restore()
 
-    def _makeOne(self, context, request):
-        from opencore.views.people import EditProfileFormController
-        return EditProfileFormController(context, request)
-
-    def test_make_one_with_photo(self):
-        context = self.context
-        context['photo'] = DummyImageFile()
-        controller = self._makeOne(context, self.request)
-        self.failUnless(controller.photo is not None)
+    def _makeOne(self):
+        return EditProfileFormController(self.context, self.request)
 
     def test_form_defaults(self):
         context = self.context
         request = self.request
-        for fieldname, value in profile_data.items():
-            if fieldname == 'photo':
-                continue
-            setattr(context, fieldname, value)
-        controller = self._makeOne(context, request)
-        defaults = controller.form_defaults()
-        for fieldname, value in profile_data.items():
-            self.assertEqual(defaults[fieldname], value)
+        controller = self._makeOne()
+        self.assertEqual(
+            controller.form_defaults(),
+            {'first_name': 'firstname',
+             'last_name': 'lastname',
+             'details': {
+                    'position': 'position',
+                    'biography': 'Interesting Person',
+                    'social_networks': {},
+                    'organization': 'organization',
+                    'country': 'CH',
+                    'websites': ['http://example.com']
+                    },
+             'email': 'email@example.com'}
+            )
 
-    def test___call__(self):
-        opentesting.registerLayoutProvider()
-        from opencore.consts import countries
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/edit_profile.pt')
-        controller = self._makeOne(self.context, self.request)
+    def test_get(self):
+        controller = self._makeOne()
+        info = controller()
+        self.assertTrue('api' in info)
+        self.assertTrue(info['form'].startswith('<form id="deform"'))
+
+    def test_post_websites_no_scheme(self):
+        self.request.POST =   MultiDict([
+                ('first_name', u'Joe'),
+                ('last_name', u'Marks'),
+                ('email', u'joe@example.com'),
+                ('__start__', u'details:mapping'),
+                ('__start__', u'websites:sequence'),
+                ('url',u'www.happy.com'),
+                ('__end__', u'websites:sequence'),
+                ('country', u'TJ'),
+                ('__end__', u'details:mapping'),
+                ('save', u'save'),
+                ])
+        controller = self._makeOne()
         response = controller()
-        self.assertEqual(renderer._received.get('form_title'), 'Edit Profile')
-        self.failUnless('api' in renderer._received)
-        self.assertEqual(renderer._received['api'].page_title, 'Edit title')
-        self.assertEqual(renderer._received.get('include_blurb'), True)
-        self.assertEqual(renderer._received.get('countries')[1:], countries)
-
-    def test___call__user_is_staff(self):
-        self.request.form = DummyForm()
-        self.user_info['groups'].add('group.KarlStaff')
-        opentesting.registerLayoutProvider()
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/edit_profile.pt')
-        controller = self._makeOne(self.context, self.request)
+        self.assertEqual(
+            response.location,
+            # dunno why model_url doesn't quite work here
+            'http://example.comadmin/?status_message=Profile%20edited'
+            )
+        self.assertEqual(self.context.websites, [u'http://www.happy.com'])
+        
+    def test_post_websites_https(self):
+        self.request.POST =   MultiDict([
+                ('first_name', u'Joe'),
+                ('last_name', u'Marks'),
+                ('email', u'joe@example.com'),
+                ('__start__', u'details:mapping'),
+                ('__start__', u'websites:sequence'),
+                ('url',u'https://www.happy.com'),
+                ('__end__', u'websites:sequence'),
+                ('country', u'TJ'),
+                ('__end__', u'details:mapping'),
+                ('save', u'save'),
+                ])
+        controller = self._makeOne()
         response = controller()
-        self.failUnless(renderer._received['api'].user_is_staff)
-    
-    def test__call__w_websites_no_dotcom(self):
-        opentesting.registerLayoutProvider()
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/edit_profile.pt')
-        from webob.multidict import UnicodeMultiDict
-        from opencore.testing import DummyUpload
-        self.request.method = 'POST'
-        self.request.POST =  UnicodeMultiDict({'profile.firstname' : u'Joe',
-          'profile.lastname': u'Marks',
-          'profile.description': u'',
-          'profile.biography': u"don't mess with me",
-          'profile.position': u'marksman', 
-          'profile.organization': u'xxx',
-          'profile.websites': u'noddy4.com',
-          'profile.email': u'joe@example.com',
-          'profile.country': u'TJ',
-          'profile.password': u'',
-          'profile.twitter': u'',
-          'profile.facebook': u'',
-          'profile.password_confirm': u'',
-          'profile.submit': u'Submit'})
+        self.assertEqual(
+            response.location,
+            # dunno why model_url doesn't quite work here
+            'http://example.comadmin/?status_message=Profile%20edited'
+            )
+        self.assertEqual(self.context.websites, [u'https://www.happy.com'])
         
-        controller = self._makeOne(self.context, self.request)
-        controller()
-        self.assertEqual(self.context.websites, (u'http://noddy4.com',))
-       
-    def test_call__w_websites_no_scheme(self):
-        opentesting.registerLayoutProvider()
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/edit_profile.pt')
-        from webob.multidict import UnicodeMultiDict
-        from opencore.testing import DummyUpload
-        self.request.method = 'POST'
-        self.request.POST =  UnicodeMultiDict({'profile.firstname' : u'Joe',
-          'profile.lastname': u'Marks',
-          'profile.description': u'',
-          'profile.biography': u"don't mess with me",
-          'profile.position': u'marksman', 
-          'profile.organization': u'xxx',
-          'profile.websites': 'www.happy.com',
-          'profile.email': u'joe@example.com',
-          'profile.country': u'TJ',
-          'profile.password': u'',
-          'profile.photo': None,
-          'profile.twitter': u'',
-          'profile.facebook': u'',
-          'profile.password_confirm': u'',
-          'profile.submit': u'Submit'})
-        
-        controller = self._makeOne(self.context, self.request)
-        controller()
-        self.assertEqual(self.context.websites, ('http://www.happy.com',))
-        self.failIf('photo' in self.context)   
-        
-    def test__call__websites_error(self):
-        opentesting.registerLayoutProvider()
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/edit_profile.pt')
-        from webob.multidict import UnicodeMultiDict
-        self.request.method = 'POST'
-        self.request.POST =  UnicodeMultiDict({'profile.firstname' : u'Joe',
-          'profile.lastname': u'Marks',
-          'profile.description': u'',
-          'profile.biography': u"don't mess with me",
-          'profile.position': u'marksman', 
-          'profile.organization': u'xxx',
-          'profile.websites': u'http://noddy4.com\r\nhttp://nodotcom',
-          'profile.email': u'joe@example.com',
-          'profile.country': u'TJ',
-          'profile.photo.upload': u'',
-          'profile.password': u'',
-          'profile.password_confirm': u'',
-          'profile.submit': u'Submit'})
-        from opencore.views.validation import ValidationError
-        controller = self._makeOne(self.context, self.request)
-        self.assertRaises(ValidationError, controller)
+    def test_post_websites_error(self):
+        self.request.POST =   MultiDict([
+                ('first_name', u'Joe'),
+                ('last_name', u'Marks'),
+                ('email', u'joe@example.com'),
+                ('__start__', u'details:mapping'),
+                ('__start__', u'websites:sequence'),
+                ('url',u'http://nodotcom'),
+                ('__end__', u'websites:sequence'),
+                ('country', u'TJ'),
+                ('__end__', u'details:mapping'),
+                ('save', u'save'),
+                ])
+        controller = self._makeOne()
+        info = controller()
+        self.failUnless('This is not a valid url' in info['form'])
 
-    def test__call__websites_suberror(self):
-        opentesting.registerLayoutProvider()
-        renderer = testing.registerTemplateRenderer(
-            'opencore.views:templates/edit_profile.pt')
-        from webob.multidict import UnicodeMultiDict
-        from opencore.testing import DummyUpload
-        self.request.method = 'POST'
-        self.request.POST =  UnicodeMultiDict({'profile.firstname' : u'Joe',
-          'profile.lastname': u'Marks',
-          'profile.description': u'',
-          'profile.biography': u"don't mess with me",
-          'profile.position': u'marksman', 
-          'profile.organization': u'xxx',
-          'profile.websites': u'http://noddy4.com\r\nhttp://nodotcom',
-          'profile.email': u'joe@example.com',
-          'profile.country': u'TJ',
-          #'profile.photo.upload': u'',
-          'profile.photo': DummyUpload(filename='test.jpg',
-                                         mimetype='image/jpeg',
-                                         data=one_pixel_jpeg),
-          'profile.password': u'',
-          'profile.password_confirm': u'',
-          'profile.submit': u'Submit'})
-        from opencore.views.validation import ValidationError
-        controller = self._makeOne(self.context, self.request)
-        try:
-            controller()
-        except ValidationError, err:
-            self.assertEqual(err.errors['websites'].msg, u'You must provide a full domain name (like nodotcom.com)')
+    def test_post_twitter_error(self):
+        # must start with @
+        self.request.POST = MultiDict([
+                ('first_name', u'Joe'),
+                ('last_name', u'Marks'),
+                ('email', u'joe@example.com'),
+                ('__start__', u'details:mapping'),
+                ('__start__', u'social_networks:mapping'),
+                ('twitter',u'something'),
+                ('__end__', u'social_networks:mapping'),
+                ('country', u'TJ'),
+                ('__end__', u'details:mapping'),
+                ('save', u'save'),
+                ])
+        controller = self._makeOne()
+        info = controller()
+        self.failUnless(
+            'This is not a valid twitter username' in info['form']
+            )
 
-    def test_handle_submit_normal_defaults(self):
-        from opencore.models.interfaces import ICommunityFile
-        from opencore.testing import DummyUpload
-        from repoze.lemonade.interfaces import IContentFactory
-        testing.registerAdapter(lambda *arg: DummyImageFile, (ICommunityFile,),
+    def test_handle_submit_bad_image_upload(self):
+        self.request.POST = MultiDict([
+                ('first_name', u'Joe'),
+                ('last_name', u'Marks'),
+                ('email', u'joe@example.com'),
+                ('__start__', u'photo:mapping'),
+                ('upload', DummyUpload(
+                        filename='test.jpg',
+                        mimetype='x-application/not a jpeg',
+                        data='not a jpeg'
+                        )),
+                ('__end__', u'photo:mapping'),
+                ('__start__', u'details:mapping'),
+                ('country', u'TJ'),
+                ('__end__', u'details:mapping'),
+                ('save', u'save'),
+                ])
+        controller = self._makeOne()
+        info = controller()
+        self.failUnless(
+            'This file is not an image' in info['form']
+            )
+        
+    def test_handle_submit_minimal(self):
+        # a dummy photo to check it's not overridden
+        self.context['photo']=photo=testing.DummyModel()
+        self.request.POST = MultiDict([
+                ('first_name', u'Joe'),
+                ('last_name', u'Marks'),
+                ('email', u'joe@example.com'),
+                ('__start__', u'details:mapping'),
+                ('country', u'TJ'),
+                ('__end__', u'details:mapping'),
+                ('save', u'save'),
+                ])
+        controller = self._makeOne()
+        response = controller()
+        
+        self.assertEqual(
+            response.location,
+            # dunno why model_url doesn't quite work here
+            'http://example.comadmin/?status_message=Profile%20edited'
+            )
+
+        # stuff we changed
+        self.assertEqual(self.context.firstname,'Joe')
+        self.assertEqual(self.context.lastname,'Marks')
+        self.assertEqual(self.context.email,'joe@example.com')
+        self.assertEqual(self.context.country,'TJ')
+        # no social stuff, none has been added
+        self.assertEqual(
+            tuple(self.context.categories['social'].keys()),
+            ())
+        # check profile image hasn't changed
+        self.assertTrue(self.context['photo'] is photo)
+        # check password hasn't changed
+        self.assertEqual(
+            self.context.users.get('admin')['password'],
+            'password')
+        # the following are "reset" to defaults because they
+        # were missing from the form POST. Of course, this
+        # can't happen in actual use ;-)
+        self.assertEqual(self.context.position,'')
+        self.assertEqual(self.context.organisation,'')
+        self.assertEqual(self.context.biography,'')
+        self.assertEqual(self.context.websites,[])
+        # check modified_by is recorded
+        self.assertEqual(self.context.modified_by,'auth_user_id')
+
+    def test_handle_submit_full(self):
+        testing.registerAdapter(lambda *arg: DummyImageFile,
+                                (ICommunityFile,),
                                 IContentFactory)
-        controller = self._makeOne(self.context, self.request)
-        converted = {'photo': {'file' : DummyUpload(filename='test.jpg',
-                                         mimetype='image/jpeg',
-                                         data=one_pixel_jpeg)}
-          }
-        # first set up the simple fields to submit
-        for fieldname, value in profile_data.items():
-            if fieldname == 'photo':
-                continue
-            converted[fieldname] = value
-
-        controller.handle_submit(converted)
-
-        for fieldname, value in profile_data.items():
-            if fieldname == 'photo':
-                continue
-            self.assertEqual(getattr(self.context, fieldname), value)
-        self.failUnless('photo' in self.context)
+        
+        self.request.POST = MultiDict([
+                ('first_name', u'Ad'),
+                ('last_name', u'Min'),
+                ('email', u'admin@example.com'),
+                ('__start__', u'password:mapping'),
+                ('value', u'newpass'),
+                ('confirm', u'newpass'),
+                ('__end__', u'password:mapping'),
+                ('__start__', u'photo:mapping'),
+                ('upload', DummyUpload(filename='test.jpg',
+                                       mimetype='image/jpeg',
+                                       data=one_pixel_jpeg)),
+                ('__end__', u'photo:mapping'),
+                ('__start__', u'details:mapping'),
+                ('position', u'missionary'),
+                ('organisation', u'foo'),
+                ('biography', u'my biog'),
+                ('__start__', u'websites:sequence'),
+                ('url',u'http://one.example.com'),
+                ('url',u'http://two.example.com'),
+                ('__end__', u'websites:sequence'),
+                ('country', u'AF'),
+                ('__start__', u'social_networks:mapping'),
+                ('twitter', u'@mytwitter'),
+                ('facebook', u'myfacebook'),
+                ('__end__', u'social_networks:mapping'),
+                ('__end__', u'details:mapping'), ('save', u'save'),
+                ])
+        controller = self._makeOne()
+        response = controller()
+        
+        self.assertEqual(
+            response.location,
+            # dunno why model_url doesn't quite work here
+            'http://example.comadmin/?status_message=Profile%20edited'
+            )
+                                      
+        # stuff we changed
+        self.assertEqual(self.context.firstname,'Ad')
+        self.assertEqual(self.context.lastname,'Min')
+        self.assertEqual(self.context.email,'admin@example.com')
+        self.assertEqual(self.context.country,'AF')
+        self.assertEqual(self.context.position,'missionary')
+        self.assertEqual(self.context.organisation,'foo')
+        self.assertEqual(self.context.biography,'my biog')
+        self.assertEqual(self.context.websites,[
+                    'http://one.example.com',
+                    'http://two.example.com',
+                    ])
+        # no social stuff, none has been added
+        self.assertEqual(
+            self.context.categories['social']['facebook'].id,
+            'myfacebook')
+        self.assertEqual(
+            self.context.categories['social']['twitter'].id,
+            '@mytwitter')
+        # check profile image
         self.assertEqual(self.context['photo'].data, one_pixel_jpeg)
-
-    def test_handle_submit_bad_upload(self):
-        from opencore.models.interfaces import ICommunityFile
-        from opencore.testing import DummyUpload
-        from repoze.lemonade.interfaces import IContentFactory
-        testing.registerAdapter(lambda *arg: DummyImageFile, (ICommunityFile,),
-                                IContentFactory)
-        controller = self._makeOne(self.context, self.request)
-        converted = {'photo': {'file' : DummyUpload(filename='test.jpg',
-                                         mimetype='x-application/not a jpeg',
-                                         data='not a jpeg')}
-          }
-        # first set up the simple fields to submit
-        for fieldname, value in profile_data.items():
-            if fieldname == 'photo':
-                continue
-            converted[fieldname] = value
-
-        from opencore.views.validation import ValidationError
-        self.assertRaises(ValidationError, controller.handle_submit, converted) 
-        
-  
-
-    def test_handle_submit_set_context(self):
-        controller = self._makeOne(self.context, self.request)
-        converted = {'websites': (u'http://noddy4.com',)}
-        # first set up the simple fields to submit
-        for fieldname, value in profile_data.items():
-            if fieldname in ('websites', 'photo'):
-                continue
-            converted[fieldname] = value
-        controller.handle_submit(converted)
-         
-        self.assertEqual(self.context.websites,  (u'http://noddy4.com',))
-        for fieldname, value in profile_data.items():
-            if fieldname in ('websites', 'photo'):
-                continue
-            self.assertEqual(getattr(self.context, fieldname), value)
-
-    def test_handle_submit_dont_clobber_home_path(self):
-        # LP #594127, bad class inheritance code caused
-        # EditFormController.simple_field_names to be contaminated with field
-        # names from subclasses, which was causing 'home_path' to get
-        # overwritten even though it isn't shown on the form.
-        controller = self._makeOne(self.context, self.request)
-        # first set up the simple fields to submit
-        converted = {}
-        for fieldname, value in profile_data.items():
-            converted[fieldname] = value
-        self.context.home_path = 'foo/bar'
-        controller.handle_submit(converted)
-        self.assertEqual(self.context.home_path, 'foo/bar')
+        # check password has changed
+        self.assertEqual(
+            self.context.users.get('admin')['password'],
+            get_sha_password('newpass'))
+        # check modified_by is recorded
+        self.assertEqual(self.context.modified_by,'auth_user_id')
 
 class ShowProfilesViewTests(unittest.TestCase):
     def setUp(self):

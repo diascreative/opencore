@@ -64,54 +64,10 @@ def validation_error_handler(exc, request):
     @param request: Request
     '''
     controller = exc.controller
-    if 'prefix' in controller.__dict__:
-        form_errors = add_dict_prefix(controller.prefix, exc.errors)
-    else:
-        form_errors = exc.errors  
-    log.error('failed_validation handler: %s' % str(form_errors))
-    log.debug('controller.api.formdata: %s' % str(controller.api.formdata))
+    form_errors = exc.errors  
     controller.api.formerrors.update(form_errors)
     return exc.controller.make_response()
         
-def add_dict_prefix(prefix, original_data):
-    data = {}
-    for k,v in original_data.items():
-        data['%s%s' % (prefix,k)] = v
-    return data
-
-def remove_dict_prefix(prefix, original_data):
-    new_value_dict = MultiDict()
-    for k,v in original_data.items():
-        if k.startswith(prefix):
-            new_value_dict.add(k.replace(prefix,'',1), v)
-    return new_value_dict
-
-class PrefixSchema(Schema):
-    allow_extra_fields = True
-    def to_python(self, value_dict, state=None, prefix=''):
-        from formencode.variabledecode import variable_decode
-        data = variable_decode(remove_dict_prefix(prefix, value_dict), list_char='--')
-        return super(PrefixSchema, self).to_python(data, state)
-    
-class PrefixedUnicodeString(UnicodeString):
-    """ If a string starts with `prefix`, ignore.
-        Otherwise, return `prefix` + `value`
-        
-            >>> v = PrefixedUnicodeString(prefix='#')
-            >>> v.to_python('#foo')
-            u'#foo'
-            >>> v.to_python('foo')
-            u'#foo'
-    """
-    
-    prefix = ''
-    
-    def _to_python(self, value, state=None):
-        val = super(PrefixedUnicodeString, self)._to_python(value, state)
-        if not val.startswith(self.prefix):
-            val = self.prefix + val
-        return val
-
 def safe_html(text):
     """
     Take raw html and sanitize for safe use with tal:content="structure:x"
@@ -125,23 +81,11 @@ class SafeInput(FancyValidator):
     def _to_python(self, value, state):
         return safe_html(UnicodeString()._to_python(value, state))
     
-class CommunityPreferenceSchema(PrefixSchema):
-    community = UnicodeString()
-    preference = OneOf(['immediately', 'digest', 'never'])
-
 class State(object):
     def __init__(self, **kw):
         for k,value in kw.items():
             setattr(self, k, value)
 
-class WebSitesValidator(FancyValidator):
-    delimiter = '\r\n'
-     
-    def _to_python(self, value, state):
-        log.debug('WebSitesValidator._to_python value: %s' % value)
-        return tuple([URL(add_http=True).to_python(v.strip()) for v in value.strip(self.delimiter).split(self.delimiter)])
-
-               
 class AddForumTopicSchema(Schema):
     allow_extra_fields = True
     
@@ -151,29 +95,3 @@ class AddForumTopicSchema(Schema):
 class SignupMemberSchema(Schema):
     allow_extra_fields = True # to deal with the 'submit' field
     email_address = Email(not_empty=True)    
-    
-class EditProfileSchema(PrefixSchema):
-    firstname = UnicodeString()
-    lastname = UnicodeString()
-    position = UnicodeString()
-    organization = UnicodeString()
-    websites = WebSitesValidator(if_missing=())    
-    
-    biography = UnicodeString()    
-    email = Email(not_empty=True)
-    country = OneOf(countries.as_dict.keys())
-    password = UnicodeString()
-    password_confirm = UnicodeString()
-
-    chained_validators = [
-        FieldsMatch(
-            u'password', u'password_confirm',
-            messages = {'invalidNoMatch': u'Your passwords did not match'}
-        ),
-    ]
-
-    alert_preferences = ForEach(CommunityPreferenceSchema())
-    pre_validators = [NestedVariables()]        
-
-    twitter = PrefixedUnicodeString(prefix='@')
-    facebook = UnicodeString() 
