@@ -314,7 +314,6 @@ def handle_photo_upload(context, form):
             if 'photo' in context:
                 del context['photo']
             context['photo'] = photo
-            check_upload_size(context, photo, 'photo')
 
         elif (upload_map.get('delete'), False) and asbool(upload_map.get('delete')):
             if 'photo' in context:
@@ -324,13 +323,6 @@ def handle_photo_upload(context, form):
 class Invalid(Exception):
     def __init__(self, error_dict):
         self.error_dict = error_dict
-
-def check_upload_size(context, obj, field_name):
-    max_size = int(get_setting(context, 'upload_limit', 0))
-    if max_size and obj.size > max_size:
-        msg = 'File size exceeds upload limit of %d.' % max_size
-        transaction.get().doom()
-        raise Invalid({field_name: msg})
 
 # Used to map HTML entity names to numeric entities that can be used in XML
 # Source: http://elizabethcastro.com/html/extras/entities.html

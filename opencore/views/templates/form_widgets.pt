@@ -1,60 +1,99 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:tal="http://xml.zope.org/namespaces/tal"
-      xmlns:metal="http://xml.zope.org/namespaces/metal">
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal">
 
-  <div metal:define-macro="input" class="input-container${ error and ' error' or '' }">
-    <label>${label}${(compulsory and label != '') and ' *' or ''} <input type="text" class="text${compulsory and ' check-text' or ''}" name="${name}" value="${default_value}" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
 
-  <div metal:define-macro="input_username" class="input-container${ error and ' error' or '' }">
-    <label>${label}${(compulsory and label != '') and ' *' or ''} <input type="text" class="spaceless text${compulsory and ' check-text' or ''}" name="${name}" value="${default_value}" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    <!-- Template -->
 
-  <div metal:define-macro="hidden">
-    <input type="hidden" name="${name}" value="${default_value}" id="${name}" />
-  </div>
-
-  <div metal:define-macro="textarea" class="input-container${ error and ' error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-    <span class="err-text textarea-err">${ error and error or '' }</span>
-    <textarea name="${name}" id="${name}" class="${compulsory and 'check-text' or ''}">${default_value}</textarea>
-  </div>
-
-  <div metal:define-macro="textarea_not_grow" class="input-container${ error and ' error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-    <span class="err-text textarea-err">${ error and error or '' }</span>
-    <textarea name="${name}" id="${name}" class="no-grow${compulsory and ' check-text' or ''}">${default_value}</textarea>
-  </div>
-
-  <div metal:define-macro="faq_textarea" class="input-container textarea-container${ error and ' error' or '' }">
-    <label for="${name}">
-        ${label}${compulsory and ' *' or ''}
-        <textarea name="${name}" id="${name}" class="${compulsory and 'check-text' or ''}">${default_value}</textarea>
-    </label>
-    <span class="err-text textarea-err">${ error and error or '' }</span>
-  </div>
-
-    <div metal:define-macro="textarea_rte" class="input-container${ error and ' error' or '' }">
-        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-        <span class="err-text textarea-err">${ error and error or '' }</span>
-        <textarea name="${name}" class="rte${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    <div metal:define-macro="temp" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <input type="text" class="text${compulsory and ' check-text' or ''}" name="${name}" value="${default_value}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
     </div>
 
-    <div metal:define-macro="rte_upload_image" class="input-container${ error and ' error' or '' }">
-        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-        <span class="err-text textarea-err">${ error and error or '' }</span>
-        <textarea name="${name}" class="rte_upload_image${compulsory and ' check-text' or ''}">${default_value}</textarea>
+
+    <!-- Text -->
+
+    <div metal:define-macro="input" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <input type="text" class="text${compulsory and ' check-text' or ''}" name="${name}" value="${default_value}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
     </div>
 
-    <div metal:define-macro="textarea_link_area" class="input-container${ error and ' error' or '' }">
-        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-        <span class="err-text textarea-err">${ error and error or '' }</span>
-        <textarea name="${name}" class="textarea_link_area${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    <div metal:define-macro="input_username" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <input type="text" class="spaceless text${compulsory and ' check-text' or ''}" name="${name}" value="${default_value}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
     </div>
 
-    <div metal:define-macro="terms-and-conditions" class="input-container${ error and ' error' or '' }">
+
+    <!-- Textareas -->
+
+    <div metal:define-macro="textarea" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}">${'\n'.join(default_value)}</textarea>
+        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    </div>
+
+    <div metal:define-macro="textarea_short" class="text-holder short${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}">${'\n'.join(default_value)}</textarea>
+        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    </div>
+
+    <div metal:define-macro="textarea_fluid" class="text-holder fluid${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${'\n'.join(default_value)}</textarea>
+        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${default_value}</textarea>
+    </div>
+
+    <div metal:define-macro="textarea_fluid_short" class="text-holder fluid short${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${'\n'.join(default_value)}</textarea>
+        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${default_value}</textarea>
+    </div>
+
+
+    <!-- Textareas Other -->
+
+    <div metal:define-macro="textarea_not_grow" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea name="${name}" id="${name}" class="text no-grow${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    </div>
+
+    <div metal:define-macro="faq_textarea" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <textarea name="${name}" id="${name}" class="text ${compulsory and ' check-text' or ''}">${default_value}</textarea>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="textarea_rte" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea name="${name}" class="text rte${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    </div>
+
+    <div metal:define-macro="rte_upload_image" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea name="${name}" class="text rte_upload_image${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    </div>
+
+    <div metal:define-macro="textarea_link_area" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea name="${name}" class="text textarea_link_area${compulsory and ' check-text' or ''}">${default_value}</textarea>
+    </div>
+
+
+    <!-- Checkbox -->
+
+    <div metal:define-macro="terms-and-conditions" class="text-holder${ error and ' error' or '' }">
         <label for="${name}" class="terms-label" tal:define="challenge api.get_challenge()">
             I accept the <a href="${ (challenge and challenge.get('terms')) and api.get_url(challenge) + 'terms' or '/terms' }/ajax.html" class="terms-conditions-link">terms and conditions</a>
             <input type="checkbox" name="${name}" value="True" tal:condition="not api.has_accepted_tnc()" />
@@ -62,200 +101,220 @@
         </label>
         <span class="err-text textarea-err">${ error and error or '' }</span>
     </div>  
-  
-  <div metal:define-macro="q_textarea" class="textarea${ error and ' error' or '' }">
-    <label for="${name}" tal:condition="label">${label}${ (compulsory and label != '' ) and ' *' or ''}</label>
-    <span class="err-text textarea-err">${ error and error or '' }</span>
-    <div class="top"></div>
-    <div class="mid">
-        <div class="text-left-bar">
+    
+    <div metal:define-macro="q_textarea" class="textarea${ error and ' error' or '' }">
+        <label for="${name}" tal:condition="label">${label}${ (compulsory and label != '' ) and ' *' or ''}</label>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
         <textarea name="${name}" id="${name}" class="${compulsory and 'check-text' or ''}">${default_value}</textarea>
-        </div>
     </div>
-    <div class="bot"></div>
-  </div>
 
-  <div metal:define-macro="questions_textarea" class="textarea${ error and ' error' or '' }">
-    <span class="examplary">${label}</span>
-    <span class="err-text textarea-err">${ error and error or '' }</span>
-    <textarea name="${name}" id="${name}" class="${compulsory and 'check-text' or ''}">${default_value}</textarea>
-  </div>
-
-  <div metal:define-macro="q_textarea_3" class="textarea${ error and ' error' or '' }">
-    <span class="err-text textarea-err">${ error and error or '' }</span>
-    <div class="top"></div>
-    <div class="mid">
-        <div class="text-left-bar">
+    <div metal:define-macro="questions_textarea" class="textarea${ error and ' error' or '' }">
+        <span class="examplary">${label}</span>
+        <span class="err-text textarea-err">${ error and error or '' }</span>
         <textarea name="${name}" id="${name}" class="${compulsory and 'check-text' or ''}">${default_value}</textarea>
-        </div>
     </div>
-    <div class="bot"></div>
-    <div class="spacer"></div>
-  </div>
 
-  <div metal:define-macro="password" class="${ error and 'error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''} <input type="password" class="text${compulsory and ' check-text' or ''}" name="${name}" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    <div metal:define-macro="q_textarea_3" class="textarea${ error and ' error' or '' }">
+        <span class="err-text textarea-err">${ error and error or '' }</span>
+        <textarea name="${name}" id="${name}" class="${compulsory and 'check-text' or ''}">${default_value}</textarea>
+        <div class="spacer"></div>
+    </div>
 
-  <div metal:define-macro="password_2" class="${ error and 'error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''} <input type="password" class="text" name="${name}" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
 
-  <div metal:define-macro="file" class="${ error and 'error' or '' }">
-    <c tal:condition="default_value" tal:omit-tag="">
-        <a href="${default_value}">View current file</a>
-    </c>
-    <label for="${name}">${label}${compulsory and ' *' or ''} <input class="file" type="file" name="${name}" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    <!-- Password -->
 
-  <div metal:define-macro="file-upload" class="${ error and 'error' or '' }">
-    <c tal:condition="default_value" tal:omit-tag="">
-        <a href="${default_value}">View current file</a>
-        <input type="checkbox" name="${name}.delete" value="true" /> Delete image
-    </c>
-    <label for="${name}">${label}${compulsory and ' *' or ''} <input class="file" type="file" name="${name}.upload" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    <div metal:define-macro="password" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <input type="password" class="text${compulsory and ' check-text' or ''}" name="${name}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
 
-  <div metal:define-macro="edit_file" class="${ error and 'error' or '' }">
-    <label tal:repeat="file choices">
-      <input type="checkbox" name="${name}" value="${file.__name__}" />
-      <a href="api.get_url(file)" alt="${file.filename}">${file.filename}</a>
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
-<!--
-  <div metal:define-macro="image" class="${ error and 'error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-    <c tal:condition="default_value" tal:omit-tag="">
-        <a href="${api.get_url(default_value)}"><img src="${api.get_url(default_value)}" alt="" /></a>
-        <input type="checkbox" name="${name}.delete" value="true" /> Delete image
-    </c>
-    <label for="${name}"><input type="file" name="${name}.upload" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
--->
- <div metal:define-macro="image" class="${ error and 'error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''}</label>
-    <c tal:condition="default_value" tal:omit-tag="">
-        <a href="${api.get_url(default_value)}/dl"><img src="${api.get_url(default_value)}/dl" alt="" /></a>
-        <input type="checkbox" name="${name}.delete" value="true" /> Delete image
-    </c>
-    <label for="${name}"><input type="file" name="${name}.file" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
-  <div metal:define-macro="tags" class="${ error and 'error' or '' }">
-        <div class="l-spacer"></div>
+    <div metal:define-macro="password_2" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <input type="password" class="text" name="${name}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="password_new" class="text-holder${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="description" class="description">${description}</span></label>
+        <input type="password" class="text${compulsory and ' check-text' or ''}" name="${name}" id="${name}" autocomplete="off" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+
+    <!-- File -->
+
+    <div metal:define-macro="file" class="${ error and 'error' or '' }">
+        <a tal:condition="default_value" href="${default_value}">View current file</a>
+        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
+        <input class="file" type="file" name="${name}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="file-upload" class="${ error and 'error' or '' }">
+        <tal condition="default_value">
+            <a href="${default_value}">View current file</a>
+            <input type="checkbox" name="${name}.delete" value="true" /> Delete image
+        </tal>
+        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
+        <input class="file" type="file" name="${name}.upload" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="edit_file" class="${ error and 'error' or '' }">
+        <label tal:repeat="file choices"></label>
+        <input type="checkbox" name="${name}" value="${file.__name__}" />
+        <a href="api.get_url(file)" alt="${file.filename}">${file.filename}</a>
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="image" class="file-holder ${ error and 'error' or '' }">
+        <div class="file-upload">
+            <input type="file" name="${name}.file" id="${name}" />
+            <div class="button highlight">${label}</div>
+        </div>
+        
+        <div class="clear"></div>
+        
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+
+    <!-- Tags -->
+
+    <div metal:define-macro="tags" class="${ error and 'error' or '' }">
         <label>Add tags that describe your content...</label>
         <input type="text" class="text tags" name="${name}" value="${default_value}" id="usertags-fill" />
         <span class="err-text">${ error and error or '' }</span>
         <div class="tags" style="display : none"><a tal:repeat="total,tag api.getTopTags()" href="#">${tag}</a></div>
-  </div>
-
-  <div metal:define-macro="checkbox_list" class="${ error and 'error' or '' }">
-    <label>${label}${compulsory and ' *' or ''}</label><br />
-    <label tal:repeat="id,title choices">
-      <input type="checkbox" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
-      <input type="checkbox" name="${name}" value="${id}" tal:condition="id not in default_list" />
-      ${title}
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
-
-  <div metal:define-macro="check_list" class="${ error and 'error' or '' }">
-    ${label}${compulsory and ' *' or ''}
-    <label tal:repeat="id,title choices">
-      <input type="checkbox" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
-      <input type="checkbox" name="${name}" value="${id}" tal:condition="id not in default_list" />
-      ${title}
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
-
-  <div metal:define-macro="q_checkbox_list" class="${ error and 'error' or '' }">
-    <label>${label}${compulsory and ' *' or ''}</label>
-    <label tal:repeat="id,title choices">
-      <input type="checkbox" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
-      <input type="checkbox" name="${name}" value="${id}" tal:condition="id not in default_list" />
-      ${title}
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    </div>
 
 
-  <div metal:define-macro="radio_tuple_list" class="${ error and 'error' or '' }">
-    <label>${label}${compulsory and ' *' or ''}</label><br />
-    <label tal:repeat="id,title choices">
-        <input type="radio" name="${name}" class="radio-button" checked="checked" value="${id}" tal:condition="id in default_list" />
-        <input type="radio" name="${name}" class="radio-button" value="${id}" tal:condition="id not in default_list" />
-        ${title}
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    <!-- Checkbox -->
 
-  <div metal:define-macro="search_tuple_list" class="${ error and 'error' or '' }">
-    <label tal:repeat="id,title choices">
-        <input type="radio" name="${name}" value="${id}" />
-        ${title}
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    <div metal:define-macro="checkbox_list" class="${ error and 'error' or '' }">
+        <label>${label}${compulsory and ' *' or ''}</label><br />
+        <label tal:repeat="id,title choices">
+            <input type="checkbox" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
+            <input type="checkbox" name="${name}" value="${id}" tal:condition="id not in default_list" />
+            ${title}
+        </label>
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
 
-  <div metal:define-macro="radio_list" class="${ error and 'error' or '' }">
-    <label tal:condition="label">${label}${compulsory and ' *' or ''}</label>
-    <label tal:repeat="id choices">
-        <input type="radio" class="radio-button" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
-        <input type="radio" class="radio-button" name="${name}" value="${id}" tal:condition="id not in default_list" />
-        ${id}
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
+    <div metal:define-macro="check_list" class="${ error and 'error' or '' }">
+        ${label}${compulsory and ' *' or ''}
+        <label tal:repeat="id,title choices">
+            <input type="checkbox" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
+            <input type="checkbox" name="${name}" value="${id}" tal:condition="id not in default_list" />
+            ${title}
+        </label>
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
 
-  <div metal:define-macro="radio_list_table" class="${ error and 'error' or '' }">
-    <td tal:repeat="id choices" style="text-align : center">
-        <input type="radio" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
-        <input type="radio" name="${name}" value="${id}" tal:condition="id not in default_list" />
-    </td>
-  </div>
+    <div metal:define-macro="q_checkbox_list" class="${ error and 'error' or '' }">
+        <label>${label}${compulsory and ' *' or ''}</label>
+        <label tal:repeat="id,title choices">
+            <input type="checkbox" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
+            <input type="checkbox" name="${name}" value="${id}" tal:condition="id not in default_list" />
+            ${title}
+        </label>
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
 
-  <div metal:define-macro="select_list" class="${ error and 'error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''}
-        <select name="${name}" class="text${compulsory and ' check-text' or ''}">
+
+    <!-- Radio -->
+
+    <div metal:define-macro="radio_tuple_list" class="${ error and 'error' or '' }">
+        <label>${label}${compulsory and ' *' or ''}</label><br />
+        <label tal:repeat="id,title choices">
+            <input type="radio" name="${name}" class="radio-button" checked="checked" value="${id}" tal:condition="id in default_list" />
+            <input type="radio" name="${name}" class="radio-button" value="${id}" tal:condition="id not in default_list" />
+            ${title}
+        </label>
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="search_tuple_list" class="${ error and 'error' or '' }">
+        <label tal:repeat="id,title choices">
+            <input type="radio" name="${name}" value="${id}" />
+            ${title}
+        </label>
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="radio_list" class="${ error and 'error' or '' }">
+        <label tal:condition="label">${label}${compulsory and ' *' or ''}</label>
+        <label tal:repeat="id choices">
+            <input type="radio" class="radio-button" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
+            <input type="radio" class="radio-button" name="${name}" value="${id}" tal:condition="id not in default_list" />
+            ${id}
+        </label>
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="radio_list_table" class="${ error and 'error' or '' }">
+        <td tal:repeat="id choices" style="text-align : center">
+            <input type="radio" name="${name}" checked="checked" value="${id}" tal:condition="id in default_list" />
+            <input type="radio" name="${name}" value="${id}" tal:condition="id not in default_list" />
+        </td>
+    </div>
+
+
+    <!-- Select -->
+
+    <div metal:define-macro="select_list" class="select-holder${ error and ' error' or '' }">
+        <label for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <select name="${name}" class="select${compulsory and ' check-text' or ''}">
         <div tal:repeat="id,title choices" tal:omit-tag="">
             <option selected="selected" value="${id}" tal:condition="id in default_list">${title}</option>
             <option value="${id}" tal:condition="id not in default_list">${title}</option>
         </div>
         </select>
-    </label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
-
-  <div metal:define-macro="date" class="${ error and 'error' or '' }">
-    <label for="${name}">${label}${compulsory and ' *' or ''} <input type="text" class="text date-field${compulsory and ' check-dateyminey' or ''}" name="${name}" value="${hasattr(default_value, 'strftime') and default_value.strftime('%d/%m/%Y %H:%M') or default_value}" id="${name}" /></label>
-    <span class="err-text">${ error and error or '' }</span>
-  </div>
-
-  <div metal:define-macro="captcha" class="${ error and 'error' or '' }">
-    <div class="captcha-container">
-      <label for="${name}">${label} <span class="err-text">${ error and error or '' }</span>
-      <div tal:content="structure api.render_captcha()"/></label>
+        <span class="err-text">${ error and error or '' }</span>
     </div>
-  </div>
 
-  <div metal:define-macro="edit_gallery">
-      <label>${label}</label>
-      <div id="gallery" tal:condition="len(api.get_gallery_content())&gt;0" class="admin-reorder-thumbs">
-        <div class="content-loader"><div></div></div>
-        <div class="thumbs clearfix">
-            <a href="#" tal:repeat="id,html,thumbnail_url api.get_gallery_content(with_name=True)" rel="${html}" class="selected">
-                <div class="delete-image-gallery">x</div>
-                <input name="${name}" value="${id}" type="hidden" /><img src="${thumbnail_url}" />
-            </a>
+
+    <!-- Date -->
+
+    <div metal:define-macro="date" class="date-field${ error and ' error' or '' }">
+        <label tal:condition="label or description" for="${name}">
+            ${ label } <span tal:condition="compulsory" class="required">*</span>
+            <span tal:condition="description" class="time-description">${description}</span>
+        </label>
+        <input type="text" class="text date-field${compulsory and ' check-dateyminey' or ''}" name="${name}" value="${hasattr(default_value, 'strftime') and default_value.strftime('%d/%m/%Y %H:%M') or default_value}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
+    <div metal:define-macro="captcha" class="${ error and 'error' or '' }">
+        <div class="captcha-holder">
+            <label for="${name}">${label} <span class="err-text">${ error and error or '' }</span>
+            <div tal:content="structure api.render_captcha()"/></label>
         </div>
-      </div>
-  </div>
+    </div>
+
+
+    <!-- Gallery -->
+
+    <div metal:define-macro="edit_gallery">
+        <label tal:condition="label">${label} <span tal:condition="description" class="description">${description}</span></label>
+        <div id="gallery" tal:condition="len(api.get_gallery_content())&gt;0" class="admin-reorder-thumbs">
+            <div class="content-loader"><div></div></div>
+            <div class="thumbs clearfix">
+                <a href="#" tal:repeat="id,html,thumbnail_url api.get_gallery_content(with_name=True)" rel="${html}" class="selected">
+                    <div class="delete-image-gallery">x</div>
+                    <input name="${name}" value="${id}" type="hidden" /><img src="${thumbnail_url}" />
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Hidden -->
+
+    <div metal:define-macro="hidden">
+        <input type="hidden" name="${name}" value="${default_value}" id="${name}" />
+    </div>
+
 
 </div>

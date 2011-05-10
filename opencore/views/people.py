@@ -8,6 +8,22 @@ except ImportError:
 import datetime
 from email.Message import Message
 
+from colander import (
+    Email,
+    Function,
+    MappingSchema,
+    Regex,
+    SchemaNode,
+    SequenceSchema,
+    String,
+    )
+from deform import FileData
+from deform.widget import (
+    CheckedPasswordWidget,
+    SelectWidget,
+    TextAreaWidget,
+    )
+
 from repoze.bfg.traversal import model_path
 from repoze.bfg.url import model_url
 from repoze.bfg.chameleon_zpt import render_template_to_response
@@ -47,16 +63,22 @@ from opencore.security.policy import to_profile_inactive
 
 from opencore.views.communities import get_preferred_communities
 from opencore.views.communities import get_my_communities
+from opencore.views.forms import (
+    AvatarWidget,
+    BaseController,
+    DummyTempStore,
+    handle_photo_upload,
+    instantiate,
+    is_image,
+    valid_url,
+    )
 from opencore.views.tags import get_tags_client_data
 from opencore.views.utils import convert_to_script
-from opencore.views.utils import handle_photo_upload
 from opencore.views.utils import Invalid
 from opencore.views.utils import comments_to_display
 from opencore.views.utils import get_author_info
 from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
-from opencore.views.validation import EditProfileSchema
-from opencore.views.validation import add_dict_prefix
 from opencore.views.validation import ValidationError
 from opencore.utilities.interfaces import IAppDates
 from opencore.views.batch import get_catalog_batch_grid
@@ -244,144 +266,168 @@ def profile_thumbnail(context, request):
         url = api.static_url + "/img/default_user.gif"
     return HTTPFound(location=url)
 
-class EditProfileFormController(object):
-    """
-    Controller for the profile edit form.  Also the base class
-    for the controllers for the admin profile edit and add user forms.
-    """
-    simple_field_names = [
-        "firstname",
-        "lastname",
-        "email",
-        "phone",
-        "extension",
-        "fax",
-        "department",
-        "position",
-        "organization",
-        "location",
-        "country",
-        "websites",
-        "languages",
-        "office",
-        "room_no",
-        "biography",
-    ]
+class EditProfileFormController(BaseController):
 
+    class Schema(MappingSchema):
+
+        first_name = SchemaNode(
+            String(),
+            )
+        last_name = SchemaNode(
+            String(),
+            )
+        email = SchemaNode(
+            String(),
+            validator=Email(),
+            title='Email address',
+            )
+        password = SchemaNode(
+            String(),
+            widget=CheckedPasswordWidget(),
+            title='Change Password',
+            missing=''
+            )
+        photo = SchemaNode(
+            FileData(),
+            widget=AvatarWidget(),
+            title='Profile image',
+            missing=None,
+            validator=Function(is_image),
+            )
+
+        @instantiate()
+        class details(MappingSchema):
+            
+            position = SchemaNode(
+                String(),
+                missing='',
+                )
+            organisation = SchemaNode(
+                String(),
+                missing='',
+                )
+            biography = SchemaNode(
+                String(),
+                widget=TextAreaWidget(),
+                title='Short bio',
+                missing='',
+                description='Summarize your story in one or two sentences.'
+                )
+            
+            @instantiate(missing=())
+            class websites(SequenceSchema):
+                url = SchemaNode(
+                    String(),
+                    title='website',
+                    validator=Function(valid_url)
+                    )
+                
+            country = SchemaNode(
+                String(),
+                widget=SelectWidget(
+                    values=[('', 'Select your country')] + countries,
+                    description='Where do you currently live?'
+                    )
+                )
+            
+            @instantiate()
+            class social_networks(MappingSchema):
+                
+                twitter = SchemaNode(
+                    String(),
+                    title='Twitter Username',
+                    missing='',
+                    validator=Regex('^@[a-zA-Z_]+',
+                                    'This is not a valid twitter username')
+                    )
+                facebook = SchemaNode(
+                    String(),
+                    title='Facebook page',
+                    missing=''
+                    )
+            
     def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.page_title = "Edit %s" % context.title
-        self.api = TemplateAPI(self.context, self.request, self.page_title)
-        layout_provider = get_layout_provider(self.context, self.request)
-        self.layout = layout_provider('generic')
-        self.form_title = 'Edit Profile'
-        self.prefix = 'profile.'
-        self.photo = context.get('photo')
-        self.schema = EditProfileSchema
+        super(EditProfileFormController,self).__init__(context,request)
         self.social_category = social_category(context, None)
+        self.data['actions']=()
         if not self.social_category:
             # the social category is lazily instantiated
             self.social_category = context.categories['social'] = SocialCategory()
 
-    def social_id(self, social_name):
-        social = self.social_category.get(social_name)
-        id = u''
-        if social:
-            id = social.id
-        return id
-
     def form_defaults(self):
-        context = self.context
-        assert(context.websites != None)
-        defaults = {'firstname': context.firstname,
-                    'lastname': context.lastname,
-                    'email': context.email,
-                    'phone': context.phone,
-                    'extension': context.extension,
-                    'fax': context.fax,
-                    'department': context.department,
-                    'position': context.position,
-                    'organization': context.organization,
-                    'location': context.location,
-                    'country': context.country,
-                    'websites': context.websites,
-                    'languages': context.languages,
-                    'photo': self.photo,
-                    'biography': context.biography,
-                    'facebook' : self.social_id('facebook'),
-                    'twitter' : self.social_id('twitter'),
-                    }
-        return defaults
+         context = self.context
+         assert(context.websites != None)
+         defaults = dict(
+             first_name=context.firstname,
+             last_name=context.lastname,
+             email=context.email,
+             details=dict(
+                 position=context.position,
+                 organization=context.organization,
+                 biography=context.biography,
+                 country=context.country,
+                 websites=context.websites,
+                 social_networks=dict(),
+                 )
+             )
+         socials = defaults['details']['social_networks']
+         for name in ('facebook','twitter'):
+             item = self.social_category.get(name)
+             if item is not None:
+                 socials[name]=item.id
+         return defaults
 
-    def __call__(self):
-
-        self.api.formdata = add_dict_prefix(self.prefix, self.form_defaults())
-        log.debug('api.formdata: %s' % str(self.api.formdata))
-
-        '''if self.api.user_is_admin:
-            log.debug('user_is_admin so redirecting to admin_edit_profile.html.')
-            return HTTPFound(location=model_url(self.context,
-                self.request, 'admin_edit_profile.html'))'''
-
-        if self.request.method == 'POST':
-            post_data = self.request.POST
-            log.debug('request.POST: %s' % post_data)
-            try:
-                # validate and convert
-                self.api.formdata = self.schema.to_python(post_data, state=None, prefix='profile.')
-            except FormEncodeInvalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, **e.error_dict)
-            else:
-                return self.handle_submit(self.api.formdata)
-
-        return self.make_response()
-
-    def make_response(self):
-        return render_template_to_response(
-                       'templates/edit_profile.pt',
-                       api=self.api, actions=(), layout=self.layout,
-                       form_title=self.form_title, include_blurb=True,
-                       countries=[('', 'Select your Country')] + countries,
-                       preferences= ['immediately', 'digest', 'never'],
-                       author_info=get_author_info(self.context.__name__, self.request),
-                       defaults=[])
-
-    def handle_submit(self, converted):
+    def handle_submit(self, validated):
         context = self.context
         request = self.request
-        log.debug('handle_submit: %s' % str(converted))
         objectEventNotify(ObjectWillBeModifiedEvent(context))
-        objectEventNotify(ObjectWillBeModifiedEvent(context))
-        # Handle the easy ones
-        for name in self.simple_field_names:
-            if name in converted:
-                if name == 'websites' and converted.get(name)==None:
-                    # maybe extend the form widget so it doesn't return an empty value
-                    # which (formencode converts to None) for no input?
-                    converted[name] = ()
-                log.debug('setting profile.%s=%s' % (name, converted.get(name)))
-                setattr(context, name, converted.get(name))
-            else:
-                log.warn('profile attribute name=%s was not included in form post data?' % name)
-        # Handle the picture
-        try:
-            handle_photo_upload(context, converted)
-        except Invalid, e:
-            raise ValidationError(self, **e.error_dict)
-        context.modified_by = authenticated_userid(request)
 
-        for social in ['facebook', 'twitter']:
-            if social in converted:
-                id = converted[social]
-                item = self.social_category.get(social)
+        # Handle the easy ones
+        context.firstname=validated['first_name']
+        context.lastname=validated['last_name']
+        context.email=validated['email']
+        context.position=validated['details']['position']
+        context.organisation=validated['details']['organisation']
+        context.biography=validated['details']['biography']
+        context.country=validated['details']['country']
+
+        # change password
+        users = find_users(context)
+        if validated['password']:
+            users = find_users(context)
+            users.change_password(context.__name__,validated['password'])
+            
+        # handle websites
+        context.websites=[]
+        for url in validated['details']['websites']:
+            if not (
+                url.startswith('http://') or
+                url.startswith('https://')
+                ):
+                url = 'http://'+url
+            context.websites.append(url)
+                
+        # (add http and the like)
+        
+        # Handle the picture
+        handle_photo_upload(context, request, validated['photo'])
+
+        # Handle the social networking stuff
+        socials = validated['details']['social_networks']
+        for name in ('facebook', 'twitter'):
+            id = socials[name]
+            if id:
+                item = self.social_category.get(name)
                 if not item:
-                    item = context.categories['social'][social] = SocialCategoryItem(id=id, title=social, description=u'')
+                    item = SocialCategoryItem(
+                        id=id, title=name, description=u''
+                        )
+                    context.categories['social'][name] = item
                 else:
                     item.id = id
 
-                log.debug('set social category item: %s' % item)
+        # record who did the modifying
+        context.modified_by = authenticated_userid(request)
 
         # Emit a modified event for recataloging
         objectEventNotify(ObjectModifiedEvent(context))

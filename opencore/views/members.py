@@ -90,8 +90,6 @@ from opencore.views.forms import (
     instantiate,
     )
 from opencore.views.interfaces import IInvitationBoilerplate
-from opencore.views.utils import handle_photo_upload
-from opencore.views.utils import photo_from_filestore_view
 from opencore.views.validation import SignupMemberSchema
 from opencore.views.validation import ValidationError
 from opencore.views.validation import UnicodeString
@@ -247,6 +245,19 @@ def _send_moderators_changed_email(community,
     msg.set_payload(body, "UTF-8")
     msg.set_type('text/html')
     mailer.send(info['mfrom'], to_addrs, msg)
+
+
+class MembersBaseController(BaseController):
+
+    def __init__(self, *args):
+        super(MembersBaseController,self).__init__(*args)
+        self.community = find_interface(self.context, ICommunity)
+        self.actions = _get_manage_actions(self.community, self.request)
+        self.profiles = find_profiles(self.context)
+        self.system_name = get_setting(
+            self.context, 'system_name', 'OpenCore'
+            )
+        self.data['actions']=self.actions
 
 class ManageMembersController(object):
     
@@ -487,7 +498,7 @@ def _add_existing_users(context, community, profiles, text, request, status=None
     return HTTPFound(location=location)
 
 
-class AcceptInvitationController(BaseController):
+class AcceptInvitationController(MembersBaseController):
     '''
     Handles email invitation links for site signup and new project members.
     signup & members are both folders with invitations.
@@ -673,7 +684,7 @@ def _send_signup_ai_email(request, username, profile):
     mailer.send(info['mfrom'], [profile.email,], msg)    
     
 
-class InviteNewUsersController(BaseController):
+class InviteNewUsersController(MembersBaseController):
 
     # schema
     

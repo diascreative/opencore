@@ -319,6 +319,7 @@ class DummyUpload(object):
         self.mimetype = mimetype
         self.data = data
         self.file = StringIO(data)
+        self.length = len(data)
 
 class DummySearchAdapter:
     def __init__(self, context):

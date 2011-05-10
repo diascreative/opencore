@@ -62,8 +62,11 @@ def not_found(context, request):
     api = request.api
     api.page_title = 'Page Not Found!'
    
-    return render_template_to_response(
+    response = render_template_to_response(
         'templates/404.pt',
         api=api
         )
+    response.status = '404 Not Found'
+    
+    return response
    

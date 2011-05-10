@@ -91,6 +91,7 @@
     for="opencore.models.interfaces.IProfile"
     view=".people.EditProfileFormController"
     name="edit_profile.html"
+    renderer="templates/edit_profile.pt"
     permission="edit"/>
 
   <view
