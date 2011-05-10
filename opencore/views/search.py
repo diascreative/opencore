@@ -250,7 +250,7 @@ class SearchResultsView(object):
             log.error(msg)
             return not_found(self.context, self.request)
         
-        page_title = 'Search Results'
+        page_title = 'Search results'
         api = self.request.api
         api.page_title = page_title
         if ICommunity.providedBy(self.context):
@@ -292,7 +292,7 @@ class SearchResultsView(object):
             batch = {'batching_required': False}
             results = {}
             total = 0
-            
+        
         return_data = dict(
             api=api,
             layout=layout,
@@ -302,6 +302,7 @@ class SearchResultsView(object):
             results=results,
             total=total,
             batch_info=batch,
+            query=self.request.params.get('body'),
             )
         
         return return_data
