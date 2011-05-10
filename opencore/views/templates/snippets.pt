@@ -29,9 +29,10 @@
       <!-- The default way of composing the statically packed resources.
            -->
       <tal:resources condition="not api.js_devel_mode == 'true'">
-        <script type="text/javascript" src="/deform_static/scripts/deform.js"></script>
         <script src="${api.static_url}/packed/karl-ui.js" type="text/javascript">//</script>
         <script src="${api.static_url}/karl.js" type="text/javascript">//</script>
+        <script type="text/javascript" src="/deform_static/scripts/deform.js"></script>
+        <script type="text/javascript" src="/deform_static/tinymce/jscripts/tiny_mce/tiny_mce.js"></script>
       </tal:resources>
 
       <!-- Resource composition for javascript development.
