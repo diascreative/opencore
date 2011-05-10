@@ -29,6 +29,7 @@ from repoze.bfg.traversal import traverse
 from repoze.bfg.url import model_url
 from repoze.bfg.settings import asbool
 from repoze.bfg.security import has_permission
+from repoze.bfg.traversal import find_root
 from repoze.lemonade.content import create_content
 
 from opencore.utils import find_communities
@@ -40,6 +41,7 @@ from opencore.models.interfaces import ICommunityFile
 from opencore.models.interfaces import ICommentsFolder
 from opencore.models.interfaces import IImage
 from opencore.utilities.interfaces import IAppDates
+from opencore.utilities.mbox import MailboxTool
 from opencore.views.interfaces import IFileInfo
 
 from simplejson import JSONEncoder
@@ -815,3 +817,12 @@ def get_author_info(id, request):
       'photo_url' : '%sprofile_thumbnail' % author_url
     }
 
+def create_user_mboxes(context):
+    site = find_site(context)
+    mboxes = site['mailboxes']
+    for mbox_suffix in 'inbox', 'sent':
+        mbox_name = context.__name__ + '.' + mbox_suffix
+    
+        mbt = MailboxTool()
+        mbt.get_mailbox(mboxes, mbox_name)
+        
