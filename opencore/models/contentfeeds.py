@@ -1,5 +1,22 @@
-from datetime import datetime
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from datetime import datetime
+import logging
 _NOW = datetime.utcnow
 
 from appendonly import AppendStack
@@ -14,6 +31,7 @@ from repoze.lemonade.content import get_content_type
 from zope.interface import implements
 
 from opencore.interfaces import IObjectModifiedEvent
+from opencore.models.interfaces import ICommunity
 from opencore.models.interfaces import IComment
 from opencore.models.interfaces import IProfile
 from opencore.models.interfaces import IPosts
@@ -28,6 +46,7 @@ from opencore.utils import find_interface
 from opencore.utils import find_site
 from opencore.utils import find_tags
 
+log = logging.getLogger(__name__)
 
 class SiteEvents(Persistent):
     implements(ISiteEvents)
@@ -83,22 +102,39 @@ class SiteEvents(Persistent):
         self._stack.push(PersistentMapping(kw),
                         # TODO:  pruner=???
                         )
+        
+    def supported_ctx_ifaces(self):
+        return (ICommunity, IProfile)    
 
 #
 #   Event subscribers
 #
 MEMBER_PREFIX = 'group.community:'
 
-def _getInfo(profile, content):
-    community = context = find_community(content)
+def find_supported_interface(context, class_or_interfaces):
+    '''
+    Finds the first supported interface navigating up the tree from context until an interface is matched.
+    Returns None if a match is not found.
+    @param context: locatable content object
+    @param class_or_interfaces: list of interfaces 
+    '''
+    found = None
+    for class_or_interface in class_or_interfaces:
+        found = find_interface(context, class_or_interface)
+        if found: 
+            return found    
+    return found      
+
+def _getInfo(profile, content, ifaces=None):
+    ifaces = ifaces or find_events(content).supported_ctx_ifaces()
+    context = find_supported_interface(content, ifaces)
     if context is None:
-        # try for content inside a profile
-        context = find_interface(content, IProfile)
-    if context is None:
-        context_name = context_url = None
+        context_name = context_url = context_creator = context_type = None
     else:
         context_name = context.title
         context_url = model_path(context)
+        context_creator = context.creator
+        context_type = get_content_type(context)
     tagger = find_tags(content)
     if tagger is not None:
         cloud = list(tagger.getCloud(items=(content.docid,)))
@@ -121,6 +157,8 @@ def _getInfo(profile, content):
             'userid': profile.__name__,
             'context_name': context_name,
             'context_url': context_url,
+            'context_creator': context_creator,
+             'context_type': context_type.getTaggedValue('name') if context_type else None, 
             'content_creator': content_creator,
             'url': model_path(content),
             'title': content.title,
@@ -177,6 +215,7 @@ def user_left_community(event):
 
 
 def user_added_content(added, event):
+    log.debug('user_added_content: added=%s, event=%s' % (str(added), event))
     if IObjectAddedEvent.providedBy(event):
         events = find_events(added)
         if not events:
@@ -189,6 +228,7 @@ def user_added_content(added, event):
         info = _getInfo(profile, added)
         if info is None:
             return
+        log.debug("user_added_content: info['content_type']=%s" % info['content_type'])
         if info['content_type'] == 'Community':
             info['flavor'] = 'added_edited_community'
         elif info['content_type'] == 'Profile':

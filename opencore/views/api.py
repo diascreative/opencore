@@ -1,3 +1,25 @@
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+""" Derived from KARL with the addition of the API providing an interface for
+    easy overriding in configuration / project packages as well as some changes
+    to the API itself.
+"""
+
 import os
 from subprocess import PIPE
 from subprocess import Popen
@@ -516,7 +538,7 @@ class TemplateAPI(object):
         return profiles.get(uid)
  
 
-    def find_image_url(self, ob, search='photo', default='/images/defaultUser.gif', size=None):
+    def find_image_url(self, ob, search='photo', default='/img/default_user.gif', size=None):
         if ob is None:
             return default
         photo = find_image(ob, search)

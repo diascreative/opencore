@@ -1,3 +1,20 @@
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 """Useful functions that appear in several places in the UI"""
 import os
 import re
@@ -727,7 +744,7 @@ def comments_to_display(request, profile_thumb_size=None):
         if photo is not None:
             photo_url = thumb_url(photo, request, profile_thumb_size)
         else:
-            photo_url = api.static_url + "/images/defaultUser.gif"
+            photo_url = api.static_url + "/img/default_user.gif"
         newc["portrait_url"] = photo_url
 
         newc['author_url'] = author_url
@@ -767,7 +784,7 @@ def comments_to_display(request, profile_thumb_size=None):
                 if reply_photo is not None:
                     reply_photo_url = thumb_url(reply_photo, request, profile_thumb_size)
                 else:
-                    reply_photo_url = api.static_url + "/images/defaultUser.gif"
+                    reply_photo_url = api.static_url + "/img/default_user.gif"
                 newr["portrait_url"] = reply_photo_url
                 newr['author_url'] = reply_author_url
                 newr['author_name'] = reply_author_name

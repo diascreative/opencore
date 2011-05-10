@@ -1,3 +1,20 @@
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 from zope.interface import Attribute
 from zope.interface import Interface
 from zope.interface import taggedValue
@@ -440,7 +457,7 @@ class ISocial(Interface):
     """Interface to support social network linkage."""
     id = Attribute(
         "Social network user id.")
-         
+
 class IPeopleSection(IFolder):
     """Section of the people directory.
 
@@ -513,7 +530,7 @@ class ISiteEvents(Interface):
 
     def newer(latest_gen, latest_index, principals=None, created_by=None):
         """ Yield items newer than (`latest_gen`, `latest_index`).
-        
+
         Implemented as a method on the layer to work around lack of generator
         expressions in Python 2.5.x.
 
@@ -527,7 +544,7 @@ class ISiteEvents(Interface):
 
     def older(earliest_gen, earliest_index, principals=None, created_by=None):
         """ Yield items older than (`earliest_gen`, `earliest_index`).
-        
+
         Implemented as a method on the layer to work around lack of generator
         expressions in Python 2.5.x.
 
@@ -747,7 +764,7 @@ class IOrdering(Interface):
     def next_name(current_name):
         """ Given a name, return the next name or None """
 
-# do we also need a non community page?        
+# do we also need a non community page?
 class IPage(ICommunityContent, IPages):
     """A page that isn't in a wiki
     """
@@ -757,4 +774,13 @@ class IPage(ICommunityContent, IPages):
     
 class ILike(Interface):   
     """Like content""" 
+
+class IEventInfo(Interface):
+    """ SiteEvents event info"""
         
+class IProfileDict(Interface):
+    """ A dict-like profile.
+    """
+    def update_details(context, request):
+        """ Updates the profile with additional information.
+        """

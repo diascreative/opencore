@@ -1,5 +1,23 @@
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 """Content feeds views
 """
+import logging
 from itertools import islice
 from urlparse import urljoin
 
@@ -9,6 +27,7 @@ from repoze.bfg.security import authenticated_userid
 from opencore.utils import find_events
 from opencore.views.api import TemplateAPI
 
+log = logging.getLogger(__name__)
 
 _FILTER_COOKIE = 'opencore.feed_filter'
 
@@ -39,6 +58,7 @@ def _get_criteria(request):
         principals = [x for x in principals if x.startswith(prefix)]
     else:
         created_by = None
+        principals = None
 
     return principals, created_by
 

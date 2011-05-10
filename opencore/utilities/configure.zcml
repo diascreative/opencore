@@ -63,6 +63,22 @@
     description="Others group"
     sort_key="50"
    />
+   
+   <!-- Alerts -->
+  
+  <utility
+    factory="opencore.utilities.messenger.messenger_factory"
+    provides="opencore.utilities.interfaces.IMessenger"/>
+  
+  <utility
+    provides="opencore.utilities.interfaces.IAlerts"
+    factory=".alerts.Alerts"/>
+
+  <adapter
+      for="opencore.models.interfaces.IProfile
+           opencore.models.interfaces.IEventInfo"
+      provides="opencore.utilities.interfaces.IAlert"
+      factory="opencore.utilities.alerts.eventinfo_alert_factory"/>
 
 </configure>
 

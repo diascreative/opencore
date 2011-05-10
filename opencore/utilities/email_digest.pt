@@ -1,0 +1,41 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal">
+    <body style="background : #363636; color : #333; font-size : 12px; font-family : Helvetica, Verdana, Arial, sans-serif; line-height : 16px; margin : 0px; padding: 0px;">
+        <table width="660" border="0" cellpadding="0" cellspacing="0" style="margin : 0 auto">
+            <tr>
+                <td>
+                    <div style="background : #fff; padding : 40px 30px">
+                    <table width="600" border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td width="402" valign="top">
+                                <a href="${ site_url }"><img src="${ site_url }static/mail/logo.png" alt="OpenIDEO" style="border : none; margin : 2px 0 0 37px" /></a>
+                            </td>
+                            <td width="48" valign="top">
+                                <a href="${ manage_preferences_href }" style="display : block; height : 46px; margin : 0 9px 0 0; overflow : hidden; width : 46px;"><img src="${ profile_image_thumb_url }" alt="${ creator.title }" style="border : solid 2px #bdbdbd; max-height : 42px; max-width : 42px;" /></a>
+                            </td>
+                            <td valign="top">
+                                <span style="font-size : 14px; font-weight : bold; line-height : 22px">Hello, <a href="${ manage_preferences_href }" style="color : #31b4f5; text-decoration : none">${ creator.title }</a><br /></span>
+                                <a href="${ manage_preferences_href }" style="color : #31b4f5; font-size : 10px; text-decoration : none">My Profile</a><br />
+                                <a href="${ manage_preferences_href }#my-challenges" style="color : #31b4f5; font-size : 10px; line-height : 16px; text-decoration : none">My Challenges</a>
+                            </td>
+                        </tr>
+                    </table>
+                    </div>
+                </td>
+            </tr>
+            <tr colspan="3">
+                <td>
+                    <div style="background : #fff; margin : 29px 30px 10px; padding : 21px 0px 30px">
+                        <tal:repeat repeat="alert alerts" omit-tag="">
+                            <tal:block replace="structure alert['body']"/>
+                        </tal:repeat> 
+                    </div>
+                    <div style="color : #ccc; font-size : 12px; line-height :15px; padding : 0 67px;">
+                        You're receiving this email notification from based on your <a href="${ manage_preferences_href }edit.html" style="color : #36a7de; text-decoration : none">profile settings</a>.<br />
+                        Click <a href="${ manage_preferences_href }edit.html#email-prefs" style="color : #36a7de; text-decoration : none">here</a> to change your email notification settings.
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

@@ -1,3 +1,20 @@
+# Copyright (C) 2008-2009 Open Society Institute
+#               Thomas Moroz: tmoroz@sorosny.org
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License Version 2 as published
+# by the Free Software Foundation.  You may not use, modify or distribute
+# this program under any other version of the GNU General Public License.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 """ A commenting facility that can be hung off resources"""
 
 from zope.interface import implements
@@ -48,6 +65,12 @@ class Comment(Folder):
     
     def is_reply(self):
         return IComment.providedBy(self.__parent__.__parent__)
+    
+    def comment_for_reply(self):
+        comment = None
+        if self.is_reply():
+            comment = self.__parent__.__parent__
+        return comment    
     
     def has_replies(self):
         _has_replies = False

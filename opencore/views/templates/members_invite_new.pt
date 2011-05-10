@@ -8,15 +8,15 @@
 
             <h4 class="main-heading">Add Members</h4>
 
-<p>
-Type the first few letters of the name of the person you would like to
-add to this community, select their name, and press
-submit. Alternatively, click 'Add Address' and type in an email address 
-for a new member. The short message below is included along with the
-text of your invite.
-</p>
+            <p>
+                Type the first few letters of the name of the person you would like to
+                add to this community, select their name, and press
+                submit. Alternatively, click 'Add Address' and type in an email address 
+                for a new member. The short message below is included along with the
+                text of your invite.
+            </p>
     
-    <tal:form replace="structure form"/>
+            <tal:form replace="structure form"/>
 
     </tal:block>  
 </div>

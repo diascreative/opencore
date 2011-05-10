@@ -1,0 +1,150 @@
+<html>
+    <body style="background : #fff; color : #333; font-size : 12px; font-family : Helvetica, Verdana, Arial, sans-serif; line-height : 16px; margin : 0px; padding: 0px;"
+        tal:define="original context; comment eventinfo['content'];">
+        <table width="525" border="0" cellpadding="0" cellspacing="0" style="margin : 0 auto"
+                tal:define="link_url_2 (( comment.is_reply() and model_path(comment.comment_for_reply().__parent__.__parent__) or model_path(comment.__parent__.__parent__) )); link_url link_url_2.split('#',1)[0] + '#c-';
+                author eventinfo['author']; author_thumb '%s%s' % (site_url, eventinfo['thumbnail']); author_url '%s%s' % (site_url, eventinfo['profile_url'])">
+            <tr tal:condition="not digest">
+                <td>
+                    <div style="background : #fff; border-bottom : 2px solid #f0f0f0; padding : 38px 0 28px 37px">
+                        <a href="${ site_url }"><img src="${ site_url }/static/mail/logo.png" alt="${system_name}" style="border : none; margin : 1px 0 0 0" /></a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div style="background : #fff; border-bottom : 2px solid #f0f0f0; margin : 0 0 18px; padding : 18px ${ digest and '4' or '38' }px 58px">
+                        <!-- content begins -->
+                        <table cellpadding="0" cellspacing="0" border="0" width="520">
+                            <tr>
+                                <td colspan="4">
+                                    <h3 style="border-bottom : #ccc 1px solid; color : #333; float : left; font-size : 14px; line-height : 14px; margin : 0 0 8px; text-transform : uppercase;" tal:condition="not digest">New Activity</h3>
+                                    <h2 style="clear : both; color : #333; font-size : 24px; line-height : 32px; font-weight : bold; margin : 0 0 14px;">
+                                        
+                                        <tal:block condition="not comment.is_reply()">
+                                        <span style="display: block">${author} commented on</span>
+                                        your ${eventinfo['context_type']}!
+                                        </tal:block>
+                                        
+                                        <tal:block condition="comment.is_reply()">
+                                        <span style="display: block">${author} added to a comment</span>
+                                        you made!
+                                        </tal:block>
+                                        
+                                        
+                                        <a tal:condition="0" href="${ link_url }${ api.hash(comment.docid) }" style="color : #36a7de; font-size : 12px; line-height : 12px; text-decoration : none">Check it out...</a>
+                                    </h2>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td colspan="4">
+                                    <table cellpadding="0" cellspacing="0" border="0" width="520" 
+                                        tal:define="context_url '%s%s/' % (site_url, eventinfo['context_url']); image_url '%sthumbnail' % (context_url)">
+                                        <tr>
+                                            <td width="${ digest and 120 or 184 }" valign="top">
+                                                <a href="${context_url}" style="display : block; height : ${ digest and 80 or 115 }px; margin : 1px 0 0; overflow : hidden; text-align : left; text-decoration : none; width : ${ digest and 106 or 170 }px;">
+                                                    <img src="${image_url}" alt=""  style="border : none; max-height : ${ digest and 80 or 115 }px;" />
+                                                </a>
+                                            </td>
+                                            <td valign="top" width="336">
+                                                <h4 style="color : #ff971a; font-size : 14px; font-weight : bold; line-height : 18px; margin : 0">
+                                                    <a href="${context_url}" style="text-decoration : none;">
+                                                        ${context.title}
+                                                    </a>
+                                                </h4>
+                                                <p style="font-size : 12px; line-height : 14px; margin : 0 20px 8px 0;">
+                                                    ${context.description}
+                                                </p>
+                                                <tal:block tal:condition="0">
+                                                <span style="display : block; font-size : 10px; line-height : 14px;" tal:define="views api.get_views(original)">
+                                                    <img src="${ site_url }/static/img/icons/views.png" alt="" style="margin : 2px 8px 0px 2px; vertical-align : top" />
+                                                    ${ views } view${views != 1 and 's' or ''}
+                                                </span>
+                                                <span style="display : block; font-size : 10px; line-height : 14px;" tal:define="cheers api.get_ratings(original)">
+                                                    <img src="${ site_url }/static/img/icons/heart.png" alt="" style="margin : 2px 8px 0px 2px; vertical-align : top" />
+                                                    ${ cheers } applause
+                                                </span>
+                                                <span style="display : block; font-size : 10px; line-height : 14px;" tal:define="comments history[1]">
+                                                    <img src="${ site_url }/static/img/icons/comment.png" alt="" style="margin : 2px 8px 0px 2px; vertical-align : top" />
+                                                    ${ comments } comment${comments != 1 and 's' or ''}
+                                                </span>
+                                                </tal:block>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <tal:block condition="comment.is_reply()">
+                            <tr><td colspan="4"><div style="font-size : 0px; height : 20px; line-height : 0px;">&nbsp;</div></td></tr>
+                            <tr tal:define="ctx comment.comment_for_reply(); ctx_creator ctx.creator; ctx_creator_url '%s/profiles/%s' % (site_url, ctx_creator);
+                              ctx_creator_thumb '%s/profile_thumbnail' % ctx_creator_url">
+                                <td width="57" valign="top">
+                                    <a href="${ctx_creator_url}">
+                                        <img src="${ctx_creator_thumb}" alt="${ctx_creator}" style="border : none; height : auto; width : 50px;" />
+                                    </a>
+                                </td>
+                                <td width="10" valign="top">
+                                    <img src="${site_url}/static/mail/left-arrow.png" alt="" />
+                                </td>
+                                <td colspan="2" style="background : #eaeaea" valign="top" tal:define="parent_comment ctx">
+                                    <div style="padding : 11px 13px 24px;">
+                                    <h4 style="font-size : 12px; font-weight : bold; color : #666666; margin : 0 0 8px;">
+                                        <a href="${ctx_creator_url}" style="color : #36a7de; text-decoration : none">
+                                            You
+                                        </a>
+                                        wrote on ${parent_comment.created.strftime('%A, %B %d, %Y %I:%M %p')}
+                                    </h4>
+
+                                    <p style="font-size : 12px; line-height : 14px; margin : 0 0 8px">
+                                        <span tal:replace="structure parent_comment.text"></span>
+                                        <a tal:condition="0" href="${ link_url }${ api.hash(parent_comment.docid) }" style="color : #36a7de; text-decoration : none">Go to your comment</a>
+                                    </p>
+                                    </div>  
+                                </td>
+                            </tr>
+                            </tal:block>
+    
+                            <tr><td colspan="4"><div style="font-size : 0px; height : 20px; line-height : 0px;">&nbsp;</div></td></tr>
+                            <tr tal:define="commenters_url author_url">
+                                <td width="57" valign="top">
+                                    <a href="${commenters_url}">
+                                        <img src="${author_thumb}" alt="${author}" style="border : none; height : auto; width : 50px;" />
+                                    </a>
+                                </td>
+                                <td width="10" valign="top">
+                                    <img src="${site_url}/static/mail/left-arrow.png" alt="" />
+                                </td>
+                                <td colspan="2" style="background : #eaeaea" valign="top">
+                                    <div style="padding : 11px 13px 24px;">
+                                    <h4 style="font-size : 12px; font-weight : bold; color : #666666; margin : 0 0 8px;">
+                                        <a href="${commenters_url}" style="color : #36a7de; text-decoration : none">
+                                            ${author}
+                                        </a>
+                                        wrote at ${comment.created.strftime('%A, %B %d, %Y %I:%M %p')}
+                                    </h4>
+
+                                    <p style="font-size : 12px; line-height : 14px; margin : 0 0 8px">
+                                        <span tal:replace="structure eventinfo['short_description']"></span>
+                                        <a tal:condition="0" href="${ link_url }${ api.hash(comment.docid) }" style="color : #36a7de; text-decoration : none">Post your response</a>
+                                    </p>
+                                    </div>  
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- content ends -->
+                    </div>
+                    </td>
+                </tr>
+                <tr tal:condition="not digest">
+                    <td>
+                    <div style="color : #999; font-size : 12px; line-height :15px; padding : 0 36px;">
+                        You're receiving this email notification from based on your <a href="${manage_preferences_href}/edit_profile.html" style="color : #36a7de; text-decoration : none">profile settings</a>.<br />
+                        Click <a href="${manage_preferences_href}/edit_profile.html#email-prefs" style="color : #36a7de; text-decoration : none">here</a> to change your email notification settings.
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

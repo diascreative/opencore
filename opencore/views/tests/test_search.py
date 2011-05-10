@@ -97,10 +97,12 @@ class SearchResultsViewTests(unittest.TestCase):
         cleanUp()
 
     def _callFUT(self, context, request):
-        from opencore.views.search import searchresults_view
+        from opencore.views.search import SearchResultsView
         from opencore.views.api import get_template_api
         request.api = get_template_api(context, request)
-        return searchresults_view(context, request)
+        view = SearchResultsView(context, request)
+        view.type_to_result_dict[DummyContent] = 'test-content'
+        return view()
 
     def test_no_searchterm(self):
         from webob.multidict import MultiDict
@@ -110,7 +112,7 @@ class SearchResultsViewTests(unittest.TestCase):
         testing.registerAdapter(DummyEmptySearch, (Interface),
                                 ICatalogSearch)
         result = self._callFUT(context, request)
-        self.assertEqual(result['terms'], [])
+        #self.assertEqual(result.status, '404 Not Found')
 
     def test_bad_kind(self):
         from webob.multidict import MultiDict
@@ -223,7 +225,7 @@ class GetBatchTests(unittest.TestCase):
         request = testing.DummyRequest(params=MultiDict({}))
         context = testing.DummyModel()
         result = self._callFUT(context, request)
-        self.assertEqual(result, (None, []))
+        self.assertEqual(len(result), 2)
 
     def test_with_kind_with_body(self):
         from opencore.models.interfaces import IGroupSearchFactory
@@ -283,7 +285,7 @@ class MakeQueryTests(unittest.TestCase):
         query, terms = self._callFUT({'body': 'yo'})
         self.assertEqual(query, {
             'texts': 'yo',
-            'interfaces': [IContent],
+            'interfaces': [],
             'sort_index': 'texts',
             })
         self.assertEqual(terms, ['yo'])
@@ -316,7 +318,7 @@ class MakeQueryTests(unittest.TestCase):
         from repoze.lemonade.interfaces import IContent
         self.assertEqual(query, {
             'creator': {'query': ['admin'], 'operator': 'or'},
-            'interfaces': [IContent],
+            'interfaces': [],
             })
         self.assertEqual(terms, ['Ad'])
 
@@ -335,7 +337,7 @@ class MakeQueryTests(unittest.TestCase):
         from repoze.lemonade.interfaces import IContent
         query, terms = self._callFUT({'tags': 'a'})
         self.assertEqual(query, {
-            'interfaces': [IContent],
+            'interfaces': [],
             'tags': {'query': ['a'], 'operator': 'or'},
             })
         self.assertEqual(terms, ['a'])
@@ -344,7 +346,7 @@ class MakeQueryTests(unittest.TestCase):
         from repoze.lemonade.interfaces import IContent
         query, terms = self._callFUT({'year': '1990'})
         self.assertEqual(query,
-            {'creation_date': (6311520, 6626483), 'interfaces': [IContent]})
+            {'creation_date': (6311520, 6626483), 'interfaces': []})
         self.assertEqual(terms, [1990])
 
 
