@@ -260,13 +260,9 @@ class SearchResultsView(object):
                 self.tabs_allowed, tab)
             log.error(msg)
             return not_found(self.context, self.request)
-<<<<<<< HEAD
-        
-        page_title = 'Search results'
-=======
 
-        page_title = 'Search Results'
->>>>>>> 7c867544de1a47e39df344d66d9c024a8556056e
+        page_title = 'Search results'
+
         api = self.request.api
         api.page_title = page_title
         if ICommunity.providedBy(self.context):
