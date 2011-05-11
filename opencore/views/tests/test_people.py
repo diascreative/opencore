@@ -11,6 +11,7 @@ from opencore.testing import (
     one_pixel_jpeg,
     )
 from opencore.views.api import get_template_api
+from opencore.views.forms import ContentController
 from opencore.views.people import EditProfileFormController
 from repoze.lemonade.interfaces import IContentFactory
 from repoze.who.plugins.zodb.users import get_sha_password
@@ -67,7 +68,7 @@ class TestEditProfileFormController(unittest.TestCase):
                 })
         self.r.replace('opencore.views.forms.get_current_request',
                        lambda :self.request)
-        self.r.replace('opencore.views.people.authenticated_userid',
+        self.r.replace('opencore.views.forms.authenticated_userid',
                        lambda request:'auth_user_id')
         
         testing.cleanUp()
@@ -90,6 +91,10 @@ class TestEditProfileFormController(unittest.TestCase):
     def _makeOne(self):
         return EditProfileFormController(self.context, self.request)
 
+    def test_subclassing(self):
+        # so we can assume the rest works!
+        self.assertTrue(isinstance(self._makeOne(),ContentController))
+                        
     def test_form_defaults(self):
         context = self.context
         request = self.request
@@ -133,7 +138,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=Profile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile%20edited'
             )
         self.assertEqual(self.context.websites, [u'http://www.happy.com'])
         
@@ -155,7 +160,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=Profile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile%20edited'
             )
         self.assertEqual(self.context.websites, [u'https://www.happy.com'])
         
@@ -237,7 +242,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=Profile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile%20edited'
             )
 
         # stuff we changed
@@ -304,7 +309,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=Profile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile%20edited'
             )
                                       
         # stuff we changed

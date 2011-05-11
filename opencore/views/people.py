@@ -25,7 +25,6 @@ from deform.widget import (
     )
 
 from repoze.bfg.traversal import model_path
-from repoze.bfg.url import model_url
 from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.bfg.chameleon_zpt import render_template
 from repoze.bfg.security import authenticated_userid
@@ -36,11 +35,8 @@ from repoze.bfg.view import bfg_view
 from repoze.sendmail.interfaces import IMailDelivery
 from zope.component import getMultiAdapter
 from zope.component import getUtility
-from zope.component.event import objectEventNotify
 from formencode import Invalid as FormEncodeInvalid
 from webob.exc import HTTPFound
-from opencore.events import ObjectWillBeModifiedEvent
-from opencore.events import ObjectModifiedEvent
 from opencore.consts import countries
 from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IGridEntryInfo
@@ -65,7 +61,7 @@ from opencore.views.communities import get_preferred_communities
 from opencore.views.communities import get_my_communities
 from opencore.views.forms import (
     AvatarWidget,
-    BaseController,
+    ContentController,
     handle_photo_upload,
     instantiate,
     is_image,
@@ -265,7 +261,7 @@ def profile_thumbnail(context, request):
         url = api.static_url + "/img/default_user.gif"
     return HTTPFound(location=url)
 
-class EditProfileFormController(BaseController):
+class EditProfileFormController(ContentController):
 
     class Schema(MappingSchema):
 
@@ -375,11 +371,7 @@ class EditProfileFormController(BaseController):
                  socials[name]=item.id
          return defaults
 
-    def handle_submit(self, validated):
-        context = self.context
-        request = self.request
-        objectEventNotify(ObjectWillBeModifiedEvent(context))
-
+    def handle_content(self, context, request, validated):
         # Handle the easy ones
         context.firstname=validated['first_name']
         context.lastname=validated['last_name']
@@ -405,8 +397,6 @@ class EditProfileFormController(BaseController):
                 url = 'http://'+url
             context.websites.append(url)
                 
-        # (add http and the like)
-        
         # Handle the picture
         handle_photo_upload(context, request, validated['photo'])
 
@@ -423,16 +413,6 @@ class EditProfileFormController(BaseController):
                     context.categories['social'][name] = item
                 else:
                     item.id = id
-
-        # record who did the modifying
-        context.modified_by = authenticated_userid(request)
-
-        # Emit a modified event for recataloging
-        objectEventNotify(ObjectModifiedEvent(context))
-        # Whew, we made it!
-        path = model_url(context, request)
-        msg = '?status_message=Profile%20edited'
-        return HTTPFound(location=path+msg)
 
 def get_group_options(context):
     group_options = []
