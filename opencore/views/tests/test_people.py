@@ -365,4 +365,3 @@ class ShowProfilesViewTests(unittest.TestCase):
         profiles = list(renderer.profiles)
         self.assertEqual(len(profiles), 1)
         self.assertEqual(profiles[0], foo)
-
