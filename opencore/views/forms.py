@@ -25,7 +25,10 @@ from repoze.bfg.threadlocal import get_current_request
 from repoze.lemonade.content import create_content
 from webob.exc import HTTPFound
 
+import logging
 import re
+
+log = logging.getLogger(__name__)
 
 ### Set form template paths
 
@@ -113,6 +116,7 @@ class BaseController(object):
 
         if self.buttons[-1] in request.POST:
             controls = request.POST.items()
+            log.debug('form controls: %r',controls)
             try:
                 validated = form.validate(controls)
             except ValidationFailure, e:
