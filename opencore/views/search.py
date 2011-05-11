@@ -53,7 +53,7 @@ def get_topic_options(context):
         return topic_options
 
     for topic in topic_line.split():
-        title = topic
+        title = topic.capitalize()
         topic_options.append((topic, title))
     return topic_options
 
