@@ -70,6 +70,12 @@ class TestDummyTempStore(TestCase):
             None
             )
 
+    def test_in(self):
+        compare(
+            0 in self.store,
+            False
+            )
+
 class TestBaseController(TestCase):
 
     def setUp(self):

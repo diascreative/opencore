@@ -91,6 +91,9 @@ class DummyTempStore:
     def __setitem__(self,name,value):
         pass
 
+    def __contains__(self,name):
+        return False
+
     def preview_url(self,name):
         return None
 
