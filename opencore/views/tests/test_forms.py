@@ -11,11 +11,16 @@ from deform.widget import (
     Widget,
     )
 from mock import Mock
+from opencore.events import (
+    ObjectWillBeModifiedEvent,
+    ObjectModifiedEvent,
+    )
 from opencore.models.interfaces import ICommunityFile
 from opencore.views.api import get_template_api
 from opencore.views.forms import (
     AvatarWidget,
     BaseController,
+    ContentController,
     DummyTempStore,
     KarlUserWidget,
     TOUWidget,
@@ -70,6 +75,12 @@ class TestDummyTempStore(TestCase):
             None
             )
 
+    def test_in(self):
+        compare(
+            0 in self.store,
+            False
+            )
+
 class TestBaseController(TestCase):
 
     def setUp(self):
@@ -90,7 +101,8 @@ class TestBaseController(TestCase):
     def test_data(self):
         self.assertEqual(
             self.controller.data,
-            dict(api=self.request.api)
+            dict(api=self.request.api,
+                 actions=())
             )
 
     def test_call_get(self):
@@ -164,6 +176,69 @@ class TestBaseController(TestCase):
         self.assertTrue('Errors have been highlighted' in result['form'])
         self.assertFalse(self.controller.handle_submit.called)
         
+class TestContentController(TestCase):
+
+    def setUp(self):
+        # check spaces in content type names
+        class OurModel(testing.DummyModel):
+            pass
+        OurModel.__name__='Our Model'
+                
+        self.context = OurModel()
+        self.request = testing.DummyRequest()
+        self.request.api = get_template_api(self.context, self.request)
+        self.controller = ContentController(self.context,self.request)
+
+    def test_subclassing(self):
+        # so we can assume the rest works!
+        self.assertTrue(isinstance(self.controller,BaseController))
+                        
+    def test_default_handle_content(self):
+        with ShouldRaise(NotImplementedError):
+            self.controller.handle_content(None,None,None)
+
+    def test_events(self):
+        validated = object()
+        # use one mock so we can check the order of calls
+        calls = Mock()
+        with Replacer() as r:
+            self.controller.handle_content = calls.handle_content
+            r.replace('opencore.views.forms.objectEventNotify',
+                      calls.objectEventNotify)
+            r.replace('opencore.views.forms.authenticated_userid',
+                      calls.authenticated_userid)
+
+            self.controller.handle_submit(validated)
+
+        compare(calls.method_calls,[
+                ('objectEventNotify',
+                 (C(ObjectWillBeModifiedEvent(self.context)),),{}),
+                ('handle_content',
+                 (self.context,self.request,validated),{}),
+                ('authenticated_userid',(self.request,),{}),
+                ('objectEventNotify',
+                 (C(ObjectModifiedEvent(self.context)),),{}),
+                ])
+
+    def test_modified_by(self):
+        with Replacer() as r:
+            self.controller.handle_content = lambda c,r,v: None
+            r.replace('opencore.views.forms.authenticated_userid',
+                      lambda request:'a user')
+        
+            self.controller.handle_submit({})
+
+        self.assertEqual(self.context.modified_by,'a user')
+    
+    def test_redirect(self):
+        self.controller.handle_content = lambda c,r,v: None
+        response = self.controller.handle_submit({})
+        self.failUnless(isinstance(response,HTTPFound))
+        self.assertEqual(
+            response.location,
+            'http://example.com/?status_message=Our%20Model%20edited'
+            )
+
 class TestKarlUserWidget(TestCase):
 
     def setUp(self):

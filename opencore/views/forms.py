@@ -9,6 +9,10 @@ from deform.widget import (
     FileUploadWidget,
     Widget,
     )
+from opencore.events import (
+    ObjectWillBeModifiedEvent,
+    ObjectModifiedEvent,
+    )
 from opencore.models.interfaces import (
     ICommunity,
     ICommunityFile,
@@ -22,10 +26,16 @@ from repoze.bfg.security import (
     )
 from repoze.bfg.traversal import find_interface
 from repoze.bfg.threadlocal import get_current_request
+from repoze.bfg.url import model_url
 from repoze.lemonade.content import create_content
+from urllib import quote
 from webob.exc import HTTPFound
+from zope.component.event import objectEventNotify
 
+import logging
 import re
+
+log = logging.getLogger(__name__)
 
 ### Set form template paths
 
@@ -88,6 +98,9 @@ class DummyTempStore:
     def __setitem__(self,name,value):
         pass
 
+    def __contains__(self,name):
+        return False
+
     def preview_url(self,name):
         return None
 
@@ -104,6 +117,7 @@ class BaseController(object):
         self.data = dict(
             api=self.api,
             )
+        self.data['actions']=()
         
     def __call__(self):
         request = self.request
@@ -112,6 +126,7 @@ class BaseController(object):
 
         if self.buttons[-1] in request.POST:
             controls = request.POST.items()
+            log.debug('form controls: %r',controls)
             try:
                 validated = form.validate(controls)
             except ValidationFailure, e:
@@ -140,6 +155,34 @@ class BaseController(object):
         """
         raise NotImplementedError()
 
+class ContentController(BaseController):
+
+    def handle_content(self, content, request, validated):
+        """
+        Do whatever is required with the validated data
+        and the content object passed in
+        """
+        raise NotImplementedError()
+
+    def handle_submit(self, validated):
+        context = self.context
+        request = self.request
+        
+        objectEventNotify(ObjectWillBeModifiedEvent(context))
+
+        
+        self.handle_content(context,request,validated)
+
+        # store who modified
+        context.modified_by = authenticated_userid(request)
+       
+        objectEventNotify(ObjectModifiedEvent(context))
+        location = model_url(context, request)
+        msg = '?status_message='+quote(
+            context.__class__.__name__+' edited'
+            )
+        return HTTPFound(location=location+msg)
+    
 ### Widgets
 
 class KarlUserWidget(Widget):

@@ -1,4 +1,5 @@
 import unittest
+from opencore.testing import DummySettings
 from repoze.bfg import testing
 
 
@@ -164,11 +165,6 @@ class DummyMailDelivery(object):
             toaddrs=toaddrs,
             message=message,
         ))
-
-class DummySettings:
-    def __init__(self, **kw):
-        for k, v in kw.items():
-            setattr(self, k, v)
 
 class FakeOS:
     def __init__(self, **environ):
