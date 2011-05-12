@@ -1,7 +1,7 @@
 import os
 import unittest
 from repoze.bfg import testing
-
+from testfixtures import LogCapture
 
 class TestMessengerFactory(unittest.TestCase):
     def setUp(self):
@@ -58,6 +58,7 @@ class TestMessenger(unittest.TestCase):
         registerUtility(settings, ISettings)
 
     def setUp(self):
+        self.log = LogCapture()
         from repoze.bfg.testing import registerUtility
         from opencore.models.interfaces import ISite
         testing.setUp()
@@ -69,6 +70,7 @@ class TestMessenger(unittest.TestCase):
         registerUtility(self.root, ISite)
 
     def tearDown(self):
+        self.log.uninstall()
         testing.tearDown()
 
     def test_send(self):

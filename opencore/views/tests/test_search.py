@@ -5,6 +5,7 @@ from zope.interface import implements
 from zope.interface import Interface
 from zope.interface import taggedValue
 from repoze.bfg.testing import cleanUp
+from testfixtures import LogCapture
 
 class JQueryLivesearchViewTests(unittest.TestCase):
     def setUp(self):
@@ -88,12 +89,14 @@ class JQueryLivesearchViewTests(unittest.TestCase):
 
 class SearchResultsViewTests(unittest.TestCase):
     def setUp(self):
+        self.log = LogCapture()
         cleanUp()
         testing.registerDummyRenderer('opencore.views:templates/generic_layout.pt')
         testing.registerDummyRenderer(
             'opencore.views:templates/community_layout.pt')
 
     def tearDown(self):
+        self.log.uninstall()
         cleanUp()
 
     def _callFUT(self, context, request):
