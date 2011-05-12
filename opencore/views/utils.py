@@ -129,7 +129,7 @@ def _encode_name(name):
     return ''.join(res)
 
 
-def make_name(context, title, raise_error=True):
+def make_name(context, title):
     """Make a correct __name__ that is unique in the context"""
 
     name = title.lower()
@@ -138,16 +138,17 @@ def make_name(context, title, raise_error=True):
         name = _encode_name(name)
     name = _reduce_dashes.sub("-", name)
 
-    if not name and raise_error:
+    if not name:
         raise ValueError('The name must not be empty')
 
-    # Make sure the name is unique in the context
-    if name in context and raise_error:
-        fmt = "The name '%s' already exists in folder '%s'"
-        msg = fmt % (name, context.__name__)
-        raise ValueError(msg)
-    else:
-        return name
+    i = 1
+    orig = name
+    while True:
+        if name not in context:
+            break
+        i+=1
+        name = '%s-%i'%(orig,i)
+    return name
 
 def make_unique_name(context, title):
     """Make a correct __name__ that is unique in the context.
