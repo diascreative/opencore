@@ -12,6 +12,9 @@ from zope.interface import implements
 from opencore.models.interfaces import ICommunityInfo, ITagQuery
 
 class DummyAPI(object):
+    
+    userid = 'auser'
+    
     def __init__(self):
         self.page_title = None
 
