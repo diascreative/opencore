@@ -436,15 +436,6 @@
     view=".community.delete_community_view"
     permission="delete community"/>
 
-    <!--
-  <view
-    for="opencore.models.interfaces.ICommunity"
-    name="searchresults.html"
-    renderer="templates/searchresults.pt"
-    view=".search.SearchResultsView"
-    permission="view"/>
-    -->
-
   <view
     for="opencore.models.interfaces.ICommunity"
     name="join.html"
