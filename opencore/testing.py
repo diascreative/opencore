@@ -381,10 +381,6 @@ class DummyTagQuery(DummyAdapter):
     tagswithcounts = []
     docid = 'ABCDEF01'
 
-class DummyTags:
-    def update(self, *args, **kw):
-        self._called_with = (args, kw)
-
 class DummyFolderAddables(DummyAdapter):
     def __init__(self, context, request):
         pass
