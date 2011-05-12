@@ -35,7 +35,6 @@ from repoze.bfg.view import bfg_view
 from repoze.sendmail.interfaces import IMailDelivery
 from zope.component import getMultiAdapter
 from zope.component import getUtility
-from formencode import Invalid as FormEncodeInvalid
 from webob.exc import HTTPFound
 from opencore.consts import countries
 from opencore.models.interfaces import ICatalogSearch
@@ -69,12 +68,10 @@ from opencore.views.forms import (
     )
 from opencore.views.tags import get_tags_client_data
 from opencore.views.utils import convert_to_script
-from opencore.views.utils import Invalid
 from opencore.views.utils import comments_to_display
 from opencore.views.utils import get_author_info
 from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
-from opencore.views.validation import ValidationError
 from opencore.utilities.interfaces import IAppDates
 from opencore.views.batch import get_catalog_batch_grid
 
@@ -536,17 +533,6 @@ class ResetConfirmController(object):
         self.request = request
         self.api = TemplateAPI(self.context, self.request, 'Reset Password')
 
-    '''def form_fields(self):
-        fields = [('login', login_field),
-                  ('password', password_field),
-                  ]
-        return fields
-
-    def form_widgets(self, fields):
-        widgets = {'login': formish.Input(empty=''),
-                   'password': karlwidgets.KarlCheckedPassword()}
-        return widgets'''
-
     def __call__(self):
         key = self.request.params.get('key')
         if not key or len(key) != 40:
@@ -556,23 +542,12 @@ class ResetConfirmController(object):
 
 
         if self.request.method == 'POST':
-            post_data = self.request.POST
-            log.debug('request.POST: %s' % post_data)
-            try:
-                # todo: validate and convert
-                pass
-            except FormEncodeInvalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, **e.error_dict)
-            else:
-                return self.handle_submit(self.api.formdata)
+            # todo: validate and convert
+            return self.handle_submit(self.api.formdata)
 
         return self.make_response()
 
     def make_response(self):
-        #snippets = get_template('forms/templates/snippets.pt')
-        #snippets.doctype = xhtml
-        #blurb_macro = snippets.macros['reset_confirm_blurb']
         return render_template_to_response('templates/reset_confirm.pt',
                                            api=self.api,
                                            blurb_macro='',
@@ -592,7 +567,8 @@ class ResetConfirmController(object):
             users = find_users(context)
             user = users.get_by_login(converted['login'])
             if user is None:
-                raise ValidationError(login='No such user account exists')
+                # XXX should be part of form validation
+                raise Exception(login='No such user account exists')
             userid = user.get('id')
             if userid is None:
                 userid = user['login']
@@ -600,7 +576,8 @@ class ResetConfirmController(object):
             profiles = find_profiles(context)
             profile = profiles.get(userid)
             if profile is None:
-                raise ValidationError(login='No such profile exists')
+                # XXX should be part of form validation
+                raise Exception(login='No such profile exists')
 
             if key != getattr(profile, 'password_reset_key', None):
                 e = ResetFailed()
