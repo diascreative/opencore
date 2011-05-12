@@ -61,15 +61,17 @@ from opencore.views.communities import get_my_communities
 from opencore.views.forms import (
     AvatarWidget,
     ContentController,
-    handle_photo_upload,
     instantiate,
     is_image,
     valid_url,
     )
 from opencore.views.tags import get_tags_client_data
-from opencore.views.utils import convert_to_script
-from opencore.views.utils import comments_to_display
-from opencore.views.utils import get_author_info
+from opencore.views.utils import (
+    comments_to_display,
+    convert_to_script,
+    get_author_info,
+    handle_photo_upload,
+    )
 from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
 from opencore.utilities.interfaces import IAppDates

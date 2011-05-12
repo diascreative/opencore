@@ -15,7 +15,6 @@ from opencore.events import (
     ObjectWillBeModifiedEvent,
     ObjectModifiedEvent,
     )
-from opencore.models.interfaces import ICommunityFile
 from opencore.views.api import get_template_api
 from opencore.views.forms import (
     AvatarWidget,
@@ -24,12 +23,10 @@ from opencore.views.forms import (
     DummyTempStore,
     KarlUserWidget,
     TOUWidget,
-    handle_photo_upload,
     is_image,
     valid_url,
     )
 from repoze.bfg import testing
-from repoze.lemonade.interfaces import IContentFactory
 from testfixtures import (
     Replacer,
     ShouldRaise,
@@ -40,7 +37,6 @@ from unittest import TestCase
 from webob.exc import HTTPFound
 
 from .test_people import (
-    DummyImageFile,
     DummyProfile,
     one_pixel_jpeg,
     )
@@ -324,54 +320,6 @@ class TestAvatarWidget(TestCase):
             api=request.api,
             profile=request.context,
             )
-
-class Test_handle_photo_upload(TestCase):
-
-    # arguably should move to test_utils.py
-    # once the existing handle_photo_upload is no longer used.
-    def setUp(self):
-        testing.cleanUp()
-        testing.registerAdapter(
-            lambda *arg: DummyImageFile,
-            (ICommunityFile,),
-            IContentFactory
-            )
-        self.cstruct = {
-            'fp': StringIO('some image data'),
-            'mimetype': 'image/jpeg',
-            'filename': u'test.jpg',
-            }
-        self.context = DummyProfile()
-        self.authenticated_userid = Mock()
-        self.authenticated_userid.return_value = 'auser'
-        self.r = Replacer()
-        self.r.replace('opencore.views.forms.authenticated_userid',
-                       self.authenticated_userid)
-
-    def tearDown(self):
-        self.r.restore()
-        testing.cleanUp()
-        
-    def test_no_cstruct(self):
-        handle_photo_upload(self.context,None,None)
-        self.assertFalse(self.context.get('photo'))
-
-    def test_no_existing_photo(self):
-        handle_photo_upload(self.context,None,self.cstruct)
-        content = self.context['photo']
-        compare(content.title,'Photo of firstname lastname')
-        compare(content.mimetype,'image/jpeg')
-        compare(content.filename,'test.jpg')
-        compare(content.creator,'auser')
-
-    def test_existing_photo(self):
-        self.context['photo']=testing.DummyModel()
-        handle_photo_upload(self.context,None,self.cstruct)
-        content = self.context['photo']
-        compare(content.title,'Photo of firstname lastname')
-        compare(content.mimetype,'image/jpeg')
-        compare(content.filename,'test.jpg')
-        compare(content.creator,'auser')
 
 class Test_is_image(TestCase):
 

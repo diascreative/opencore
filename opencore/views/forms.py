@@ -67,26 +67,6 @@ def _get_manage_actions(community, request):
 
     return actions
 
-def handle_photo_upload(context, request, cstruct):
-    # arguably should move to utils.py
-    # once the existing handle_photo_upload is no longer used.
-    if cstruct is None:
-        return
-    
-    photo = create_content(
-        ICommunityFile,
-        title='Photo of ' + context.title,
-        stream=cstruct['fp'],
-        mimetype=cstruct['mimetype'],
-        filename=cstruct['filename'],
-        creator=authenticated_userid(request),
-        )
-
-    if 'photo' in context:
-        del context['photo']
-        
-    context['photo'] = photo
-
 class DummyTempStore:
 
     def get(self,name,default=None):

@@ -284,48 +284,25 @@ def photo_from_filestore_view(context, request, form_id):
     r = Response(headerlist=headers, app_iter=bodyfile)
     return r
 
-def handle_photo_upload(context, form):
-    upload_map = form.get("photo", None)
+def handle_photo_upload(context, request, cstruct):
+    # arguably should move to utils.py
+    # once the existing handle_photo_upload is no longer used.
+    if cstruct is None:
+        return
+    
+    photo = create_content(
+        ICommunityFile,
+        title='Photo of ' + context.title,
+        stream=cstruct['fp'],
+        mimetype=cstruct['mimetype'],
+        filename=cstruct['filename'],
+        creator=authenticated_userid(request),
+        )
 
-    if upload_map is not None:
-        if upload_map['file'] is not None and upload_map['file'] != '':
-            log.debug('uploading photo.')
-            upload = upload_map['file']
-
-            request = get_current_request()
-            userid = authenticated_userid(request)
-            upload_file = upload.file
-            if hasattr(upload, 'type'):
-                upload_type = upload.type # FieldStorage
-            else:
-                upload_type = upload.mimetype # Formish File object
-            assert upload_type
-
-            photo = create_content(
-                ICommunityFile,
-                title='Photo of ' + context.title,
-                stream=upload_file,
-                mimetype=upload_type,
-                filename=basename_of_filepath(upload.filename),
-                creator=userid,
-            )
-            if not photo.is_image:
-                transaction.get().doom()
-                raise Invalid(
-                    {'photo': 'Uploaded file is not a valid image.'}
-                )
-            if 'photo' in context:
-                del context['photo']
-            context['photo'] = photo
-
-        elif (upload_map.get('delete'), False) and asbool(upload_map.get('delete')):
-            if 'photo' in context:
-                log.debug('deleting photo.')
-                del context['photo']
-
-class Invalid(Exception):
-    def __init__(self, error_dict):
-        self.error_dict = error_dict
+    if 'photo' in context:
+        del context['photo']
+        
+    context['photo'] = photo
 
 # Used to map HTML entity names to numeric entities that can be used in XML
 # Source: http://elizabethcastro.com/html/extras/entities.html
