@@ -3,6 +3,7 @@ import transaction
 from zope.component import queryUtility
 
 from repoze.bfg.traversal import model_path
+from repoze.folder import Folder
 from repoze.lemonade.content import create_content
 
 from opencore.bootstrap.interfaces import IInitialData
@@ -11,6 +12,7 @@ from opencore.models.contentfeeds import SiteEvents
 from opencore.models.interfaces import IProfile
 from opencore.models.site import Site
 from opencore.security.policy import to_profile_active
+from opencore.views.utils import create_user_mboxes
 import logging
 
 log = logging.getLogger(__name__)
@@ -27,6 +29,8 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
     site = root['site'] = Site(communities_name)
     site.__acl__ = data.site_acl
     site.events = SiteEvents()
+    
+    site['mailboxes'] = Folder()
 
     # If a catalog database exists and does not already contain a catalog,
     # put the site-wide catalog in the catalog database.
@@ -72,6 +76,8 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
                                          email=email,
                                          )
         to_profile_active(profile)
+        create_user_mboxes(profile)
+        
         
         
     def noop_post_app_setup(site):

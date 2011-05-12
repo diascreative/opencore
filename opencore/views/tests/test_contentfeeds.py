@@ -1,12 +1,24 @@
-import unittest
 
+# stdlib
+import unittest
 from datetime import datetime
 
-from repoze.bfg import testing
+# Zope
 from zope.interface import implements
 from zope.interface import Interface
 from zope.interface import taggedValue
+
+# Repoze
+from repoze.bfg import testing
 from repoze.bfg.testing import cleanUp
+
+# testfixtures
+from testfixtures import Replacer
+
+# opencore
+from opencore.models.adapters import ProfileDict
+from opencore.models.interfaces import IProfileDict
+from opencore.views.tests import DummyAPI, DummyContext
 
 def _checkCookie(request_or_response, filterby):
     from opencore.views.contentfeeds import _FILTER_COOKIE
@@ -16,7 +28,62 @@ def _checkCookie(request_or_response, filterby):
     if headerlist is None:
         headerlist = getattr(request_or_response, 'response_headerlist')
     assert header in headerlist
+    
+class ProfileFeedViewTestCase(unittest.TestCase):
+    def setUp(self):
+        cleanUp()
 
+    def tearDown(self):
+        cleanUp()
+
+    def _callFUT(self, context, request):
+        from opencore.views.contentfeeds import profile_feed_view
+        return profile_feed_view(context, request)
+    
+    def test_profile_feed_view_returns_profile_and_actions(self):
+        
+        def _dummy(*args_ignored, **kwargs_ignored):
+            return []
+
+        def _dummy2(*args_ignored, **kwargs_ignored):
+            class _Dummy(object):
+                __name__ = 'dummy'
+                communities_name = __name__
+
+                def get_by_id(self, *args_ignored, **kwargs_ignored):
+                    return {'groups': []}
+
+                get = get_by_id
+
+            return _Dummy()
+            
+        with Replacer() as r:
+            r.replace('opencore.utilities.image.thumb_url', _dummy)
+            r.replace('opencore.views.people.thumb_url', _dummy)
+            r.replace('opencore.models.adapters.thumb_url', _dummy)
+            r.replace('opencore.utils.find_users', _dummy2)
+            r.replace('opencore.views.people.find_users', _dummy2)
+            r.replace('opencore.utils.find_root', _dummy2)
+            r.replace('opencore.views.utils.comments_to_display', _dummy2)
+            r.replace('opencore.views.communities.get_preferred_communities', _dummy)
+            r.replace('opencore.views.people.get_preferred_communities', _dummy)
+            r.replace('opencore.views.people.comments_to_display', _dummy2)
+            
+            api = DummyAPI()
+            testing.registerUtility(ProfileDict(), IProfileDict, 'profile-details')
+            
+            context = DummyContext()
+            request = testing.DummyRequest()
+            request.api = api
+            result = self._callFUT(context, request)
+
+            profile = result.get('profile', False)
+            self.assertTrue(profile)
+            self.assertEquals(profile['title'], context.title)
+            
+            self.assertTrue(len(result.get('actions', [])) > 0)
+            
+    
 class NewestFeedItemsViewTests(unittest.TestCase):
     def setUp(self):
         cleanUp()
