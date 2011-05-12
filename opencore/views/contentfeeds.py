@@ -17,14 +17,23 @@
 
 """Content feeds views
 """
+
+# stdlib
 import logging
 from itertools import islice
 from urlparse import urljoin
 
+# Zope
+from zope.component import getUtility
+
+# Repoze
 from repoze.bfg.security import effective_principals
 from repoze.bfg.security import authenticated_userid
 
+# opencore
+from opencore.models.interfaces import IProfileDict
 from opencore.utils import find_events
+from opencore.views.people import get_profile_actions
 from opencore.views.api import TemplateAPI
 
 log = logging.getLogger(__name__)
@@ -157,9 +166,19 @@ def show_feeds_view(context, request):
 def profile_feed_view(context, request):
     api = request.api
     api.page_title = 'Latest Activity'
+    
+    photo_thumb_size = (220,150)
+    profile = getUtility(IProfileDict, name='profile-details')
+    profile.update_details(context, request, api, photo_thumb_size)
+    profile.photo_thumb_size = photo_thumb_size
+    
+    actions = get_profile_actions(context, request)
+    
     return {'api': api,
             'show_filter': False,
             'sticky_filter': 'profile:%s' % context.__name__,
+            'actions': actions,
+            'profile':profile,
            }
 
 
