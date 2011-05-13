@@ -1,36 +1,44 @@
+
+# stdlib
 import sys
+import logging
 import transaction
+
+# Zope
 from zope.component import queryUtility
 
+# Repoze
 from repoze.bfg.traversal import model_path
 from repoze.folder import Folder
 from repoze.lemonade.content import create_content
 
+# opencore
 from opencore.bootstrap.interfaces import IInitialData
 from opencore.bootstrap.data import DefaultInitialData
 from opencore.models.contentfeeds import SiteEvents
 from opencore.models.interfaces import IProfile
+from opencore.models.page import Page
 from opencore.models.site import Site
 from opencore.security.policy import to_profile_active
 from opencore.views.utils import create_user_mboxes
-import logging
 
 log = logging.getLogger(__name__)
 
 def populate(root, do_transaction_begin=True, post_app_setup=None):
     if do_transaction_begin:
         transaction.begin()
-  
+
     data = queryUtility(IInitialData, default=DefaultInitialData())
     if 'communities_name' in dir(data):
         communities_name = data.communities_name
     else:
-        communities_name = None 
+        communities_name = None
     site = root['site'] = Site(communities_name)
     site.__acl__ = data.site_acl
     site.events = SiteEvents()
-    
-    site['mailboxes'] = Folder()
+
+    # Static pages.
+    bootstrap_static_pages(site)
 
     # If a catalog database exists and does not already contain a catalog,
     # put the site-wide catalog in the catalog database.
@@ -77,13 +85,13 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
                                          )
         to_profile_active(profile)
         create_user_mboxes(profile)
-        
-        
-        
+
+
+
     def noop_post_app_setup(site):
         log.info('no post app setup required.')
         return root
-    
+
     post_app_setup_hook = post_app_setup or noop_post_app_setup
     post_app_setup_hook(site)
     bootstrap_evolution(root)
@@ -98,3 +106,22 @@ def bootstrap_evolution(root):
         # when we do start_over, we unconditionally set the database's
         # version number to the current code number
         manager._set_db_version(package.VERSION)
+
+
+def bootstrap_static_pages(site):
+    # Static Pages; FAQ/about/legal etc.
+    for title in DefaultInitialData.initial_static_titles:
+        bootstrap_static_page(title)
+
+def bootstrap_static_page(site, title):
+    auto_gen = DefaultInitialData.initial_static_content_auto_generated
+    text = title + ' - ' + auto_gen
+    page = Page(title, text, auto_gen.capitalize(),
+                DefaultInitialData.admin_user)
+    page_path = title.lower()
+    try:
+        site[page_path] = page
+    except ValueError:
+        # Silence out /src/opencore/opencore/models/contentfeeds.py, line 145, in _getInfo
+        # trying to get the newly created page's content type.
+        pass
