@@ -1,9 +1,5 @@
-from formencode import Schema
-from formencode.validators import FancyValidator
-from formencode.validators import UnicodeString
 from htmllaundry import sanitize
 from htmllaundry.cleaners import CommentCleaner
-
 
 def safe_html(text):
     """
@@ -17,11 +13,6 @@ class ValidationError(Exception):
     '''
     # XXX - please don't use this for any new code!
     def __init__(self, controller, **errors):
-        '''
-        @param controller: view controller
-        @param errors: error_dict normally from a formencode.Invalid 
-        error dictionary raised from a compound validator (schema).
-        '''
         self.errors = errors
         self.controller = controller
 
@@ -46,16 +37,3 @@ class State(object):
     def __init__(self, **kw):
         for k,value in kw.items():
             setattr(self, k, value)
-
-class SafeInput(FancyValidator):
-    """ Sanitize input text
-    """
-    
-    def _to_python(self, value, state):
-        return safe_html(UnicodeString()._to_python(value, state))
-    
-class AddForumTopicSchema(Schema):
-    allow_extra_fields = True
-    
-    title = UnicodeString(not_empty=True, max=100)
-    text = SafeInput()

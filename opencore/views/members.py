@@ -60,8 +60,6 @@ from repoze.bfg.traversal import find_interface
 from repoze.bfg.url import model_url
 from repoze.bfg.exceptions import ExceptionResponse
 
-from formencode import Invalid as FormEncodeInvalid
-
 from repoze.lemonade.content import create_content
 from repoze.sendmail.interfaces import IMailDelivery
 

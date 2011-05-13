@@ -14,7 +14,6 @@ requires = [
     'Beaker',
     'deform',
     'feedparser',
-    'FormEncode',
     'htmllaundry',
     'lxml',
     'PILwoTk',
