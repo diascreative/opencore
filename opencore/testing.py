@@ -377,6 +377,28 @@ class DummySearchAdapter:
             return 1, [1], [profile]
         return 0, [], None
 
+class DummySearch(DummyModel):
+    """
+    A more generic DummySearch
+
+    # use like:
+    search = DummySearch(result1,result2)
+    directlyProvides(search, ICatalogSearch)
+    
+    self.assertEqual(search.spec,
+                     ...)
+    """
+    def __init__(self,*results):
+        # results should be a sequence of objects
+        self.results = results
+
+    def resolve(self,docid):
+        return self.results[docid]
+    
+    def __call__(self, *args, **kw):
+        self.spec = (args,kw)
+        return len(self.results), range(len(self.results)), self.resolve
+    
 class DummyTagQuery(DummyAdapter):
     tagswithcounts = []
     docid = 'ABCDEF01'
