@@ -28,7 +28,7 @@ def _checkCookie(request_or_response, filterby):
     if headerlist is None:
         headerlist = getattr(request_or_response, 'response_headerlist')
     assert header in headerlist
-    
+
 class ProfileFeedViewTestCase(unittest.TestCase):
     def setUp(self):
         cleanUp()
@@ -39,9 +39,9 @@ class ProfileFeedViewTestCase(unittest.TestCase):
     def _callFUT(self, context, request):
         from opencore.views.contentfeeds import profile_feed_view
         return profile_feed_view(context, request)
-    
+
     def test_profile_feed_view_returns_profile_and_actions(self):
-        
+
         def _dummy(*args_ignored, **kwargs_ignored):
             return []
 
@@ -56,7 +56,7 @@ class ProfileFeedViewTestCase(unittest.TestCase):
                 get = get_by_id
 
             return _Dummy()
-            
+
         with Replacer() as r:
             r.replace('opencore.utilities.image.thumb_url', _dummy)
             r.replace('opencore.views.people.thumb_url', _dummy)
@@ -68,22 +68,22 @@ class ProfileFeedViewTestCase(unittest.TestCase):
             r.replace('opencore.views.communities.get_preferred_communities', _dummy)
             r.replace('opencore.views.people.get_preferred_communities', _dummy)
             r.replace('opencore.views.people.comments_to_display', _dummy2)
-            
+
             api = DummyAPI()
             testing.registerUtility(ProfileDict(), IProfileDict, 'profile-details')
-            
+
             context = DummyContext()
             request = testing.DummyRequest()
             request.api = api
             result = self._callFUT(context, request)
 
-            profile = result.get('profile', False)
+            profile = result.get('profile_currently_viewed', False)
             self.assertTrue(profile)
             self.assertEquals(profile['title'], context.title)
-            
+
             self.assertTrue(len(result.get('actions', [])) > 0)
-            
-    
+
+
 class NewestFeedItemsViewTests(unittest.TestCase):
     def setUp(self):
         cleanUp()

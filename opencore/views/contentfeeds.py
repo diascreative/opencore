@@ -166,19 +166,18 @@ def show_feeds_view(context, request):
 def profile_feed_view(context, request):
     api = request.api
     api.page_title = 'Latest Activity'
-    
+
     photo_thumb_size = (220,150)
     profile = getUtility(IProfileDict, name='profile-details')
     profile.update_details(context, request, api, photo_thumb_size)
     profile.photo_thumb_size = photo_thumb_size
-    
     actions = get_profile_actions(context, request)
-    
+
     return {'api': api,
             'show_filter': False,
             'sticky_filter': 'profile:%s' % context.__name__,
             'actions': actions,
-            'profile':profile,
+            'profile_currently_viewed':profile,
            }
 
 
