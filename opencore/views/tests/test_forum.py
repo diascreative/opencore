@@ -10,6 +10,10 @@ from repoze.bfg import testing
 from opencore.testing import DummyCatalog
 from opencore.testing import DummyProfile
 from opencore.testing import registerLayoutProvider
+from opencore.views.api import get_template_api
+from opencore.views.forum import AddForumTopicController
+
+from webob.multidict import MultiDict
 
 class TestShowForumsView(unittest.TestCase):
     def setUp(self):
@@ -251,76 +255,22 @@ class ShowForumTopicViewTests(unittest.TestCase):
 class TestAddForumTopicController(unittest.TestCase):
     def setUp(self):
         testing.setUp()
-        registerLayoutProvider()
+        self.request = testing.DummyRequest()
+        sessions = DummySessions()
+        self.context = testing.DummyModel(sessions=sessions)
+        self.request.api = get_template_api(self.context, self.request)
 
     def tearDown(self):
         testing.cleanUp()
 
-    def _makeOne(self, *arg, **kw):
-        from opencore.views.forum import AddForumTopicController
-        from opencore.views.api import get_template_api
-        context, request = arg 
-        request.api = get_template_api(context, request)
-        return AddForumTopicController(*arg, **kw)
-
-    def _makeRequest(self):
-        request = testing.DummyRequest()
-        request.environ['repoze.browserid'] = '1'
-        request.api = testing.DummyModel()
-        return request
-
-    def _makeContext(self):
-        sessions = DummySessions()
-        context = testing.DummyModel(sessions=sessions)
-        return context
- 
-    def test_form_defaults(self):
-        context = self._makeContext()
-        request = self._makeRequest()
-        controller = self._makeOne(context, request)
-        defaults = controller.form_defaults()
-        self.assertEqual(defaults['title'], '')
-        self.assertEqual(defaults['text'], '')
+    def _makeOne(self):
+        return AddForumTopicController(self.context,self.request)
 
     def test___call__(self):
-        context = self._makeContext()
-        request = self._makeRequest()
-        renderer = testing.registerTemplateRenderer(
-            'templates/add_forum_topic.pt')
-        controller = self._makeOne(context, request)
-        response = controller()
-        self.failUnless(renderer.api)
-        self.failUnless(renderer.layout)
-        self.failUnless(renderer.api.page_title)
+        controller = self._makeOne()
+        info = controller()
+        self.failUnless('api' in info)
    
-    def test_handle_submit(self):
-        from repoze.lemonade.testing import registerContentFactory
-        from opencore.models.interfaces import IForumTopic
-       
-        def factory(title, text, creator):
-            topic = testing.DummyModel(
-                title=title, text=text, creator=creator)
-            topic['comments'] = testing.DummyModel()
-            return topic
-        registerContentFactory(factory, IForumTopic)
-        renderer = testing.registerTemplateRenderer(
-            'templates/add_forum_topic.pt')
-     
-        converted = {
-            'title':'title',
-            'text':'abc',
-            }
-
-        context = self._makeContext()
-        context.catalog = DummyCatalog()
-        request = self._makeRequest()
-        controller = self._makeOne(context, request)
-        response = controller.handle_submit(converted)
-        self.assertEqual(response.location, 'http://example.com/title/')
-        self.assertEqual(context['title'].title, 'title')
-        self.assertEqual(context['title'].text, 'abc')
-        self.assertEqual(context['title'].creator, None)
-  
     def test_handle_submit_with_validation(self):
         from repoze.lemonade.testing import registerContentFactory
         from opencore.models.interfaces import IForumTopic
@@ -331,26 +281,19 @@ class TestAddForumTopicController(unittest.TestCase):
             topic['comments'] = testing.DummyModel()
             return topic
         registerContentFactory(factory, IForumTopic)
-        renderer = testing.registerTemplateRenderer(
-            'templates/add_forum_topic.pt')
      
-        converted = {
-            'title':'title',
-            'text':'abc',
-            }
-
-        context = self._makeContext()
-        context.catalog = DummyCatalog()
-        request = self._makeRequest()
-        request.method = "POST"
-        request.POST = converted
+        self.request.POST = MultiDict([
+                ('title','title'),
+                ('description','abc',),
+                ('save','save'),
+                ])
         
-        controller = self._makeOne(context, request)
+        controller = self._makeOne()
         response = controller()
         self.assertEqual(response.location, 'http://example.com/title/')
-        self.assertEqual(context['title'].title, 'title')
-        self.assertEqual(context['title'].text, '<p>abc</p>')
-        self.assertEqual(context['title'].creator, None)     
+        self.assertEqual(self.context['title'].title, 'title')
+        self.assertEqual(self.context['title'].text, '<p>abc</p>')
+        self.assertEqual(self.context['title'].creator, None)     
 
 class dictall(dict):
     def getall(self, name):

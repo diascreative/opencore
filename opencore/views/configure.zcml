@@ -171,6 +171,7 @@
     for="opencore.models.interfaces.IForum"
     name="add_forum_topic.html"
     view=".forum.AddForumTopicController"
+    renderer="templates/add_forum_topic.pt"
     permission="create"/>
 
   <!-- comments -->

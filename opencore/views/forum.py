@@ -15,6 +15,16 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+from colander import (
+    Length,
+    MappingSchema,
+    SchemaNode,
+    String,
+    )
+from deform.widget import (
+    RichTextWidget,
+    )
+
 import datetime
 import logging
 from webob.exc import HTTPFound
@@ -31,8 +41,6 @@ from repoze.bfg.security import authenticated_userid
 from repoze.bfg.security import effective_principals
 from repoze.bfg.security import has_permission
 from repoze.bfg.view import bfg_view
-
-from formencode import Invalid as FormEncodeInvalid
 
 from repoze.lemonade.content import create_content
 
@@ -52,22 +60,21 @@ from opencore.utils import find_profiles
 from opencore.utils import support_attachments
 from opencore.utilities.image import thumb_url
 from opencore.utilities.interfaces import IAppDates
-from opencore.views.batch import get_catalog_batch_grid
 
 from opencore.views.api import TemplateAPI
-
+from opencore.views.batch import get_catalog_batch_grid
+from opencore.views.forms import BaseController
+from opencore.views.interfaces import IBylineInfo
 from opencore.views.people import PROFILE_THUMB_SIZE
-from opencore.views.utils import convert_to_script
-from opencore.views.utils import make_unique_name
 from opencore.views.tags import set_tags
 from opencore.views.tags import get_tags_client_data
-from opencore.views.interfaces import IBylineInfo
+from opencore.views.utils import convert_to_script
+from opencore.views.utils import make_unique_name
 from opencore.views.utils import fetch_attachments
 from opencore.views.utils import upload_attachments
 from opencore.views.utils import extract_description
 from opencore.views.utils import comments_to_display
-from opencore.views.validation import AddForumTopicSchema
-from opencore.views.validation import State
+from opencore.views.validation import safe_html
 
 log = logging.getLogger(__name__)
 
@@ -286,80 +293,41 @@ def get_topic_batch(forum, request):
         allowed={'query': effective_principals(request), 'operator': 'or'},
         )
 
-class AddForumTopicController(object):
+class AddForumTopicController(BaseController):
     
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        
-        layout_provider = get_layout_provider(self.context, self.request)
-        self.layout = layout_provider('community')
-        self.api = self.request.api
-        self.api.page_title = 'Add Forum Topic'
-      
+    class Schema(MappingSchema):
 
-    def form_defaults(self):
-        defaults = {
-            'title':'',
-            'tags':[],
-            'text':'',
-            'attachments':[],
-            }
-
-        return defaults
-
-    def __call__(self):
-               
-        if self.request.method == 'POST':
-            post_data = self.request.POST
-            log.debug('request.POST: %s' % post_data)
-            try:
-                # validate and convert
-                self.api.formdata = AddForumTopicSchema.to_python(post_data,
-                                             state=State(context=self.context))
-            except FormEncodeInvalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, **e.error_dict)
-            else:
-                return self.handle_submit(self.api.formdata)
-        
-        return self.make_response()
-
-    def make_response(self):
-                
-        return render_template_to_response(
-                'templates/add_forum_topic.pt', 
-                api=self.api,
-                actions=(),
-                layout=self.layout
+        title = SchemaNode(
+            String(),
+            validator=Length(max=100)
             )
-        
-        
-    def handle_submit(self, converted):
+
+        description = SchemaNode(
+            String(),
+            widget=RichTextWidget(),
+            missing='',
+            )
+
+    def handle_submit(self, validated):
         context = self.context
         request = self.request
       
-        name = make_unique_name(context, converted['title'])
+        name = make_unique_name(context, validated['title'])
         creator = authenticated_userid(request)
 
+        text = safe_html(validated['description'])
+        
         topic = create_content(IForumTopic,
-            converted['title'],
-            converted['text'],
+            validated['title'],
+            text,
             creator,
             )
-        # todo: look further into calling extract_description as the text
-        # has already been converted from html to text with validators.SafeInput
-        if converted['text']:
-            topic.description = extract_description(converted['text'])
+
+        if text:
+            topic.description = extract_description(text)
         else:
-            topic.description = converted['title']    
+            topic.description = validated['title']    
         context[name] = topic
       
-        ''' Tags and attachments
-        set_tags(context, request, converted['tags'])
-        if support_attachments(topic):
-            upload_attachments(converted['attachments'], topic['attachments'],
-                               creator, request)'''
-
         location = model_url(topic, request)
         return HTTPFound(location=location)
