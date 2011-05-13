@@ -59,14 +59,13 @@ from opencore.models.interfaces import ICommunityInfo
 from opencore.models.interfaces import ICatalogSearch
 from opencore.models.interfaces import IGridEntryInfo
 from opencore.models.interfaces import ITagQuery
-from opencore.models.interfaces import IBlogEntry 
+from opencore.models.interfaces import IBlogEntry
 from opencore.models.interfaces import IForumTopic
 from opencore.models.interfaces import IProfile
 from opencore.models.rdbms import RDBMSStore
 from opencore.views.adapters import DefaultFooter
 from opencore.views.interfaces import IFooter
 from opencore.views.interfaces import ISidebar
-
 
 from repoze.bfg.traversal import find_interface
 
@@ -82,7 +81,7 @@ class ITemplateAPI(Interface):
     context = Attribute(u'The Context object for the view')
     request = Attribute(u'The WebOb Request object for the view')
     page_title = Attribute(u'The title of the view')
-    
+
 class TemplateAPI(object):
     _community_info = None
     _recent_items = None
@@ -166,13 +165,17 @@ class TemplateAPI(object):
             # server side session management, do not send secrets to client
             del d['user_secret']
             del d['admin_secret']
-        
-        # from openideo     
-        self.formerrors = {}   
-        self.formdata = request.POST 
+
+        # from openideo
+        self.formerrors = {}
+        self.formdata = request.POST
         self.app_config = settings
         self.rdbstore = RDBMSStore()
-        
+
+    def topics(self, context):
+	topics = get_setting(context, 'topics')
+	return sorted(elem.strip() for elem in topics.split('\n') if elem)
+
     @property
     def snippets(self):
         if self._snippets is None:
@@ -314,12 +317,12 @@ class TemplateAPI(object):
         # this installation's people directory application.
         people_path = get_setting(self.context, 'people_path', 'people')
         return self.app_url + "/" + people_path
-    
+
     @property
     def communities_name(self):
         from opencore.utils import find_site
         return find_site(self.context).communities_name
-       
+
     @property
     def tag_users(self):
         """Data for the tagbox display"""
@@ -482,29 +485,29 @@ class TemplateAPI(object):
 
     def supported_comment_interfaces(self):
         return (IBlogEntry, ICommunity, IForumTopic, IProfile)
-    
+
     def view_count(self, context):
         return self.rdbstore.view_count(path=model_path(context,''))[0][0]
-    
+
     def like_count(self, context):
         count = 0
         if 'likes' in context.__dict__:
             count = context.likes.count()
-        return count    
-    
-    # openideo additions below    
+        return count
+
+    # openideo additions below
     def get_user_bookmarks(self, filter_challenge=True):
         if self.userid is None:
             return []
         return get_user_bookmarks(self.context, self.userid, filter_challenge)
-    
+
     def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None, description=None):
         if default is None:
             default = self.formdata.get(id, '')
         error = self.formerrors.get(id, '')
         if isinstance(error, (list, tuple)):
             error = '\n'.join(error)
-        from repoze.bfg.chameleon_zpt import get_template    
+        from repoze.bfg.chameleon_zpt import get_template
         #template = template_cache.get('form_widgets', createfunc=get_form_widgets)
         template = get_template('templates/form_widgets.pt')
         if isinstance(default, (list, tuple)):
@@ -521,10 +524,10 @@ class TemplateAPI(object):
                                                      default_list=default_list,
                                                      error=error,
                                                      api=self,))
-          
+
     def model_path(self, obj):
         return model_path(obj)
-    
+
     def find_model(self, path):
         return find_model(self.context, path)
 
@@ -536,7 +539,7 @@ class TemplateAPI(object):
     def find_profile(self, uid):
         profiles = find_profiles(self.context)
         return profiles.get(uid)
- 
+
 
     def find_image_url(self, ob, search='photo', default='/img/default_user.png', size=None):
         if ob is None:
@@ -613,21 +616,21 @@ def _get_egg_rev():
             rev = os.path.split(path)[1]
             return 'r%d' % hash(rev)
         path = os.path.dirname(path)
-        
+
 def get_template_api(context, request):
     name = get_setting(request, 'package')
     factory = queryUtility(ITemplateAPI, name=name, default=TemplateAPI)
     return factory(context, request)
-    
-      
+
+
 def handle_request_api(event):
     """ Subscriber for assigning the correct TemplateAPI implementation
     """
     request = event.request
     context = request.context
-    
+
     if not hasattr(context, '__parent__'):
         # The object is not in the model graph
         return
-    
+
     request.api = get_template_api(context, request)
