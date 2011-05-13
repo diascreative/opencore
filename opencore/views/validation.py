@@ -31,9 +31,3 @@ def validation_error_handler(exc, request):
     form_errors = exc.errors  
     controller.api.formerrors.update(form_errors)
     return exc.controller.make_response()
-        
-class State(object):
-    # XXX - please don't use this for any new code!
-    def __init__(self, **kw):
-        for k,value in kw.items():
-            setattr(self, k, value)
