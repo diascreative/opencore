@@ -1,8 +1,14 @@
-import unittest
-from repoze.bfg import testing
 
+# stdlib
+import unittest
+
+# Repoze
+from repoze.bfg import testing
 from repoze.bfg.configuration import Configurator
 from repoze.bfg.threadlocal import get_current_registry
+
+# opencore
+from opencore.models.page import Page
 
 class TestPopulate(unittest.TestCase):
     """
@@ -36,6 +42,12 @@ class TestPopulate(unittest.TestCase):
         self._callFUT(root, False)
         site = root['site']
 
+        # Static pages
+        expected_pages = ('funding', 'faq', 'about', 'contact')
+        for expected in expected_pages:
+            page = site[expected]
+            self.assertTrue(isinstance(page, Page))
+
         ## TODO:
         #communities = site.get('communities')
         #self.failUnless(communities)
@@ -59,7 +71,6 @@ class TestPopulate(unittest.TestCase):
     def test_data_override(self):
         ## TODO
         pass
-
 
 class DummySecurityWorkflow:
     initial_state_set = False
