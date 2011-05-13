@@ -84,9 +84,6 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
                                          email=email,
                                          )
         to_profile_active(profile)
-        create_user_mboxes(profile)
-
-
 
     def noop_post_app_setup(site):
         log.info('no post app setup required.')
@@ -111,7 +108,7 @@ def bootstrap_evolution(root):
 def bootstrap_static_pages(site):
     # Static Pages; FAQ/about/legal etc.
     for title in DefaultInitialData.initial_static_titles:
-        bootstrap_static_page(title)
+        bootstrap_static_page(site, title)
 
 def bootstrap_static_page(site, title):
     auto_gen = DefaultInitialData.initial_static_content_auto_generated
