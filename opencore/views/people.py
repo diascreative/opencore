@@ -232,7 +232,7 @@ class ShowProfileView(object):
         anything so that subclasses can add additional information as they see fit.
         """
         self.response = {'api':self.api,
-            'profile':self.profile,
+            'profile_currently_viewed':self.profile,
             'actions':self.actions,
             'head_data':self.head_data,
             'communities':self.communities,
@@ -291,7 +291,7 @@ class EditProfileFormController(ContentController):
 
         @instantiate()
         class details(MappingSchema):
-            
+
             position = SchemaNode(
                 String(),
                 missing='',
@@ -307,7 +307,7 @@ class EditProfileFormController(ContentController):
                 missing='',
                 description='Summarize your story in one or two sentences.'
                 )
-            
+
             @instantiate(missing=())
             class websites(SequenceSchema):
                 url = SchemaNode(
@@ -315,7 +315,7 @@ class EditProfileFormController(ContentController):
                     title='website',
                     validator=Function(valid_url)
                     )
-                
+
             country = SchemaNode(
                 String(),
                 widget=SelectWidget(
@@ -323,10 +323,10 @@ class EditProfileFormController(ContentController):
                     description='Where do you currently live?'
                     )
                 )
-            
+
             @instantiate()
             class social_networks(MappingSchema):
-                
+
                 twitter = SchemaNode(
                     String(),
                     title='Twitter Username',
@@ -339,7 +339,7 @@ class EditProfileFormController(ContentController):
                     title='Facebook page',
                     missing=''
                     )
-            
+
     def __init__(self, context, request):
         super(EditProfileFormController,self).__init__(context,request)
         self.social_category = social_category(context, None)
@@ -385,7 +385,7 @@ class EditProfileFormController(ContentController):
         if validated['password']:
             users = find_users(context)
             users.change_password(context.__name__,validated['password'])
-            
+
         # handle websites
         context.websites=[]
         for url in validated['details']['websites']:
@@ -395,7 +395,7 @@ class EditProfileFormController(ContentController):
                 ):
                 url = 'http://'+url
             context.websites.append(url)
-                
+
         # Handle the picture
         handle_photo_upload(context, request, validated['photo'])
 
