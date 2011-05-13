@@ -724,7 +724,7 @@ def comments_to_display(request, profile_thumb_size=None):
         if photo is not None:
             photo_url = thumb_url(photo, request, profile_thumb_size)
         else:
-            photo_url = api.static_url + "/img/default_user.gif"
+            photo_url = api.static_url + "/img/default_user.png"
         newc["portrait_url"] = photo_url
 
         newc['author_url'] = author_url
@@ -764,7 +764,7 @@ def comments_to_display(request, profile_thumb_size=None):
                 if reply_photo is not None:
                     reply_photo_url = thumb_url(reply_photo, request, profile_thumb_size)
                 else:
-                    reply_photo_url = api.static_url + "/img/default_user.gif"
+                    reply_photo_url = api.static_url + "/img/default_user.png"
                 newr["portrait_url"] = reply_photo_url
                 newr['author_url'] = reply_author_url
                 newr['author_name'] = reply_author_name

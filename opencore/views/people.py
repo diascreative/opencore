@@ -257,7 +257,7 @@ def profile_thumbnail(context, request):
     if photo is not None:
         url = thumb_url(photo, request, PROFILE_THUMB_SIZE)
     else:
-        url = api.static_url + "/img/default_user.gif"
+        url = api.static_url + "/img/default_user.png"
     return HTTPFound(location=url)
 
 class EditProfileFormController(ContentController):

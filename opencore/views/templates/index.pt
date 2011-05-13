@@ -12,7 +12,7 @@
                         <h3>
                             Featured Challenge
                             <div tal:condition="'sponsor' in featured_challenge" tal:omit-tag="">
-                            <img src="${ api.find_image_url(featured_challenge['sponsor'], 'photo.thumbnail') }" tal:condition="'default_user.gif' not in api.find_image_url(featured_challenge['sponsor'], 'photo.thumbnail')" class="sponsor-logo" alt="" />
+                            <img src="${ api.find_image_url(featured_challenge['sponsor'], 'photo.thumbnail') }" tal:condition="'default_user.png' not in api.find_image_url(featured_challenge['sponsor'], 'photo.thumbnail')" class="sponsor-logo" alt="" />
                             <span id="quo">${ featured_challenge['sponsor'].description }</span>
                             </div>
                         </h3>

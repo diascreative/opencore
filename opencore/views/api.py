@@ -538,7 +538,7 @@ class TemplateAPI(object):
         return profiles.get(uid)
  
 
-    def find_image_url(self, ob, search='photo', default='/img/default_user.gif', size=None):
+    def find_image_url(self, ob, search='photo', default='/img/default_user.png', size=None):
         if ob is None:
             return default
         photo = find_image(ob, search)

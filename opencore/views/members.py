@@ -169,7 +169,7 @@ def show_members_view(context, request):
             derived['photo_url'] = thumb_url(photo, request,
                                              PROFILE_THUMB_SIZE)
         else:
-            derived['photo_url'] = api.static_url + "/img/default_user.gif"
+            derived['photo_url'] = api.static_url + "/img/default_user.png"
 
         derived['is_moderator'] = entry.__name__ in moderator_names
         # Chameleon's tal:repeat and repeat variable support for
