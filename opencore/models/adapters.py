@@ -521,7 +521,7 @@ class ProfileDict(dict):
         if photo is not None:
             display_photo["url"] = thumb_url(photo, request, photo_thumb_size)
         else:
-            display_photo["url"] = api.static_url + "/images/defaultUser.gif"
+            display_photo["url"] = api.static_url + "/img/default_user.png"
         self["photo"] = display_photo
 
         if get_setting(context, 'twitter_search_id'):
