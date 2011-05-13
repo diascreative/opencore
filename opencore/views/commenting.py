@@ -155,7 +155,7 @@ class AddCommentController(object):
                                                             self.context))
         comment = create_content(
             IComment,
-            'Re: %s' % parent.title,
+            parent.title,
             converted['add_comment'],
             extract_description(converted['add_comment']),
             creator,
