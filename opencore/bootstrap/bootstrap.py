@@ -37,9 +37,6 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
     site.__acl__ = data.site_acl
     site.events = SiteEvents()
 
-    # Static pages.
-    bootstrap_static_pages(site)
-
     # If a catalog database exists and does not already contain a catalog,
     # put the site-wide catalog in the catalog database.
     main_conn = root._p_jar
@@ -92,6 +89,9 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
     post_app_setup_hook = post_app_setup or noop_post_app_setup
     post_app_setup_hook(site)
     bootstrap_evolution(root)
+
+    # Static pages.
+    bootstrap_static_pages(site)
 
 def bootstrap_evolution(root):
     from zope.component import getUtilitiesFor

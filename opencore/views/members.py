@@ -90,11 +90,7 @@ from opencore.views.forms import (
     instantiate,
     )
 from opencore.views.interfaces import IInvitationBoilerplate
-from opencore.views.validation import SignupMemberSchema
 from opencore.views.validation import ValidationError
-from opencore.views.validation import UnicodeString
-from opencore.views.validation import StringBool
-from opencore.views.validation import State
 
 
 log = logging.getLogger(__name__)
@@ -684,7 +680,41 @@ def _send_signup_ai_email(request, username, profile):
     mailer.send(info['mfrom'], [profile.email,], msg)    
     
 
-class InviteNewUsersController(MembersBaseController):
+class NewUsersBaseController(MembersBaseController):
+
+    def __init__(self,*args):
+        super(NewUsersBaseController,self).__init__(*args)
+        # storage for members found during validation
+        # address -> profile
+        self.emails_existing = {}
+        
+    # form-specific validators
+        
+    def not_deactivated(self,value):
+        search = ICatalogSearch(self.context)
+        total, docids, resolver = search(email=value.lower(),
+                                             interfaces=[IProfile,])
+        if total:
+            profile = resolver(docids[0])
+            if profile.security_state == 'active':
+                self.emails_existing[value.lower()]=profile
+            else:
+                return False
+        return True
+
+    # schema instantiation
+
+    def email_validator(self):
+        return All(
+            Email(),
+            Function(self.not_deactivated,
+                     'This address belongs to a user which has '
+                     'previously been deactivated.  This user must '
+                     'be reactivated by a system administrator '
+                     'before they can be added to this community.')
+            )
+
+class InviteNewUsersController(NewUsersBaseController):
 
     # schema
     
@@ -714,18 +744,6 @@ class InviteNewUsersController(MembersBaseController):
         if value in self.profiles:
             return True
     
-    def not_deactivated(self,value):
-        search = ICatalogSearch(self.context)
-        total, docids, resolver = search(email=value.lower(),
-                                             interfaces=[IProfile,])
-        if total:
-            profile = resolver(docids[0])
-            if profile.security_state == 'active':
-                self.emails_existing[value]=profile
-            else:
-                return False
-        return True
-
     def users_or_emails(self,form,value):
         if not (value['email_addresses'] or value['users']):
             message = 'you must supply either an email address or pick a user.'
@@ -740,27 +758,13 @@ class InviteNewUsersController(MembersBaseController):
         # This needs to be a function as we need multi-field validation
         # and some validators needs context
         s = self._Schema(validator=self.users_or_emails).clone()
-        s['email_addresses']['address'].validator=All(
-                    Email(),
-                    Function(self.not_deactivated,
-                             'This address belongs to a user which has '
-                             'previously been deactivated.  This user must '
-                             'be reactivated by a system administrator '
-                             'before they can be added to this community.')
-                    )
+        s['email_addresses']['address'].validator=self.email_validator()
         s['users']['user'].validator=Function(
             self.valid_profile,
             'This is not a valid profile.'
             )
         return s
 
-        
-    def __init__(self,*args):
-        super(InviteNewUsersController,self).__init__(*args)
-        # storage for members found during validation
-        # address -> profile
-        self.emails_existing = {}
-        
     def __call__(self):
         # Handle userid passed in via GET request
         # Moderator would get here by clicking a link in an email to grant a
@@ -797,7 +801,7 @@ class InviteNewUsersController(MembersBaseController):
             ninvited = nadded = nignored = 0
             
             for email_address in email_addresses:
-                profile = self.emails_existing.get(email_address)
+                profile = self.emails_existing.get(email_address.lower())
                 if profile is not None:
                     if profile.__name__ in members:
                         # User is a member of this community, do nothing
@@ -945,84 +949,53 @@ def jquery_member_search_view(context, request):
     result = JSONEncoder().encode(records)
     return Response(result, content_type="application/x-json")
 
-class JoinNewUsersController(object):
-    
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.community = find_interface(context, ICommunity)
-        self.api = request.api
-        self.api.page_title = 'Signup'
-        self.profiles = find_profiles(context)
-        self.desc = ('Type in you email address and you will be sent a signup email shortly.')
-        self.system_name = get_setting(context, 'system_name', 'OpenCore')
-  
-    def __call__(self):
-        community = self.community
-        context = self.context
-        request = self.request
-       
-        if self.request.method == 'POST':
-            post_data = self.request.POST
-            log.debug('request.POST: %s' % post_data)
-            try:
-                # validate and convert
-                self.api.formdata = SignupMemberSchema().to_python(post_data)
-            except FormEncodeInvalid, e:
-                self.api.formdata = post_data
-                raise ValidationError(self, **e.error_dict)
-            else:
-                return self.handle_submit(self.api.formdata)
-       
-            
-        return self.make_response()
-    
-    def handle_submit(self, converted):
+class JoinNewUsersController(NewUsersBaseController):
+
+    buttons = ('signup',)
+
+    # schema
+    class _Schema(MappingSchema):
+        
+        email_address = SchemaNode(
+                String(),
+                )
+
+    def Schema(self):
+        # This needs to be a function as some validators needs context
+        s = self._Schema().clone()
+        s['email_address'].validator=All(
+            self.email_validator(),
+            # order matters here, since email_validator
+            # populates self.emails_existing
+            Function(self.email_in_use,
+                     'This email address is already registered.'),
+            )
+        return s
+
+    # validators
+    def email_in_use(self,value):
+        if value.lower() not in self.emails_existing:
+            return True
+        
+    def handle_submit(self, validated):
         context = self.context
         request = self.request
         random_id = getUtility(IRandomId)
        
-        search = ICatalogSearch(context)
-
-        email_address = converted['email_address']
+        email_address = validated['email_address']
      
-        # Check for existing member
-        total, docids, resolver = search(email=email_address.lower(),
-                                             interfaces=[IProfile,])
-        if total:
-            # User is already in the system
-            profile = resolver(docids[0])
-            if profile.security_state == 'inactive':
-                msg = ('Address, %s, belongs to a user which has '
-                               'previously been deactivated.  This user must '
-                               'be reactivated by a system administrator '
-                               'before they can join up.' %  email_address)
-                raise ValidationError(email_address=msg)
-            # User is a member of this community, do nothing
-            status = 'You are already a member.'
-
-        else:
-            # Invite new user 
-            invitation = create_content(
-                IInvitation,
-                email_address,
-                "We look forward to you joining."
-            )
-            while 1:
-                name = random_id()
-                if name not in context:
-                    context[name] = invitation
-                    break
-            _send_signup_email(request, invitation)
-            status = 'You have been sent a signup email.'
+        # Invite new user 
+        invitation = create_content(
+            IInvitation,
+            email_address,
+            "We look forward to you joining."
+        )
+        while 1:
+            name = random_id()
+            if name not in context:
+                context[name] = invitation
+                break
+        _send_signup_email(request, invitation)
+        status = 'You have been sent a signup email.'
      
         return HTTPFound(location='/?status_message=%s' % status)      
-     
-    
-    def make_response(self):
-        return render_template_to_response(
-                       'templates/members_signup.pt',
-                       api=self.api,
-                       actions=(),
-                       page_title='Welcome to %s' % self.system_name,
-                       page_description=self.desc)     

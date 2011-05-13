@@ -11,16 +11,13 @@
 
 
         <div class="column block column-3-4">
-            <h4>${api.page_title}</h4>
+            <h4>Signup</h4>
             <div class="content">
-                <p tal:content="page_description|''"/>
-                
-                <form class="admin-form" action="" method="post" enctype="multipart/form-data" accept-charset="utf-8" tal:define="formprefix ''">
-                    <div tal:content="structure api.render_form_widget('input', 'email_address', 'Email Address')"></div>
-                    <div class="button-holder">
-                        <input class="button submit highlight" type="submit" id="submitter" name="${formprefix}submit" value="Signup" />
-                    </div>
-                </form>
+            <p>
+               Type in you email address and you will be sent 
+               a signup email shortly.
+            </p>
+            <tal:x replace="structure form"/>
             </div>
         </div>
 
