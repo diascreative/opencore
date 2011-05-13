@@ -485,9 +485,10 @@
      renderer="templates/accept_invitation.pt"/>
 
    <view
+     name="join.html"
      for="repoze.folder.interfaces.IFolder"
      view=".members.JoinNewUsersController"
-     name="join.html"/>
+     renderer="templates/members_signup.pt"/>
 
   <view
     name="active_communities.html"

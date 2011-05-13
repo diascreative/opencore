@@ -1,10 +1,12 @@
 import unittest
 
 from repoze.bfg import testing
+from repoze.bfg.testing import registerAdapter
 from repoze.lemonade.testing import registerContentFactory
 from repoze.sendmail.interfaces import IMailDelivery
 from opencore import testing as oitesting
 from opencore.models.interfaces import (
+    ICatalogSearch,
     ICommunity,
     IInvitation,
     IProfile,
@@ -12,14 +14,19 @@ from opencore.models.interfaces import (
     )
 from opencore.utilities.interfaces import IRandomId
 from opencore.views.api import get_template_api
+from opencore.views.forms import BaseController
 from opencore.views.members import (
     MembersBaseController,
     AcceptInvitationController,
     InviteNewUsersController,
+    JoinNewUsersController,
     ManageMembersController,
     )
 from webob.multidict import MultiDict
-from zope.interface import directlyProvides
+from zope.interface import (
+    Interface,
+    directlyProvides,
+    )
 
 class Base(unittest.TestCase):
     
@@ -581,6 +588,117 @@ class ManageMembersControllerTests(Base):
                          'Membership+information+changed%3A+'
                          'Flash+is+now+a+moderator')
 
+class TestJoinNewUsersController(CommunityBase):
+
+    def setUp(self):
+        Base.setUp(self)
+        self.request = testing.DummyRequest()
+        self.context = self._makeContext()
+        self.request.api = get_template_api(self.context, self.request)
+        self.mailer = self._registerMailer()
+        def nonrandom(size=6):
+            return 'A' * size
+        testing.registerUtility(nonrandom, IRandomId)
+        registerContentFactory(DummyInvitation, IInvitation)
+        self.context['profiles'] = self.profiles = DummyProfiles()
+
+    def _makeContext(self):
+        context = testing.DummyModel()
+        directlyProvides(context, ICommunity)
+        context.users = oitesting.DummyUsers()
+        context.title = 'thetitle'
+        context.description = 'description'
+        context.members_group_name = 'members'
+        context['profiles'] = testing.DummyModel()
+        admin = testing.DummyModel()
+        admin.email = 'admin@example.com'
+        context['profiles']['admin'] = admin
+        return context
+        
+    def _makeOne(self):
+        return JoinNewUsersController(self.context,self.request)
+
+    def test_subclass(self):
+        # so we can assume all the base controller bits work ;-)
+        self.assertTrue(isinstance(self._makeOne(),BaseController))
+    
+    def test_get(self):
+        controller = self._makeOne()
+        
+        info = controller()
+        
+        self.assertTrue('api' in info)
+        self.assertTrue(info['form'].startswith('<form id="deform"'))
+    
+
+    def test_post_inactive(self):
+        profile = oitesting.DummyProfile()
+        profile.security_state='inactive'
+        search = oitesting.DummySearch(profile)
+        
+        registerAdapter(lambda context:search, (Interface,), ICatalogSearch)
+        
+        self.request.POST = MultiDict([
+                ('email_address',u'aDmIn@x.com'),
+                ('signup', u'signup')
+                ])
+
+        controller = self._makeOne()
+        info = controller()
+
+        # check search spec
+        self.assertEqual(search.spec,
+                ((),{'interfaces': [IProfile], 'email': u'admin@x.com'}))
+        
+        self.failUnless(
+            'This address belongs to a user which has ' in info['form']
+            )
+    
+    def test_post_already_a_member(self):
+        profile = oitesting.DummyProfile()
+        search = oitesting.DummySearch(profile)
+        
+        registerAdapter(lambda context:search, (Interface,), ICatalogSearch)
+        
+        self.request.POST = MultiDict([
+                ('email_address',u'aDmIn@x.com'),
+                ('signup', u'signup')
+                ])
+
+        controller = self._makeOne()
+        info = controller()
+
+        # check search spec
+        self.assertEqual(search.spec,
+                ((),{'interfaces': [IProfile], 'email': u'admin@x.com'}))
+        
+        self.failUnless(
+            'This email address is already registered.' in info['form']
+            )
+
+    def test_post_success(self):
+        search = oitesting.DummySearch()
+        
+        registerAdapter(lambda context:search, (Interface,), ICatalogSearch)
+        
+        self.request.POST = MultiDict([
+                ('email_address',u'aDmIn@x.com'),
+                ('signup', u'signup')
+                ])
+
+        controller = self._makeOne()
+        response = controller()
+
+        self.assertEqual(
+            response.location,
+            '/?status_message=You have been sent a signup email.'
+            )
+
+        self.assertEqual(self.context['AAAAAA'].email,
+                         'aDmIn@x.com')
+        self.assertEqual(self.context['AAAAAA'].message,
+                         "We look forward to you joining.")
+
 class TestJqueryMemberSearchView(Base):
 
     def _callFUT(self, context, request):
@@ -666,9 +784,6 @@ class DummyInvitationBoilerPlate(object):
         pass
 
 def registerCatalogSearch(results={}):
-    from repoze.bfg.testing import registerAdapter
-    from zope.interface import Interface
-    from opencore.models.interfaces import ICatalogSearch
     registerAdapter(dummy_search(results), (Interface,), ICatalogSearch)
 
 class DummySessions(dict):
