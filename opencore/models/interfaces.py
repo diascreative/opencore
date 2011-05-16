@@ -784,3 +784,14 @@ class IProfileDict(Interface):
     def update_details(context, request):
         """ Updates the profile with additional information.
         """
+
+class IPasswordRequestRequest(Interface):
+    request_id = Attribute(u'Request ID')
+    email = Attribute(u'e-mail')
+    valid_from = Attribute(u'Valid from')
+    valid_to = Attribute(u'Valid to')
+    
+    def get_valid_from_to():
+        """ Return a two-element two of (valid_from, valid_to), indicating the
+        timeframe for a user to change the password.
+        """

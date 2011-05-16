@@ -100,6 +100,7 @@ class BaseController(object):
         self.data['actions']=()
         
     def __call__(self):
+        self.pre_call()
         request = self.request
 
         form = Form(self.Schema(), buttons=self.buttons)
@@ -121,6 +122,10 @@ class BaseController(object):
 
         self.data['form']=form.render(self.form_defaults())
         return self.data
+    
+    def pre_call(self):
+        """ Called as the very first thing in the view's __call__ method.
+        """
 
     def form_defaults(self):
         """

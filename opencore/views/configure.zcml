@@ -595,6 +595,21 @@
     name="rename_user.html"
     renderer="templates/admin/rename_merge_user.pt"
     />
+    
+    <!-- Password reset -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.password_reset.ResetRequestView"
+    name="reset_request.html"
+    renderer="templates/reset_request.pt"
+    />
+    
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.password_reset.ResetConfirmView"
+    name="reset.html"
+    renderer="templates/reset_confirm.pt"
+    />
 
 
 

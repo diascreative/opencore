@@ -92,6 +92,8 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
 
     # Static pages.
     bootstrap_static_pages(site)
+    
+    site['reset_password'] = Folder()
 
 def bootstrap_evolution(root):
     from zope.component import getUtilitiesFor
