@@ -13,6 +13,9 @@ from opencore.scripting import open_root
 from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
 
+#class 
+
+'''
 class AjaxViewTests(unittest.TestCase):
     def setUp(self):
         testing.cleanUp()
@@ -155,3 +158,4 @@ class AjaxViewTests(unittest.TestCase):
         
         queues = mbt.get_queues(site, from_, 'sent')
         #print(queues)
+'''
