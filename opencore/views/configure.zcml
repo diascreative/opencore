@@ -611,6 +611,46 @@
     renderer="templates/reset_confirm.pt"
     />
 
+  <!-- user messaging -->
+  
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.mbox.show_mbox"
+    name="mbox.html"
+    renderer="templates/mbox.pt"
+    permission="view"
+    />
+    
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.mbox.show_mbox_thread"
+    name="mbox_thread.html"
+    renderer="templates/mbox_thread.pt"
+    permission="view"
+    />
+    
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.mbox.add_message"
+    name="mbox_add_message.html"
+    renderer="templates/mbox_add_message.pt"
+    permission="view"
+    />
+    
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.mbox.delete_message"
+    name="mbox_delete_message.html"
+    permission="view"
+    />
+    
+  <view
+    for="opencore.models.interfaces.ISite"
+    view="opencore.views.mbox.mark_message_read"
+    name="mbox_mark_message_read.html"
+    permission="view"
+    />
+
 
 
   <subscriber

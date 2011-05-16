@@ -71,6 +71,8 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
     profiles = site['profiles']
 
     users = site.users
+    
+    site['mailboxes'] = Folder()
 
     for login, firstname, lastname, email, groups in data.users_and_groups:
         log.info('adding to users login=%s, groups=%s' % (login, str(groups)))
@@ -81,6 +83,7 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
                                          email=email,
                                          )
         to_profile_active(profile)
+        create_user_mboxes(profile)
 
     def noop_post_app_setup(site):
         log.info('no post app setup required.')
