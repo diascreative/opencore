@@ -3,18 +3,66 @@
 import unittest, uuid
 from datetime import datetime
 
+# webob
+from webob import Response
+
 # Repoze
 from repoze.bfg import testing
 from repoze.folder import Folder
+
+# simplejson
+from simplejson import JSONDecoder
 
 # opencore
 from opencore.scripting import get_default_config
 from opencore.scripting import open_root
 from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
+from opencore.views.mbox import _get_mbox_type
+from opencore.views.mbox import _json_response
+from opencore.views.mbox import DEFAULT_MBOX_TYPE
+from opencore.views.mbox import PER_PAGE
 
-#class 
 
+class MBoxViewTestCase(unittest.TestCase):
+    
+    def _get_mbox_request(self, mbox_type, key='mbox_type'):
+        request = testing.DummyRequest()
+        request.params[key] =  mbox_type
+        
+        return request
+
+    def test_per_page(self):
+        self.assertEquals(PER_PAGE, 20)
+    
+    def test_json_response(self):
+        success = uuid.uuid4().hex
+        error_msg = uuid.uuid4().hex
+        
+        response = _json_response(success, error_msg)
+        
+        self.assertTrue(isinstance(response, Response))
+        self.assertEquals(response.content_type, 'application/x-json')
+        
+        given_body = sorted(JSONDecoder().decode(response.body).items())
+        expected_body = [('error_msg', error_msg), ('success', success)]
+        self.assertEquals(given_body, expected_body)
+        
+    def test_get_mbox_type(self):
+        mbox_type = _get_mbox_type(self._get_mbox_request('inbox'))
+        self.assertEquals(mbox_type, 'inbox')
+        
+        mbox_type = _get_mbox_type(self._get_mbox_request('sent'))
+        self.assertEquals(mbox_type, 'sent')
+        
+        # Unrecognized mbox type, should revert to default inbox.
+        mbox_type = _get_mbox_type(self._get_mbox_request(uuid.uuid4().hex))
+        self.assertEquals(mbox_type, DEFAULT_MBOX_TYPE)
+        
+        # Unrecognized key, should revert to default inbox.
+        mbox_type = _get_mbox_type(self._get_mbox_request('inbox', key=uuid.uuid4().hex))
+        self.assertEquals(mbox_type, DEFAULT_MBOX_TYPE)
+        
 '''
 class AjaxViewTests(unittest.TestCase):
     def setUp(self):
