@@ -135,8 +135,7 @@ def get_profile_actions(profile,request):
                                            'manage_tags.html')
         actions['manage_bookmarks'] = model_url(profile, request,
                                                 'manage_bookmarks.html')
-        actions['mailbox'] = model_url(profile, request,
-                                                'mailbox.html')
+        actions['mailbox'] = '/mbox.html'
     actions['feed'] = model_url(profile, request, 'contentfeed.html')
 
     return actions

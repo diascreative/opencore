@@ -4,16 +4,37 @@
      metal:use-macro="api.generic_layout">
 
     <div metal:fill-slot="content">
-        <div class="content-1">
-            <div class="top"></div>
-            <div class="mid">
-                <div class="large-message">
-                Hi Rob!
-                <br/>
-                I'm opencore/views/templates/mbox.pt
+            <h1>My Mailbox</h1>
+
+            <div class="columns">
+                <div class="column column-1-4 first">
+                    left bar
+                </div>
+
+                <div class="column column-3-4 last">
+                    <ul class="tabs"> 
+                        <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
+                        <li><a href="#">Sent</a></li>
+                    </ul>
+                    
+                    <table id="messages">
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th colspan="2">From</th>
+                            <th>Headline</th>
+                            <th>Date and time</th>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" name="" value="" /></td>
+                            <td></td>
+                            <td></td>
+                            <td>Gary Numan</td>
+                            <td>lorem</td>
+                            <td>17 February</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
-            <div class="bot"></div>
-        </div>
     </div>
 </html>
