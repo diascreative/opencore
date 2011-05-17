@@ -68,6 +68,8 @@ setup(name='opencore',
       test_suite="nose.collector",
       entry_points = """
         [paste.app_factory]
+        [paste.filter_app_factory]
+        gateway = opencore.middleware.gateway:GatewayMiddleware
         [console_scripts]
        
        """
