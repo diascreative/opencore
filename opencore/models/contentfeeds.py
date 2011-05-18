@@ -153,6 +153,12 @@ def _getInfo(profile, content, ifaces=None):
     if IComment.providedBy(content):
         # my content filter needs to know if a comment was made inside my post
         content_creator = content.__parent__.__parent__.creator
+
+    if hasattr(content, 'likes'):
+        likes = len(content.likes)
+    else:
+        likes = 0
+        
     return {'content_type': content_type.getTaggedValue('name'),
             'userid': profile.__name__,
             'context_name': context_name,
@@ -172,6 +178,7 @@ def _getInfo(profile, content, ifaces=None):
             'profile_url': '/profiles/%s' % profile.__name__,
             'thumbnail': '/profiles/%s/profile_thumbnail' % profile.__name__,
             'timestamp': _NOW(),
+            'likes':likes
            }
 
 def user_joined_community(event):
