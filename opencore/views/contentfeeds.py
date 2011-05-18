@@ -165,7 +165,7 @@ def show_feeds_view(context, request):
 
 def profile_feed_view(context, request):
     api = request.api
-    api.page_title = 'Latest Activity'
+    api.page_title = 'Activity Feed'
 
     photo_thumb_size = (220,150)
     profile = getUtility(IProfileDict, name='profile-details')
