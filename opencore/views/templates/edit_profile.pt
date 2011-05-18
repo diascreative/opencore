@@ -13,9 +13,6 @@
             <span class="divide">&gt;</span>
             <span class="subtitle">Edit Profile</span>
         </h1>
-        <p class="page-intro">
-            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-        </p>
 
         <tal:x replace="structure form"/>
 </div>
