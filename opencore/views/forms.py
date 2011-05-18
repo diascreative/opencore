@@ -8,6 +8,7 @@ from deform.widget import (
     CheckboxWidget,
     FileUploadWidget,
     Widget,
+    FormWidget,
     )
 from opencore.events import (
     ObjectWillBeModifiedEvent,
@@ -98,9 +99,10 @@ class BaseController(object):
 
     buttons=('cancel','save')
 
-    def __init__(self, context, request):
+    def __init__(self, context, request, form_template=None):
         self.context = context
         self.request = request
+        self.form_template = form_template
         self.api = request.api
         self.data = dict(
             api=self.api,
@@ -111,6 +113,8 @@ class BaseController(object):
         request = self.request
 
         form = Form(self.Schema(), buttons=self.buttons)
+        if self.form_template:
+            form.widget = FormWidget(template=self.form_template)
 
         if self.buttons[-1] in request.POST:
             controls = request.POST.items()
