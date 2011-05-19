@@ -1,12 +1,14 @@
 
 # stdlib
 import time
-import transaction
 import logging
 import email.generator
 import email.parser
 from datetime import datetime
 from uuid import uuid4
+
+# Zope
+import transaction
 
 # Repoze
 from repoze.folder import Folder

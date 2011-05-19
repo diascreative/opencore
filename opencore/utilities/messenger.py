@@ -36,16 +36,8 @@ class Messenger(object):
 
     def send(self, mfrom, profile, msg):
         root = find_site(profile)
-        queue = MailboxTool.open_queue(root, profile.__name__)
-        if not isinstance(msg, MboxMessage):
-            try:
-                msg = MboxMessage(msg)
-            except Exception, e:
-                log.warning('Unable to convert to MboxMessage from  received '
-                            'type (%s)' % msg.__class__.__name__) 
-                raise e   
-        msg['from'] = mfrom
-        queue.add(msg)   
+        mbt = MailboxTool()
+        mbt.send_message(root, mfrom, profile, msg)
 
 class FakeMessenger:
     implements(IMessenger)

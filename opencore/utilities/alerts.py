@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from lxml import etree
 from lxml.html import document_fromstring
 from email import Encoders
+from traceback import format_exc
 
 import logging
 import traceback
@@ -47,9 +48,8 @@ def alert_user(profile, event):
         alerts = queryUtility(IAlerts, default=Alerts())
         alerts.emit_to_user(profile, event)
     except Exception, e:
-        nil, t, v, tbinfo = compact_traceback()
-        log.error('alert_user error for user=%s, event: %s error: (%s:%s %s) ' % (profile.__name__, 
-          str(event), t, v, tbinfo))
+        log.error('alert_user error for user=%s, event: %s error: (%s) ' % (profile.__name__, 
+          str(event), format_exc(e)))
 
 def is_first_entry(context, user):
     first_entry_query = dict(creator=user,
@@ -70,7 +70,7 @@ class Alerts(object):
             log.debug('alert notifications are disabled, alert not sent.')
             return
         
-        alert = getMultiAdapter((profile, event), IAlert)
+        alert = event
         
         # flag alerts are treated differently. Just send straight to admin 
         # not the flagged user.

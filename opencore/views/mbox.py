@@ -1,11 +1,14 @@
 
 # stdlib
+import logging
+import traceback
 from datetime import datetime
 from email import utils
 from traceback import format_exc
 
 # Zope
 import transaction
+from zope.interface import implements
 
 # webob
 from webob import Response
@@ -18,14 +21,24 @@ from repoze.bfg.security import authenticated_userid
 from simplejson import JSONEncoder
 
 # opencore
+from opencore.models.interfaces import IEventInfo
 from opencore.models.mbox import(ALLOWED_MBOX_TYPES, DEFAULT_MBOX_TYPE, 
             TO_SEPARATOR, STATUS_READ, ALLOWED_STATUSES)
+from opencore.utilities.alerts import alert_user
+from opencore.utilities.alerts import Alert
 from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
 from opencore.utilities.paginate import Pagination
+from opencore.utils import find_profiles
 
 # How many queues per page to show?
 PER_PAGE = 20
+
+log = logging.getLogger(__name__)
+
+class _MBoxEvent(dict):
+    implements(IEventInfo)
+    is_profile_alert = False
 
 def _json_response(success, error_msg):
     return_data = {}
@@ -101,6 +114,7 @@ def show_mbox(context, request):
         queue['name'] = mbox_q.name
         queue['total_messages'] = len(mbox_q)
         
+        print(333, len(mbox_q), len(mbox_q._messages.keys()))
         first_message = mbox_q.get(0)
         
         queue['first_message_from'] = first_message['From']
@@ -153,8 +167,8 @@ def show_mbox_thread(context, request):
             to_datum['name'] = name
             to_datum['firstname'] = to_profile.firstname
             to_datum['lastname'] = to_profile.lastname
-            to_datum['country'] = to_profile.country
             to_datum['photo_url'] = _user_photo_url(request, name)
+            to_datum['country'] = to_profile.country
             to_data.append(to_datum)
             
         msg_dict['to_data'] = to_data
@@ -175,28 +189,46 @@ def add_message(context, request):
     error_msg = ''
 
     now = str(datetime.utcnow())
-    to = request.POST['to']
+    to = request.params['to']
     to = [elem.strip() for elem in to.split(',')]
     
-    subject = request.POST['subject']
-    payload = request.POST['payload']
+    to = to[0]
+    
+    subject = request.params.get('subject', '')
+    payload = request.params.get('payload', '')
     
     mbt = MailboxTool()
     
-    msg = MboxMessage('aa')
+    msg = MboxMessage(payload.encode('utf-8'))
     msg['Message-Id'] = MailboxTool.new_message_id()
     msg['Subject'] = subject
     msg['From'] = user
-    msg['To'] = ', '.join(to)
+    msg['To'] = to
     msg['Date'] = now
     msg['X-oc-thread-id'] = MailboxTool.new_thread_id()
     
     try:
-        mbt.send_message(context, user, to, msg)
+        profiles = find_profiles(context)
+        to_profile = profiles[to]
+        from_profile = profiles[user]
+        
+        eventinfo = _MBoxEvent()
+        eventinfo['content'] = msg
+        eventinfo['content_type'] = 'MBoxMessage'
+        eventinfo['context_url'] = from_profile.__name__
+        
+        eventinfo.mfrom = from_profile.email
+        eventinfo.mfrom_name = from_profile.__name__
+        eventinfo.mto = [to_profile.email]
+        eventinfo.message = msg
+        
+        alert_user(from_profile, eventinfo)
         transaction.commit()
+        
     except Exception, e:
-        error_msg = str(e)
-        transaction.rollback()
+        error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
+        log.error(error_msg)
+        transaction.abort()
     else:
         success = True
     
