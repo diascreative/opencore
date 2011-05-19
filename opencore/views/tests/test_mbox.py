@@ -3,12 +3,19 @@
 import unittest, uuid
 from datetime import datetime
 
+# Zope
+import transaction
+
 # webob
 from webob import Response
 
 # Repoze
 from repoze.bfg import testing
 from repoze.folder import Folder
+
+# testfixtures
+from testfixtures import LogCapture
+from testfixtures import Replacer
 
 # simplejson
 from simplejson import JSONDecoder
@@ -18,13 +25,29 @@ from opencore.scripting import get_default_config
 from opencore.scripting import open_root
 from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
+from opencore.utilities.mbox import NoSuchThreadException
+from opencore.utilities.tests.test_mbox import get_data
 from opencore.views.mbox import _get_mbox_type
 from opencore.views.mbox import _json_response
 from opencore.views.mbox import DEFAULT_MBOX_TYPE
 from opencore.views.mbox import PER_PAGE
+from opencore.views.mbox import add_message
+from opencore.views.mbox import delete_message
+from opencore.views.mbox import mark_message_read
+from opencore.views.mbox import show_mbox
+from opencore.views.mbox import show_mbox_thread
 
+def _authenticated_user_id(request):
+    return 'admin'
 
 class MBoxViewTestCase(unittest.TestCase):
+    
+    def setUp(self):
+        self.mbt = MailboxTool()
+        self.log = LogCapture()
+    
+    def tearDown(self):
+        testing.cleanUp()
     
     def _get_mbox_request(self, mbox_type, key='mbox_type'):
         request = testing.DummyRequest()
@@ -63,147 +86,175 @@ class MBoxViewTestCase(unittest.TestCase):
         mbox_type = _get_mbox_type(self._get_mbox_request('inbox', key=uuid.uuid4().hex))
         self.assertEquals(mbox_type, DEFAULT_MBOX_TYPE)
         
-'''
-class AjaxViewTests(unittest.TestCase):
-    def setUp(self):
-        testing.cleanUp()
+    def test_show_mbox(self):
         
-    def tearDown(self):
-        testing.cleanUp()
-          
-    def _callFUT(self, context, request):
-        from opencore.views.mbox import MboxView
-        mbox_view = MboxView(context, request)
-        return mbox_view.queue_view(context, request)    
-
-    def zztest_view_callable(self):
-        from opencore.views.mbox import MboxView
-        request = testing.DummyRequest()
-        context = testing.DummyModel()
-        context.__name__ = None
-        mbox_view = MboxView(context, request)
-        response = mbox_view()  
-        self.assertEqual(response.headerlist[0],
-                         ('Content-Type', 'application/x-json'))
-        self.assertEqual(response.app_iter[0], '{}')    
-        
-              
-    def zztest_empty_queue(self):
-        request = testing.DummyRequest()
-        response = self._callFUT([], request)
-        self.assertEqual(response.headerlist[0],
-                         ('Content-Type', 'application/x-json'))
-        self.assertEqual(response.app_iter[0], '{}')
-        
-        
-    def zztest_msgs_in_queue(self): 
-        from opencore.utilities.message import MboxMessage 
-        import simplejson as json
-
-        request = testing.DummyRequest()
-        messages = ({'payload' :'hello', 'From' : 'niceguy', "flags": "S"}, 
-                    {'payload': 'goodbye', 'From' : 'afoe', "flags": "F" })
-        request.context = {}
-        for i in range(len(messages)):
-            request.context[i] = MboxMessage(messages[i]['payload'])
-            request.context[i]['From'] = messages[i]['From']
-            request.context[i].set_flags(messages[i]['flags'])
+        with Replacer() as r:
+            r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
             
-        input =  {'0': messages[0], 
-                  '1': messages[1]}
-        input['0']['date'] = request.context[0].get_date()
-        input['1']['date'] = request.context[1].get_date()    
+            # Different from what the msg has in its 'To: ' header
+            # but we need it because that's what our 'authenticated_userid' uses.
+            to = ['admin'] 
+            
+            site, from_, _, msg, _, _, _, _, _, _ = get_data()
+            self.mbt.send_message(site, from_, to, msg, should_commit=True)
         
-        response = self._callFUT(request.context, request)
-        self.assertEqual(response.headerlist[0],
-                         ('Content-Type', 'application/x-json'))
-        json_payload = response.app_iter[0]
-        self.assertEqual(json.loads(json_payload), input)
-        
-    def zztest_modify_queue(self):
-        from opencore.utilities.message import MboxMessage 
-        request = testing.DummyRequest(post={1 : {'flags' : 'FS'}})
-        messages = ({'payload' :'hello', 'From' : 'niceguy', "flags": "S"}, 
-                    {'payload': 'goodbye', 'From' : 'afoe', "flags": "F" })
-        request.context = {}
-        for i in range(len(messages)):
-            request.context[i] = MboxMessage(messages[i]['payload'])
-            request.context[i]['From'] = messages[i]['From']
-            request.context[i].set_flags(messages[i]['flags'])
-        
-        input =  {"0": messages[0], 
-                  "1": messages[1]}
-        input['0']['date'] = request.context[0].get_date()
-        input['1']['date'] = request.context[1].get_date()    
-        
-        response = self._callFUT(request.context, request)
-        self.assertEqual(response.headerlist[0],
-                         ('Content-Type', 'application/x-json'))
-        json_payload = response.app_iter[0]
-        self.assertEqual(json_payload, '{}')
-        self.assertEqual(request.context[1].get_flags(), 'FS')
- 
-    def zztest_modify_queue_error(self):                 
-        from opencore.utilities.message import MboxMessage 
-        import simplejson as json
-        request = testing.DummyRequest(path='/mailbox/johnny', post={99 : {'flags' : 'FS'}})
-        messages = ({'payload' :'hello', 'From' : 'niceguy', "flags": "S"}, 
-                    {'payload': 'goodbye', 'From' : 'afoe', "flags": "F" })
-        request.context = {}
-        for i in range(len(messages)):
-            request.context[i] = MboxMessage(messages[i]['payload'])
-            request.context[i]['From'] = messages[i]['From']
-            request.context[i].set_flags(messages[i]['flags'])
-        
-        input =  {"0": messages[0], 
-                  "1": messages[1]}
-        input['0']['date'] = request.context[0].get_date()
-        input['1']['date'] = request.context[1].get_date()    
-        
-        response = self._callFUT(request.context, request)
-        self.assertEqual(response.headerlist[0],
-                         ('Content-Type', 'application/x-json'))
-        json_payload = response.app_iter[0]
-        self.assertTrue(json.loads(json_payload).has_key('Error'))
+            site, _ = open_root(get_default_config())
+            request = testing.DummyRequest()
+            request.api = uuid.uuid4().hex
+            
+            response = show_mbox(site, request)
 
-    def zztest_evolve2_root_mailbox_exists(self):
-        root, _ = open_root(get_default_config())
+            self.assertTrue(response.get('api', None) is not None)
+            
+            if not response['queues']:
+                raise Exception('No queues found in the response %s' % response)
+            
+            for q in response['queues']:
+                self.assertTrue(q['total_messages'] >= 1)
+                self.assertTrue(len(q['first_message_to']) >= 1)
+                self.assertTrue(len(q['name']) >= 1)
+                self.assertTrue(q['first_message_from'] == 'admin')
+                
+                # To anyone changing it and discovering the assertion
+                # failing here - please use a UUID4 if possible (why wouldn't 
+                # it be possible?)
+                self.assertTrue(len(q['id']) >= 20)
+                
+    def zztest_show_mbox(self):
         
-        self.assertTrue('mailboxes' in root['site'])
-        self.assertTrue(isinstance(root['site']['mailboxes'], Folder))
+        _people_url = uuid.uuid4().hex
+        _firstname = uuid.uuid4().hex
+        _lastname = uuid.uuid4().hex
+        _country = uuid.uuid4().hex
         
-    def test_x(self):
+        class _DummyAPI(object):
+            def find_profile(*ignored_args, **ignored_kwargs):
+                class _Dummy(object):
+                    firstname = _firstname
+                    lastname = _lastname
+                    country = _country
+                    
+                return _Dummy()
+            
+            people_url = _people_url
+        
+        with Replacer() as r:
+            r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
+            
+            # Different from what the msg has in its 'To: ' header
+            # but we need it because that's what our 'authenticated_userid' uses.
+            to = ['admin'] 
+            
+            site, from_, _, msg, thread_id, _, _, _, payload, _ = get_data()
+            self.mbt.send_message(site, from_, to, msg, should_commit=True)
+        
+            site, _ = open_root(get_default_config())
+            request = testing.DummyRequest()
+            request.params['thread_id'] = thread_id
+            request.api = _DummyAPI()
+            
+            response = show_mbox_thread(site, request)
+            
+            self.assertTrue(isinstance(response['api'], _DummyAPI))
+            
+            self.assertTrue(len(response['messages']), 1)
+            message = response['messages'][0]
+
+            flags = message['flags']
+            if flags:
+                self.assertEquals(flags, ['READ'])
+                
+            self.assertEquals(message['from'], 'admin')
+            self.assertEquals(message['from_country'], _country)
+            self.assertEquals(message['from_firstname'], _firstname)
+            self.assertEquals(message['from_lastname'], _lastname)
+            self.assertEquals(message['from_photo'], _people_url + '/admin/profile_thumbnail')
+            self.assertEquals(message['payload'], payload)
+            self.assertTrue(len(message['payload']) > 20)
+            self.assertTrue(len(message['queue_id']) > 20)
+            
+            self.assertTrue(len(message['to_data']) == 2)
+            to_data = message['to_data']
+            
+            for to_datum in to_data:
+                self.assertEquals(to_datum['country'], _country)
+                self.assertEquals(to_datum['firstname'], _firstname)
+                self.assertEquals(to_datum['lastname'], _lastname)
+                
+                name = to_datum['name']
+                self.assertTrue(name in ('joe', 'sarah'))
+                self.assertEquals(to_datum['photo_url'], _people_url + '/' + name + '/profile_thumbnail')
+                
+    def zztest_add_message(self):
+        
+        to = 'joe, sarah'
+        
+        subject = uuid.uuid4().hex
+        payload = uuid.uuid4().hex
+        api = uuid.uuid4().hex
+        
         site, _ = open_root(get_default_config())
         
-        mbt = MailboxTool()
-        now = str(datetime.utcnow())
-
-        from_ = 'admin'
-        to = ['joe', 'sarah']
-
-        subject = 'Hi there'
-        payload = 'payload'
-        flags = ['read']
+        with Replacer() as r:
+            r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
+            
+            request = testing.DummyRequest()
+            request.api = api
+            request.POST['to'] = to
+            request.POST['subject'] = subject
+            request.POST['payload'] = payload
+            
+            response = add_message(site, request)
+            self.assertEquals(response['api'], api)
+            self.assertEquals(response['error_msg'], '')
+            self.assertEquals(response['success'], True)
+            
+            transaction.commit()
+            
+    def zztest_delete_message(self):
         
-        thread_id = 'openhcd.' + uuid.uuid4().hex
-        msg_id = 'openhcd.' +  now + '.' + uuid.uuid4().hex
+        api = uuid.uuid4().hex
         
-        msg = MboxMessage(payload)
-        msg['Message-Id'] = msg_id
-        msg['Subject'] = subject
-        msg['From'] = from_
-        msg['To'] = ', '.join(to)
-        msg['Date'] = now
-        msg['X-oc-thread-id'] = thread_id
+        with Replacer() as r:
+            r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
+            
+            to = ['admin'] 
+            site, from_, _, msg, thread_id, msg_id, _, _, _, _ = get_data()
+            self.mbt.send_message(site, from_, to, msg, should_commit=True)
+            
+            request = testing.DummyRequest()
+            request.api = api
+            request.params['thread_id'] = thread_id
+            request.params['message_id'] = msg_id
+            
+            delete_message(site, request)
+            transaction.commit()
+            
+            try:
+                raw_msg, msg = self.mbt.get_message(site, from_, 'inbox', thread_id, msg_id)
+            except NoSuchThreadException:
+                pass
+            else:
+                raise Exception('Expected a NoSuchThreadException here')
+            
+    def zztest_mark_message_read(self):
         
-        mbt.send_message(site, from_, to, msg)
-        mbt.delete_message(site, from_, 'sent', thread_id, msg_id)
+        api = uuid.uuid4().hex
         
-        mbt.send_message(site, from_, to, msg)
-        mbt.set_message_flags(site, from_, 'sent', thread_id, msg_id, flags)
-        
-        raw_msg, msg = mbt.get_message(site, from_, 'sent', thread_id, msg_id)
-        
-        queues = mbt.get_queues(site, from_, 'sent')
-        #print(queues)
-'''
+        with Replacer() as r:
+            r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
+            
+            to = ['admin'] 
+            site, from_, _, msg, thread_id, msg_id, _, _, _, _ = get_data()
+            self.mbt.send_message(site, from_, to, msg, should_commit=True)
+            
+            request = testing.DummyRequest()
+            request.api = api
+            request.params['thread_id'] = thread_id
+            request.params['message_id'] = msg_id
+            
+            mark_message_read(site, request)
+            transaction.commit()
+            
+            raw_msg, msg = self.mbt.get_message(site, from_, 'inbox', thread_id, msg_id)
+            self.assertEquals(raw_msg.flags, ['READ'])

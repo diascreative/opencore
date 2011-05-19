@@ -39,10 +39,18 @@ log = logging.getLogger(__name__)
 
 ### Set form template paths
 
-Form.set_zpt_renderer((
+default_template_path = (
         resource_filename('opencore','views/templates/widgets'),
-        resource_filename('deform', 'templates'),
-        ))
+        resource_filename('deform', 'templates')
+        )
+app_template_path = list(Form.default_renderer.loader.search_path)
+
+# Append opencore and deform template paths to list of app-specific paths
+for path in default_template_path:
+    if path not in app_template_path:
+        app_template_path.append(path)
+
+Form.set_zpt_renderer(app_template_path)
 
 ### Helpers
 
