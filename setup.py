@@ -77,6 +77,7 @@ setup(name='opencore',
         site_announce = opencore.scripts.site_announce:main
         mvcontent = opencore.scripts.mvcontent:main
         evolve = opencore.scripts.evolve:main
+        make_admin = opencore.scripts.make_admin:main
        
        """
 )
