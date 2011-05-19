@@ -114,7 +114,6 @@ def show_mbox(context, request):
         queue['name'] = mbox_q.name
         queue['total_messages'] = len(mbox_q)
         
-        print(333, len(mbox_q), len(mbox_q._messages.keys()))
         first_message = mbox_q.get(0)
         
         queue['first_message_from'] = first_message['From']
