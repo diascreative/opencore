@@ -4,19 +4,22 @@
 import sys
 import transaction
 import optparse
+import logging
 
 from opencore.scripting import get_default_config
 from opencore.scripting import open_root
 
 ADMIN_GROUPS = ('group.KarlAdmin', 'group.KarlUserAdmin')
 
+log = logging.getLogger(__name__)
+
 def make_admin_user(users, userid):
     if users.get(userid) is not None:
         for group in ADMIN_GROUPS:
             users.add_group(userid, group)
-        print 'Added admin groups for:', userid
+        log.info('Added admin groups for: %s' % userid)
     else:
-        print 'Could not find user in database:', userid
+        log.info('Could not find user in database: %s' % userid)
 
 def main(open_root=open_root, argv=sys.argv):
     parser = optparse.OptionParser(description=__doc__)
@@ -25,7 +28,8 @@ def main(open_root=open_root, argv=sys.argv):
         help="Don't actually commit the transaction")
     options, args = parser.parse_args(argv[1:])
     if len(args) < 1:
-        parser.error('Please specify the users you wish to make admins')
+        log.error('Please specify the users you wish to make admins')
+        return
     
     config = get_default_config()
     root, closer = open_root(config)
