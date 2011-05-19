@@ -71,6 +71,13 @@ setup(name='opencore',
         [paste.filter_app_factory]
         gateway = opencore.middleware.gateway:GatewayMiddleware
         [console_scripts]
+        debug = opencore.scripts.debug:main
+        reindex_catalog = opencore.scripts.reindex_catalog:main
+        rename_user = opencore.scripts.rename_user:main
+        site_announce = opencore.scripts.site_announce:main
+        mvcontent = opencore.scripts.mvcontent:main
+        evolve = opencore.scripts.evolve:main
+        make_admin = opencore.scripts.make_admin:main
        
        """
 )
