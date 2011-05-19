@@ -72,6 +72,8 @@ class ResetConfirmSchema(object):
 
 class ResetRequestView(ResetRequestSchema, BaseController):
     
+    buttons=('cancel','image')
+    
     def __init__(self, context, request):
         super(ResetRequestView, self).__init__(context, request)
         self.context = context
