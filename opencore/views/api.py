@@ -501,7 +501,7 @@ class TemplateAPI(object):
             return []
         return get_user_bookmarks(self.context, self.userid, filter_challenge)
 
-    def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None, description=None):
+    def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None, description=None, disabled=False):
         if default is None:
             default = self.formdata.get(id, '')
         error = self.formerrors.get(id, '')
@@ -523,6 +523,7 @@ class TemplateAPI(object):
                                                      default_value=default,
                                                      default_list=default_list,
                                                      error=error,
+                                                     disabled=disabled,
                                                      api=self,))
 
     def model_path(self, obj):
