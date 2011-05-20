@@ -284,7 +284,7 @@ def photo_from_filestore_view(context, request, form_id):
     r = Response(headerlist=headers, app_iter=bodyfile)
     return r
 
-def handle_photo_upload(context, request, cstruct):
+def handle_photo_upload(context, request, cstruct, attrname="photo"):
     # arguably should move to utils.py
     # once the existing handle_photo_upload is no longer used.
     if cstruct is None:
@@ -292,17 +292,20 @@ def handle_photo_upload(context, request, cstruct):
     
     photo = create_content(
         ICommunityFile,
-        title='Photo of ' + context.title,
+        title='%s of %s' % (attrname.capitalize(), context.title),
         stream=cstruct['fp'],
         mimetype=cstruct['mimetype'],
         filename=cstruct['filename'],
         creator=authenticated_userid(request),
         )
 
-    if 'photo' in context:
-        del context['photo']
+    if attrname in context:
+        del context[attrname]
         
-    context['photo'] = photo
+    context[attrname] = photo
+
+def handle_thumbnail_upload(*args):
+    handle_photo_upload(*args, attrname="thumbnail")
 
 # Used to map HTML entity names to numeric entities that can be used in XML
 # Source: http://elizabethcastro.com/html/extras/entities.html

@@ -20,6 +20,7 @@ from opencore.models.interfaces import (
     )
 from opencore.utils import find_profiles
 from opencore.utils import get_setting
+from opencore.utilities.image import thumb_url
 from pkg_resources import resource_filename
 from repoze.bfg.security import (
     has_permission,
@@ -223,6 +224,34 @@ class AvatarWidget(FileUploadWidget):
                               field=field,
                               api=request.api,
                               profile=request.context)
+
+
+class ImageUploadWidget(FileUploadWidget):
+
+    template = 'image_upload'
+
+    def __init__(self, **kw):
+        FileUploadWidget.__init__(self, None, **kw)
+        self.tmpstore = DummyTempStore()
+        self.thumb_size = kw.get('thumb_size')
+
+    def serialize(self, field, cstruct, readonly=False):
+        if cstruct in (null, None):
+            cstruct = {}
+        if cstruct:
+            uid = cstruct['uid']
+            if not uid in self.tmpstore:
+                self.tmpstore[uid] = cstruct
+
+        template = readonly and self.readonly_template or self.template
+        thumbnail_url = None
+        if hasattr(self, 'context'):
+            # We're in an edit form as opposed to an add form
+            image = self.context.get(field.name)
+            if image is not None:
+                thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
+        return field.renderer(template, field=field, cstruct=cstruct,
+                thumb_url=thumbnail_url)
 
 
 ### Validators
