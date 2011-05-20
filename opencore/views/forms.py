@@ -244,11 +244,12 @@ class ImageUploadWidget(FileUploadWidget):
                 self.tmpstore[uid] = cstruct
 
         template = readonly and self.readonly_template or self.template
-        image = self.context.get(field.name)
-        if image is not None:
-            thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
-        else:
-            thumbnail_url = None
+        thumbnail_url = None
+        if hasattr(self, 'context'):
+            # We're in an edit form as opposed to an add form
+            image = self.context.get(field.name)
+            if image is not None:
+                thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
         return field.renderer(template, field=field, cstruct=cstruct,
                 thumb_url=thumbnail_url)
 
