@@ -244,10 +244,9 @@ class ImageUploadWidget(FileUploadWidget):
                 self.tmpstore[uid] = cstruct
 
         template = readonly and self.readonly_template or self.template
-        request = get_current_request()
-        image = request.context.get(field.name)
+        image = self.context.get(field.name)
         if image is not None:
-            thumbnail_url = thumb_url(image, request, self.thumb_size or (290, 216))
+            thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
         else:
             thumbnail_url = None
         return field.renderer(template, field=field, cstruct=cstruct,
