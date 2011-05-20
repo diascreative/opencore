@@ -25,8 +25,14 @@ from repoze.bfg.testing import registerAdapter
 from repoze.bfg.testing import registerDummyRenderer
 from repoze.bfg.testing import registerUtility
 
-from opencore.models.interfaces import ICommunity
-from opencore.models.interfaces import IProfile
+from opencore.models.interfaces import (
+        ICommunity,
+        IProfile, 
+        IImage,
+        )
+
+class DummyImageModel(DummyModel):
+    implements(IImage)
 
 class DummyCatalog(dict):
     def __init__(self, *maps):

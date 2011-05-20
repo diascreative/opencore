@@ -1,20 +1,22 @@
-<div class="deformFileupload">
+<fieldset class="box">
+  <div class="deformFileupload">
 
-   <span class="avatar">
-     <img src="${api.find_image_url(profile)}" 
-          alt="${profile.firstname} ${profile.lastname}" />
-   </span>
+     <span class="avatar">
+       <img src="${api.find_image_url(context)}" 
+            alt="${context.firstname} ${context.lastname}" />
+     </span>
 
-  <input type="hidden" name="__start__" value="${field.name}:mapping"/>
+    <input type="hidden" name="__start__" value="${field.name}:mapping"/>
 
-  <div class="file-upload">
-    <input type="file" name="upload" 
-           tal:attributes="size field.widget.size;
-                           class field.widget.css_class"
-           id="${field.oid}"/>
-    <div class="button highlight">Upload an image</div>
+    <div class="file-upload">
+      <input type="file" name="upload" 
+             tal:attributes="size field.widget.size;
+                             class field.widget.css_class"
+             id="${field.oid}"/>
+      <div class="button highlight">Upload an image</div>
+    </div>
+
+    <input type="hidden" name="__end__" value="${field.name}:mapping"/>
+
   </div>
-
-  <input type="hidden" name="__end__" value="${field.name}:mapping"/>
-
-</div>
+</fieldset>

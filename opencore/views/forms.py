@@ -251,7 +251,7 @@ class ImageUploadWidget(FileUploadWidget):
             if image is not None:
                 thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
         return field.renderer(template, field=field, cstruct=cstruct,
-                thumb_url=thumbnail_url)
+                thumb_url=thumbnail_url, context=self.context, api=self.request.api)
 
 
 ### Validators

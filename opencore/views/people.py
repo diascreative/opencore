@@ -60,6 +60,7 @@ from opencore.views.communities import get_preferred_communities
 from opencore.views.communities import get_my_communities
 from opencore.views.forms import (
     AvatarWidget,
+    ImageUploadWidget,
     ContentController,
     instantiate,
     is_image,
@@ -259,30 +260,40 @@ def profile_thumbnail(context, request):
         url = api.static_url + "/img/default_user.png"
     return HTTPFound(location=url)
 
-class EditProfileFormController(ContentController):
+class MethodSchema(object):
 
-    class Schema(MappingSchema):
+    def Schema(self):
+        schema = self._Schema().clone()
+        schema['photo'].widget.context = self.context
+        schema['photo'].widget.request = self.request
+        return schema
 
-        first_name = SchemaNode(
-            String(),
-            )
-        last_name = SchemaNode(
-            String(),
-            )
-        email = SchemaNode(
-            String(),
-            validator=Email(),
-            title='Email address',
-            )
+    class _Schema(MappingSchema):
+
+        @instantiate(title=None)
+        class names_fieldset(MappingSchema):
+            first_name = SchemaNode(
+                String(),
+                )
+            last_name = SchemaNode(
+                String(),
+                )
+            email = SchemaNode(
+                String(),
+                validator=Email(),
+                title='Email address',
+                )
+        
         password = SchemaNode(
             String(),
             widget=CheckedPasswordWidget(),
             title='Change Password',
             missing=''
             )
+
         photo = SchemaNode(
             FileData(),
-            widget=AvatarWidget(),
+            widget=ImageUploadWidget(template='avatar'),
             title='Profile image',
             missing=None,
             validator=Function(is_image),
@@ -339,8 +350,11 @@ class EditProfileFormController(ContentController):
                     missing=''
                     )
 
+class EditProfileFormController(MethodSchema, ContentController):
+
+
     def __init__(self, context, request):
-        super(EditProfileFormController,self).__init__(context,request,form_template='_form_profile_edit')
+        super(EditProfileFormController,self).__init__(context,request)
         self.social_category = social_category(context, None)
         if not self.social_category:
             # the social category is lazily instantiated
@@ -350,9 +364,11 @@ class EditProfileFormController(ContentController):
          context = self.context
          assert(context.websites != None)
          defaults = dict(
-             first_name=context.firstname,
-             last_name=context.lastname,
-             email=context.email,
+             names_fieldset=dict(
+                 first_name=context.firstname,
+                 last_name=context.lastname,
+                 email=context.email,
+             ),
              details=dict(
                  position=context.position,
                  organization=context.organization,
@@ -371,9 +387,10 @@ class EditProfileFormController(ContentController):
 
     def handle_content(self, context, request, validated):
         # Handle the easy ones
-        context.firstname=validated['first_name']
-        context.lastname=validated['last_name']
-        context.email=validated['email']
+        names_fieldset = validated['names_fieldset']
+        context.firstname=names_fieldset['first_name']
+        context.lastname=names_fieldset['last_name']
+        context.email=names_fieldset['email']
         context.position=validated['details']['position']
         context.organisation=validated['details']['organisation']
         context.biography=validated['details']['biography']
