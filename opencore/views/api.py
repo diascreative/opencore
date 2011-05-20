@@ -206,7 +206,7 @@ class TemplateAPI(object):
         if self._identity is None:
             self._identity = self.request.environ.get('repoze.who.identity')
             if self._identity:
-                self._isStaff = gn in self._identity.get('groups')
+                self._isStaff = gn in self._identity.get('groups', [])
         return self._isStaff
 
     def __getitem__(self, key):
