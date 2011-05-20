@@ -23,6 +23,6 @@ class TestAPI(unittest.TestCase):
         api = TemplateAPI(None, request, None)
         
         # Should return False which is fine because the whole point is to
-        # actually make sure the whatever API's self._identity returns
+        # actually make sure that whatever API's self._identity returns
         # is a dictionary.
         self.assertEquals(api.user_is_staff, False)
