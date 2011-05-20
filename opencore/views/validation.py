@@ -1,11 +1,17 @@
 from htmllaundry import sanitize
-from htmllaundry.cleaners import CommentCleaner
+from htmllaundry.cleaners import CommentCleaner, DocumentCleaner
 
 def safe_html(text):
     """
     Take raw html and sanitize for safe use with tal:content="structure:x"
     """
     return sanitize(text,CommentCleaner)
+
+def safe_body_html(text):
+    """
+    Take raw html and sanitize for safe use with tal:content="structure:x"
+    """
+    return sanitize(text,DocumentCleaner)
 
 class ValidationError(Exception):
     '''
