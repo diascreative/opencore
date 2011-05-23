@@ -5,6 +5,7 @@ from opencore import testing as opentesting
 from opencore.models.interfaces import ICommunityFile
 from opencore.testing import (
     DummyImageFile,
+    DummyImageModel,
     DummySessions,
     DummyUpload,
     DummyUsers,
@@ -101,9 +102,13 @@ class TestEditProfileFormController(unittest.TestCase):
         controller = self._makeOne()
         self.assertEqual(
             controller.form_defaults(),
-            {'first_name': 'firstname',
-             'last_name': 'lastname',
-             'details': {
+            { 
+                'names_fieldset': {
+                    'first_name': 'firstname',
+                    'last_name': 'lastname',
+                    'email': 'email@example.com',
+                    },
+                'details': {
                     'position': 'position',
                     'biography': 'Interesting Person',
                     'social_networks': {},
@@ -111,7 +116,7 @@ class TestEditProfileFormController(unittest.TestCase):
                     'country': 'CH',
                     'websites': ['http://example.com']
                     },
-             'email': 'email@example.com'}
+                }
             )
 
     def test_get(self):
@@ -122,9 +127,11 @@ class TestEditProfileFormController(unittest.TestCase):
 
     def test_post_websites_no_scheme(self):
         self.request.POST =   MultiDict([
+                ('__start__', u'names_fieldset:mapping'),
                 ('first_name', u'Joe'),
                 ('last_name', u'Marks'),
                 ('email', u'joe@example.com'),
+                ('__end__', u'names_fieldset:mapping'),
                 ('__start__', u'details:mapping'),
                 ('__start__', u'websites:sequence'),
                 ('url',u'www.happy.com'),
@@ -144,9 +151,11 @@ class TestEditProfileFormController(unittest.TestCase):
         
     def test_post_websites_https(self):
         self.request.POST =   MultiDict([
+                ('__start__', u'names_fieldset:mapping'),
                 ('first_name', u'Joe'),
                 ('last_name', u'Marks'),
                 ('email', u'joe@example.com'),
+                ('__end__', u'names_fieldset:mapping'),
                 ('__start__', u'details:mapping'),
                 ('__start__', u'websites:sequence'),
                 ('url',u'https://www.happy.com'),
@@ -166,9 +175,11 @@ class TestEditProfileFormController(unittest.TestCase):
         
     def test_post_websites_error(self):
         self.request.POST =   MultiDict([
+                ('__start__', u'names_fieldset:mapping'),
                 ('first_name', u'Joe'),
                 ('last_name', u'Marks'),
                 ('email', u'joe@example.com'),
+                ('__end__', u'names_fieldset:mapping'),
                 ('__start__', u'details:mapping'),
                 ('__start__', u'websites:sequence'),
                 ('url',u'http://nodotcom'),
@@ -225,15 +236,22 @@ class TestEditProfileFormController(unittest.TestCase):
             )
         
     def test_handle_submit_minimal(self):
+        testing.registerAdapter(lambda *arg: DummyImageFile,
+                                (ICommunityFile,),
+                                IContentFactory)
         # a dummy photo to check it's not overridden
-        self.context['photo']=photo=testing.DummyModel()
+        self.context['photo']=photo=DummyImageModel()
         self.request.POST = MultiDict([
+                ('__start__', u'names_fieldset:mapping'),
                 ('first_name', u'Joe'),
                 ('last_name', u'Marks'),
                 ('email', u'joe@example.com'),
+                ('__end__', u'names_fieldset:mapping'),
                 ('__start__', u'details:mapping'),
                 ('country', u'TJ'),
                 ('__end__', u'details:mapping'),
+                ('__start__', u'photo:mapping'),
+                ('__end__', u'photo:mapping'),
                 ('save', u'save'),
                 ])
         controller = self._makeOne()
@@ -264,7 +282,7 @@ class TestEditProfileFormController(unittest.TestCase):
         # were missing from the form POST. Of course, this
         # can't happen in actual use ;-)
         self.assertEqual(self.context.position,'')
-        self.assertEqual(self.context.organisation,'')
+        self.assertEqual(self.context.organization,'')
         self.assertEqual(self.context.biography,'')
         self.assertEqual(self.context.websites,[])
         # check modified_by is recorded
@@ -276,9 +294,11 @@ class TestEditProfileFormController(unittest.TestCase):
                                 IContentFactory)
         
         self.request.POST = MultiDict([
+                ('__start__', u'names_fieldset:mapping'),
                 ('first_name', u'Ad'),
                 ('last_name', u'Min'),
                 ('email', u'admin@example.com'),
+                ('__end__', u'names_fieldset:mapping'),
                 ('__start__', u'password:mapping'),
                 ('value', u'newpass'),
                 ('confirm', u'newpass'),
@@ -290,7 +310,7 @@ class TestEditProfileFormController(unittest.TestCase):
                 ('__end__', u'photo:mapping'),
                 ('__start__', u'details:mapping'),
                 ('position', u'missionary'),
-                ('organisation', u'foo'),
+                ('organization', u'foo'),
                 ('biography', u'my biog'),
                 ('__start__', u'websites:sequence'),
                 ('url',u'http://one.example.com'),
@@ -318,7 +338,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(self.context.email,'admin@example.com')
         self.assertEqual(self.context.country,'AF')
         self.assertEqual(self.context.position,'missionary')
-        self.assertEqual(self.context.organisation,'foo')
+        self.assertEqual(self.context.organization,'foo')
         self.assertEqual(self.context.biography,'my biog')
         self.assertEqual(self.context.websites,[
                     'http://one.example.com',

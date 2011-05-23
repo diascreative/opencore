@@ -26,6 +26,7 @@
 <body id="frame">
     <div class="block">
         <div class="content">
+            <tal:block metal:define-slot="title"></tal:block>
             <div class="subcontent"><tal:block metal:define-slot="content"></tal:block></div>
         </div>
     </div>
