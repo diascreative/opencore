@@ -17,8 +17,48 @@
                         <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
                         <li><a href="#">Sent</a></li>
                     </ul>
-
-<form class="comment-form" tal:define="my_url my_url|api.here_url" action="${my_url}mbox.html" method="post">
+	    
+	    <div>
+		  <div id="container1">
+		  Hey how was the meeting yesterday?
+		  </div>
+		  <div id="container">
+		      
+		      
+		      <div id="avator">IMAGE</div>
+		      <div id="mail_info">Liz Armstead - rockefeller foundation Kenya<br>5 hours ago</br></div>
+			  
+		      <div id="mail_body"> Etiam lacus diam, tempor sed dapibus ac, porttitor in metus. 
+			Nunc sapien diam, tincidunt a volutpat in, interdum eu dolor. Pellentesque 
+			habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. 
+			Nunc luctus velit vel orci faucibus ullamcorper. Integer iaculis, mauris congue 
+			dapibus viverra, risus turpis viverra odio, vitae sollicitudin dui ante eu 
+			neque. Vestibulum a iaculis nisl. Aenean ligula nisl, fringilla nec tincidunt 
+			nec, rutrum id dui. In pharetra porta eros, vel mollis ipsum congue nec. Maecenas 
+			feugiat ipsum vel lorem vehicula vel lacinia urna scelerisque. Donec nec est 
+			ac neque tincidunt fringilla. Fusce a ligula a elit ultrices pellentesque. 
+		      </div>
+		     
+		  </div>
+		  <div id="container3">
+		  <form method="post" action="">
+			  <div id="mail_reply">
+			      <div id="mail_reply_textarea"> 
+				  <textarea cols="105" rows="6" >Write a Reply</textarea>
+			    	<div class="button-holder">
+				    <input type="submit" class="button post-comment highlight" tal:attributes="value 'reply' if api.userid else 'Send mail'"/>
+			        </div>
+			  </div>
+			      
+			  </div>
+		      </form> 
+		  </div>
+	    
+	    </div>
+	   
+	    
+	    
+<form class="comment-form" tal:define="my_url my_url|api.here_url" action="${my_url}mbox.html" method="post" tal:condition="0">
 <table  border="0" cellspacing="15" cellpadding="0" bgcolor="#eaeaea" width="699px" height="327px" >
   <tr> 
     <td width="87px" align="left" valign="top"><p></p></td>
