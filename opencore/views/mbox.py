@@ -181,60 +181,66 @@ def show_mbox_thread(context, request):
     return return_data
 
 def add_message(context, request):
-    
-    user = authenticated_userid(request)
-    
-    success = False
-    error_msg = ''
 
-    now = str(datetime.utcnow())
-    to = request.params['to']
-    to = [elem.strip() for elem in to.split(',')]
-    
-    to = to[0]
-    
-    subject = request.params.get('subject', '')
-    payload = request.params.get('payload', '')
-    
-    mbt = MailboxTool()
-    
-    msg = MboxMessage(payload.encode('utf-8'))
-    msg['Message-Id'] = MailboxTool.new_message_id()
-    msg['Subject'] = subject
-    msg['From'] = user
-    msg['To'] = to
-    msg['Date'] = now
-    msg['X-oc-thread-id'] = MailboxTool.new_thread_id()
-    
-    try:
-        profiles = find_profiles(context)
-        to_profile = profiles[to]
-        from_profile = profiles[user]
-        
-        eventinfo = _MBoxEvent()
-        eventinfo['content'] = msg
-        eventinfo['content_type'] = 'MBoxMessage'
-        eventinfo['context_url'] = from_profile.__name__
-        
-        eventinfo.mfrom = from_profile.email
-        eventinfo.mfrom_name = from_profile.__name__
-        eventinfo.mto = [to_profile.email]
-        eventinfo.message = msg
-        
-        alert_user(from_profile, eventinfo)
-        transaction.commit()
-        
-    except Exception, e:
-        error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
-        log.error(error_msg)
-        transaction.abort()
-    else:
-        success = True
-    
     return_data = {}
-    return_data['success'] = success
-    return_data['error_msg'] = error_msg
+    return_data['error_msg'] = ''
     return_data['api'] = request.api
+    
+    if request.method == 'POST':
+    
+        user = authenticated_userid(request)
+        
+        success = False
+        error_msg = ''
+    
+        now = str(datetime.utcnow())
+        to = request.params['to']
+        to = [elem.strip() for elem in to.split(',')]
+        
+        to = to[0]
+        
+        subject = request.params.get('subject', '')
+        payload = request.params.get('payload', '')
+        
+        mbt = MailboxTool()
+        
+        msg = MboxMessage(payload.encode('utf-8'))
+        msg['Message-Id'] = MailboxTool.new_message_id()
+        msg['Subject'] = subject
+        msg['From'] = user
+        msg['To'] = to
+        msg['Date'] = now
+        msg['X-oc-thread-id'] = MailboxTool.new_thread_id()
+        
+        try:
+            profiles = find_profiles(context)
+            to_profile = profiles[to]
+            from_profile = profiles[user]
+            
+            eventinfo = _MBoxEvent()
+            eventinfo['content'] = msg
+            eventinfo['content_type'] = 'MBoxMessage'
+            eventinfo['context_url'] = from_profile.__name__
+            
+            eventinfo.mfrom = from_profile.email
+            eventinfo.mfrom_name = from_profile.__name__
+            eventinfo.mto = [to_profile.email]
+            eventinfo.message = msg
+            
+            alert_user(from_profile, eventinfo)
+            transaction.commit()
+            
+        except Exception, e:
+            error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
+            log.error(error_msg)
+            transaction.abort()
+        else:
+            success = True
+        
+        return_data['success'] = success
+        return_data['error_msg'] = error_msg
+        
+    return_data['success'] = True
     
     return return_data
 
