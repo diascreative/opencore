@@ -236,6 +236,9 @@ class TestEditProfileFormController(unittest.TestCase):
             )
         
     def test_handle_submit_minimal(self):
+        testing.registerAdapter(lambda *arg: DummyImageFile,
+                                (ICommunityFile,),
+                                IContentFactory)
         # a dummy photo to check it's not overridden
         self.context['photo']=photo=DummyImageModel()
         self.request.POST = MultiDict([
@@ -248,9 +251,6 @@ class TestEditProfileFormController(unittest.TestCase):
                 ('country', u'TJ'),
                 ('__end__', u'details:mapping'),
                 ('__start__', u'photo:mapping'),
-                ('upload', DummyUpload(filename='test.jpg',
-                                       mimetype='image/jpeg',
-                                       data=one_pixel_jpeg)),
                 ('__end__', u'photo:mapping'),
                 ('save', u'save'),
                 ])

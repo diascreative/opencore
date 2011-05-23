@@ -245,13 +245,17 @@ class ImageUploadWidget(FileUploadWidget):
 
         template = readonly and self.readonly_template or self.template
         thumbnail_url = None
-        if hasattr(self, 'context'):
+        params = dict(
+                field=field, cstruct=cstruct, thumb_url=thumbnail_url,
+                api=self.request.api, context=None, request=self.request
+                )
+        if hasattr(self, 'context') and hasattr(self, 'request'):
             # We're in an edit form as opposed to an add form
             image = self.context.get(field.name)
             if image is not None:
                 thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
-        return field.renderer(template, field=field, cstruct=cstruct,
-                thumb_url=thumbnail_url, context=self.context, api=self.request.api)
+            params['context'] = self.context
+        return field.renderer(template, **params)
 
 
 ### Validators
