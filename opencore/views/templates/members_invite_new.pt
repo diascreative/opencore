@@ -3,12 +3,11 @@
      xmlns:metal="http://xml.zope.org/namespaces/metal"
      metal:use-macro="api.lightbox_layout">
 
+
+    <tal:block metal:fill-slot="title"><h4 class="main-heading">Add Members</h4></tal:block>
+
     <tal:block metal:fill-slot="content">
         <div metal:use-macro="api.snippets.macros['actions_box']" />
-
-        <h4 class="main-heading">Add Members</h4>
-
         <tal:form replace="structure form"/>
-
     </tal:block>  
 </div>
