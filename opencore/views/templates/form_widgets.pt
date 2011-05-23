@@ -23,8 +23,15 @@
     <div metal:define-macro="textarea_fluid" class="text-holder fluid${ error and ' error' or '' }">
         <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
         <span class="err-text textarea-err">${ error and error or '' }</span>
+        
+        <tal:block condition="disabled">
+        <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1" disabled="disabled">${'\n'.join(default_value)}</textarea>
+        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1" disabled="disabled">${default_value}</textarea>
+        </tal:block>
+        <tal:block condition="not disabled">
         <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${'\n'.join(default_value)}</textarea>
         <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${default_value}</textarea>
+        </tal:block>
     </div>
 
     <div metal:define-macro="textarea_fluid_short" class="text-holder fluid short${ error and ' error' or '' }">

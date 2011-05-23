@@ -293,19 +293,23 @@ def get_topic_batch(forum, request):
         allowed={'query': effective_principals(request), 'operator': 'or'},
         )
 
+@bfg_view(for_=IForumTopic, permission='view', name='add_forum_topic.html',
+          renderer='templates/add_forum_topic.pt')
 class AddForumTopicController(BaseController):
     
     class Schema(MappingSchema):
 
         title = SchemaNode(
             String(),
-            validator=Length(max=100)
+            validator=Length(max=100),
+            title='Heading',
             )
 
         description = SchemaNode(
             String(),
             widget=RichTextWidget(),
             missing='',
+            title='Comment',
             )
 
     def handle_submit(self, validated):

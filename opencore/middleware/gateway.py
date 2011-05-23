@@ -1,3 +1,4 @@
+import os
 from webob import Request, Response
 from chameleon.zpt.loader import TemplateLoader
 
@@ -12,7 +13,7 @@ class GatewayMiddleware(object):
         self.domain = domain
         self.lifetime = lifetime
         self.default_message = default_message
-        self.loader = TemplateLoader('./')
+        self.loader = TemplateLoader(os.path.dirname(__file__))
     
     def __call__(self, environ, start_response):
         request = Request(environ)
@@ -30,4 +31,4 @@ class GatewayMiddleware(object):
         else:
             template = self.loader.load('form.pt')
             res = Response(content_type='text/html', charset='utf8', body=template.render())
-            print template.render()
+            return res(environ, start_response)
