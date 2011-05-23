@@ -28,7 +28,7 @@ profile_data = {
     'lastname': 'lastname',
     'email': 'email@example.com',
     'position': 'position',
-    'organisation': 'organisation',
+    'organization': 'organization',
     'country': 'CH',
     'websites': ['http://example.com'],
     'photo': None,
@@ -63,7 +63,7 @@ class TestEditProfileFormController(unittest.TestCase):
                        lambda id,request: { 
                 'title'  : 'Author title',
                 'country' : 'Author country',
-                'organisation' : 'author org',
+                'organization' : 'author org',
                 'url' : 'author-url',
                 'photo_url' : 'author-photo-url',
                 })
@@ -112,7 +112,7 @@ class TestEditProfileFormController(unittest.TestCase):
                     'position': 'position',
                     'biography': 'Interesting Person',
                     'social_networks': {},
-                    'organisation': 'organisation',
+                    'organization': 'organization',
                     'country': 'CH',
                     'websites': ['http://example.com']
                     },
