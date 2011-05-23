@@ -1,19 +1,86 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-     xmlns:tal="http://xml.zope.org/namespaces/tal"
-     xmlns:metal="http://xml.zope.org/namespaces/metal" 
-     metal:use-macro="api.generic_layout">
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      metal:use-macro="api.generic_layout">
 
-    <div metal:fill-slot="content">
-        <div class="content-1">
-            <div class="top"></div>
-            <div class="mid">
-                <div class="large-message">
-                Hi Rob!
-                <br/>
-                I'm opencore/views/templates/mbox_thread.pt
+<div metal:fill-slot="content">
+       
+            <h1>My Mailbox</h1>
+
+            <div class="columns">
+                <div class="column column-1-4 first">left bar: variables that prefill this area are not being sent over to this template from the server side yet, do unable to pull in.
+                       
+                </div>
+
+                <div class="column column-3-4 last">
+                    <ul class="tabs"> 
+                        <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
+                        <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
+                    </ul>
+	    
+	    <div>
+		  <div id="container1">
+		  Hey how was the meeting yesterday?
+		  </div>
+		  <div id="container">
+		      
+		      
+		      <div id="avator">IMAGE</div>
+		      <div id="mail_info">Liz Armstead - rockefeller foundation Kenya<br>5 hours ago</br></div>
+			  
+		      <div id="mail_body"> Etiam lacus diam, tempor sed dapibus ac, porttitor in metus. 
+			Nunc sapien diam, tincidunt a volutpat in, interdum eu dolor. Pellentesque 
+			habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. 
+			Nunc luctus velit vel orci faucibus ullamcorper. Integer iaculis, mauris congue 
+			dapibus viverra, risus turpis viverra odio, vitae sollicitudin dui ante eu 
+			neque. Vestibulum a iaculis nisl. Aenean ligula nisl, fringilla nec tincidunt 
+			nec, rutrum id dui. In pharetra porta eros, vel mollis ipsum congue nec. Maecenas 
+			feugiat ipsum vel lorem vehicula vel lacinia urna scelerisque. Donec nec est 
+			ac neque tincidunt fringilla. Fusce a ligula a elit ultrices pellentesque. 
+		      </div>
+		     
+		  </div>
+		  <div id="container3">
+		  <form method="post" action="">
+			  <div id="mail_reply">
+			      <div id="mail_reply_textarea"> 
+				  <textarea cols="105" rows="6" >Write a Reply</textarea>
+			    	<div class="button-holder">
+				    <input type="submit" class="button post-comment highlight" tal:attributes="value 'reply' if api.userid else 'Send mail'"/>
+			        </div>
+			  </div>
+			      
+			  </div>
+		      </form> 
+		  </div>
+	    
+	    </div>
+		${ queues }
+        <!--            <table id="messages">
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th colspan="2">From</th>
+                            <th>Headline</th>
+                            <th>Date and time</th>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" name="" value="" /></td>
+                            <td></td>
+                            <td></td>
+                            <td><a href="mbox-from.html">Gary Numan</a></td>
+                            <td>lorem</td>
+                            <td>17 February</td>
+                        </tr>
+                    </table> -->
                 </div>
             </div>
-            <div class="bot"></div>
-        </div>
     </div>
+    
+    
+    
+    <!-- START NEW LAYOUT -->
+    <!-- END NEW LAYOUT -->
+    
+    
 </html>
