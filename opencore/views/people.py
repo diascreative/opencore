@@ -306,7 +306,7 @@ class MethodSchema(object):
                 String(),
                 missing='',
                 )
-            organisation = SchemaNode(
+            organization = SchemaNode(
                 String(),
                 missing='',
                 )
@@ -392,7 +392,7 @@ class EditProfileFormController(MethodSchema, ContentController):
         context.lastname=names_fieldset['last_name']
         context.email=names_fieldset['email']
         context.position=validated['details']['position']
-        context.organisation=validated['details']['organisation']
+        context.organization=validated['details']['organization']
         context.biography=validated['details']['biography']
         context.country=validated['details']['country']
 

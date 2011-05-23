@@ -282,7 +282,7 @@ class TestEditProfileFormController(unittest.TestCase):
         # were missing from the form POST. Of course, this
         # can't happen in actual use ;-)
         self.assertEqual(self.context.position,'')
-        self.assertEqual(self.context.organisation,'')
+        self.assertEqual(self.context.organization,'')
         self.assertEqual(self.context.biography,'')
         self.assertEqual(self.context.websites,[])
         # check modified_by is recorded
@@ -310,7 +310,7 @@ class TestEditProfileFormController(unittest.TestCase):
                 ('__end__', u'photo:mapping'),
                 ('__start__', u'details:mapping'),
                 ('position', u'missionary'),
-                ('organisation', u'foo'),
+                ('organization', u'foo'),
                 ('biography', u'my biog'),
                 ('__start__', u'websites:sequence'),
                 ('url',u'http://one.example.com'),
@@ -338,7 +338,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(self.context.email,'admin@example.com')
         self.assertEqual(self.context.country,'AF')
         self.assertEqual(self.context.position,'missionary')
-        self.assertEqual(self.context.organisation,'foo')
+        self.assertEqual(self.context.organization,'foo')
         self.assertEqual(self.context.biography,'my biog')
         self.assertEqual(self.context.websites,[
                     'http://one.example.com',
