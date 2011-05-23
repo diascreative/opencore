@@ -371,7 +371,7 @@ class EditProfileFormController(MethodSchema, ContentController):
              ),
              details=dict(
                  position=context.position,
-                 organisation=context.organisation,
+                 organization=context.organization,
                  biography=context.biography,
                  country=context.country,
                  websites=context.websites,
