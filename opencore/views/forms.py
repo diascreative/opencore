@@ -94,6 +94,10 @@ class DummyTempStore:
     def preview_url(self,name):
         return None
 
+class MemoryTempStore(dict):
+    def preview_url(self, name):
+        return None
+
 ### Controllers for form submission
     
 class BaseController(object):
