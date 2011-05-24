@@ -41,7 +41,9 @@ from opencore.models.interfaces import ICommunity
 from opencore.models.interfaces import ICommunityContent
 from opencore.models.interfaces import IHasFeed
 from opencore.models.interfaces import IImage
+from opencore.utils import fetch_url
 from opencore.utils import find_profiles
+from opencore.utils import get_setting
 from opencore.utilities.image import thumb_url
 from opencore.views.community import get_recent_items_batch
 from opencore.views.interfaces import IAtomFeed
@@ -177,6 +179,8 @@ class AtomEntry(object):
     def content(self):
         raise NotImplementedError(
             "Method must be overridden by concrete subclass.")
+    
+#class TwitterAtomEntry
 
 class NullContentAtomEntry(AtomEntry):
     """ An adapter for objects that don't really have textual content
@@ -186,6 +190,22 @@ class NullContentAtomEntry(AtomEntry):
     def content(self):
         return None
 
+class TwitterAtomEntry(AtomEntry):
+    @property
+    def author(self):
+        return {
+            "name": self.context.author,
+            "uri": 'https://twitter.com/' + self.context.author
+        }
+    
+    @property
+    def content(self):
+        return self.context.content
+    
+    @property
+    def uri(self):
+        return self.context.uri
+    
 class GenericAtomEntry(AtomEntry):
     """ Can adapt any model object with a "text" or "description" attribute,
     favoring "text" if it is available.
@@ -234,19 +254,27 @@ def profile_atom_view(context, request):
     return ProfileAtomFeed(context, request)()
 
 @cache_region('short_term', 'twitter_search')
-def twitter_site_atom_view(context, request):
-    from opencore.utils import fetch_url
-    from opencore.utils import get_setting
+def fetch_twitter(context, feed_format):
     twitter_search_id = get_setting(context, 'twitter_search_id')
     if not twitter_search_id:
         raise ValueError('no value found for twitter_search_id in config (ini). Unable to search twitter.')
-    search_url = 'http://search.twitter.com/search.rss?q=%s' % twitter_search_id
+    
+    search_url = 'http://search.twitter.com/search.%s?q=%s' % (feed_format, twitter_search_id)
     log.info('twitter_site_atom_view: GET %s' % search_url)
     feed_xml, headers = fetch_url(search_url)
-    response = Response(feed_xml, content_type=headers['Content-Type'])
+    
+    return feed_xml, headers
+    
+def twitter_site_atom_view(context, request, feed_format='rss'):
+    
+    feed_xml, headers = fetch_twitter(context, feed_format)
+
     # would be good to set the ETag too so the browser doesn't even try 
     # to hit the page unless its expired.
+    response = Response(feed_xml, content_type=headers['Content-Type'])
+    
     log.debug('twitter_site_atom_view: %s' % response.headerlist)
+    
     return response
     
 
@@ -277,3 +305,16 @@ def atom_model_list(*results):
     models_list = atom_sort(models_list)
         
     return atom_trim(models_list)
+
+class _TwitterItem(object):
+    def __init__(self, title, uri, modified, author, content):
+        self.title = title
+        self.__parent__ = None
+        self.uri = uri
+        self.modified = self.created = self.published = self.updated = modified
+        self.author = author
+        self.content = content
+        self.__name__ = content
+        
+    def get(self, *ignored_args, **ignored_kwargs):
+        return {}

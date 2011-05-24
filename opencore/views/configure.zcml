@@ -463,6 +463,12 @@
     factory="opencore.views.atom.GenericAtomEntry"/>
     
   <adapter
+    for="opencore.views.atom._TwitterItem
+         repoze.bfg.interfaces.IRequest"
+    provides="opencore.views.interfaces.IAtomEntry"
+    factory="opencore.views.atom.TwitterAtomEntry"/>
+    
+  <adapter
     for="openhcd.models.story.Story
          repoze.bfg.interfaces.IRequest"
     provides="opencore.views.interfaces.IAtomEntry"
