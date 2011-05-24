@@ -96,7 +96,9 @@ class DummyTempStore:
 
 class MemoryTempStore(dict):
     def preview_url(self, name):
-        return None
+        return '/++preview++/' + name
+
+tmpstore = MemoryTempStore()
 
 ### Controllers for form submission
     
@@ -236,7 +238,7 @@ class ImageUploadWidget(FileUploadWidget):
 
     def __init__(self, **kw):
         FileUploadWidget.__init__(self, None, **kw)
-        self.tmpstore = DummyTempStore()
+        self.tmpstore = tmpstore
         self.thumb_size = kw.get('thumb_size')
 
     def serialize(self, field, cstruct, readonly=False):
@@ -257,7 +259,7 @@ class ImageUploadWidget(FileUploadWidget):
             # We're in an edit form as opposed to an add form
             image = self.context.get(field.name)
             if image is not None:
-                thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
+                params['thumb_url'] = thumb_url(image, self.request, self.thumb_size or (290, 216))
             params['context'] = self.context
         return field.renderer(template, **params)
 
