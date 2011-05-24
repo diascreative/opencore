@@ -233,30 +233,6 @@ class ProfileAtomFeed(AtomFeed):
 def profile_atom_view(context, request):
     return ProfileAtomFeed(context, request)()
 
-class SiteAtomFeed(AtomFeed):
-    """ Presents "Recent Activity" for the site as an atom feed.
-    """
-    _subtitle = u"Recent Activity"
-
-    def __init__(self, context, request):
-        super(SiteAtomFeed, self).__init__(context, request)
-
-    @property
-    def _entry_models(self):
-        search = getAdapter(self.context, ICatalogSearch)
-        count, docids, resolver = search(
-            limit=N_ENTRIES,
-            creator=self.context.__name__,
-            sort_index="modified_date",
-            reverse=True,
-            interfaces=[IHasFeed,]
-        )
-        
-        return [resolver(docid) for docid in docids]
-
-def site_atom_view(context, request):
-    return SiteAtomFeed(context, request)()
-
 @cache_region('short_term', 'twitter_search')
 def twitter_site_atom_view(context, request):
     from opencore.utils import fetch_url
@@ -274,6 +250,13 @@ def twitter_site_atom_view(context, request):
     return response
     
 
+def atom_sort(items):
+    items = set(items)
+    return sorted(items, cmp=lambda x,y: cmp(x.modified, y.modified), reverse=True)
+
+def atom_trim(items):
+    return items[:N_ENTRIES]
+
 def atom_search(q, context):
     q['limit']  = N_ENTRIES
     q['sort_index']  = 'modified_date'
@@ -284,13 +267,13 @@ def atom_search(q, context):
     for docid in docids:
         yield resolver(docid)
         
-def atom_model_list(*callables):
+def atom_model_list(*results):
     # All models fetched, sorted by the .modified attribute.
     models_list = []
     
-    for c in callables:
-        result = c()
+    for result in results:
         models_list.extend(result)
-    
-    models_list.sort(cmp=lambda x,y: cmp(x.modified, y.modified), reverse=True)
-    return models_list[:N_ENTRIES]
+
+    models_list = atom_sort(models_list)
+        
+    return atom_trim(models_list)

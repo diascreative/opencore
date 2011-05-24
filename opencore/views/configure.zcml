@@ -372,12 +372,7 @@
     view=".atom.profile_atom_view"
     name="atom.xml"
     permission="view"/>
-    
-  <view
-    for="opencore.models.interfaces.ISite"
-    view=".atom.site_atom_view"
-    name="atom.xml"
-    permission="view"/>
+
 
   <!-- /stop global tagging related views -->
 
