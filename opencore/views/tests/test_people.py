@@ -192,12 +192,18 @@ class TestEditProfileFormController(unittest.TestCase):
         info = controller()
         self.failUnless('This is not a valid url' in info['form'])
 
-    def test_post_twitter_error(self):
-        # must start with @
+    def test_post_twitter_username_without_at_sign(self):
+        """
+        Test that we add the @ sign to the twitter username if it's been
+        omitted.
+        """
+        # must add a @ at the beginning if not provided
         self.request.POST = MultiDict([
+                ('__start__', u'names_fieldset:mapping'),
                 ('first_name', u'Joe'),
                 ('last_name', u'Marks'),
                 ('email', u'joe@example.com'),
+                ('__end__', u'names_fieldset:mapping'),
                 ('__start__', u'details:mapping'),
                 ('__start__', u'social_networks:mapping'),
                 ('twitter',u'something'),
@@ -208,9 +214,12 @@ class TestEditProfileFormController(unittest.TestCase):
                 ])
         controller = self._makeOne()
         info = controller()
-        self.failUnless(
-            'This is not a valid twitter username' in info['form']
-            )
+
+        self.assertEqual(self.context.firstname,'Joe')
+
+        self.assertEqual(
+            self.context.categories['social']['twitter'].id,
+            '@something')
 
     def test_handle_submit_bad_image_upload(self):
         self.request.POST = MultiDict([
