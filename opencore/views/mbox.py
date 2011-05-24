@@ -194,13 +194,13 @@ def add_message(context, request):
         error_msg = ''
     
         now = str(datetime.utcnow())
-        to = request.params['to']
+        to = request.POST['to']
         to = [elem.strip() for elem in to.split(',')]
         
         to = to[0]
         
-        subject = request.params.get('subject', '')
-        payload = request.params.get('payload', '')
+        subject = request.POST.get('subject', '')
+        payload = request.POST.get('payload', '')
         
         mbt = MailboxTool()
         

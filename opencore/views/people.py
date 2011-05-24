@@ -341,7 +341,7 @@ class MethodSchema(object):
                     String(),
                     title='Twitter Username',
                     missing='',
-                    validator=Regex('^@[a-zA-Z_]+',
+                    validator=Regex('^@?[a-zA-Z_]+',
                                     'This is not a valid twitter username')
                     )
                 facebook = SchemaNode(
@@ -420,6 +420,8 @@ class EditProfileFormController(MethodSchema, ContentController):
         for name in ('facebook', 'twitter'):
             id = socials[name]
             if id:
+                if name == 'twitter' and not id.startswith('@'):
+                    id = '@' + id
                 item = self.social_category.get(name)
                 if not item:
                     item = SocialCategoryItem(
