@@ -1,5 +1,4 @@
-<fieldset class="box">
-  <div class="deformFileupload">
+<div class="deformFileupload">
 
      <span class="avatar">
        <img src="${api.find_image_url(context)}" 
@@ -18,5 +17,4 @@
 
     <input type="hidden" name="__end__" value="${field.name}:mapping"/>
 
-  </div>
-</fieldset>
+</div>
