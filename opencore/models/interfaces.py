@@ -22,6 +22,9 @@ from zope.interface import taggedValue
 from repoze.folder.interfaces import IFolder
 from repoze.lemonade.interfaces import IContent
 
+class IHasFeed(Interface):
+    pass
+
 class ICommunityContent(IContent):
     """ Base interface for content which is within a community.
     """

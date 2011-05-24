@@ -15,29 +15,38 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-import time
+# stdlib
 import logging
+import time
 
-from zope.interface import implements
-from zope.component import getMultiAdapter
+# Zope
 from zope.component import getAdapter
+from zope.component import getMultiAdapter
+from zope.interface import implements
 
+# webob
 from webob import Response
 
+# Repoze
 from repoze.bfg.chameleon_zpt import render_template
-from repoze.bfg.url import model_url
 from repoze.bfg.traversal import model_path
+from repoze.bfg.url import model_url
+
+# Beaker
 from beaker.cache import cache_region
+
+# opencore
+from opencore.models.interfaces import ICatalogSearch
+from opencore.models.interfaces import ICommunity
+from opencore.models.interfaces import ICommunityContent
+from opencore.models.interfaces import IHasFeed
+from opencore.models.interfaces import IImage
 from opencore.utils import find_profiles
+from opencore.utilities.image import thumb_url
 from opencore.views.community import get_recent_items_batch
 from opencore.views.interfaces import IAtomFeed
 from opencore.views.interfaces import IAtomEntry
 from opencore.views.utils import convert_entities
-from opencore.models.interfaces import ICatalogSearch
-from opencore.models.interfaces import ICommunity
-from opencore.models.interfaces import ICommunityContent
-from opencore.models.interfaces import IImage
-from opencore.utilities.image import thumb_url
 
 N_ENTRIES = 20
 log = logging.getLogger(__name__)
@@ -224,6 +233,30 @@ class ProfileAtomFeed(AtomFeed):
 def profile_atom_view(context, request):
     return ProfileAtomFeed(context, request)()
 
+class SiteAtomFeed(AtomFeed):
+    """ Presents "Recent Activity" for the site as an atom feed.
+    """
+    _subtitle = u"Recent Activity"
+
+    def __init__(self, context, request):
+        super(SiteAtomFeed, self).__init__(context, request)
+
+    @property
+    def _entry_models(self):
+        search = getAdapter(self.context, ICatalogSearch)
+        count, docids, resolver = search(
+            limit=N_ENTRIES,
+            creator=self.context.__name__,
+            sort_index="modified_date",
+            reverse=True,
+            interfaces=[IHasFeed,]
+        )
+        
+        return [resolver(docid) for docid in docids]
+
+def site_atom_view(context, request):
+    return SiteAtomFeed(context, request)()
+
 @cache_region('short_term', 'twitter_search')
 def twitter_site_atom_view(context, request):
     from opencore.utils import fetch_url
@@ -240,3 +273,24 @@ def twitter_site_atom_view(context, request):
     log.debug('twitter_site_atom_view: %s' % response.headerlist)
     return response
     
+
+def atom_search(q, context):
+    q['limit']  = N_ENTRIES
+    q['sort_index']  = 'modified_date'
+    q['reverse'] = True
+    
+    searcher = ICatalogSearch(context)
+    num, docids, resolver = searcher(**q)
+    for docid in docids:
+        yield resolver(docid)
+        
+def atom_model_list(*callables):
+    # All models fetched, sorted by the .modified attribute.
+    models_list = []
+    
+    for c in callables:
+        result = c()
+        models_list.extend(result)
+    
+    models_list.sort(cmp=lambda x,y: cmp(x.modified, y.modified), reverse=True)
+    return models_list[:N_ENTRIES]

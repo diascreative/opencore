@@ -372,6 +372,12 @@
     view=".atom.profile_atom_view"
     name="atom.xml"
     permission="view"/>
+    
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".atom.site_atom_view"
+    name="atom.xml"
+    permission="view"/>
 
   <!-- /stop global tagging related views -->
 
@@ -451,6 +457,18 @@
 
   <adapter
     for="opencore.models.interfaces.ICommunityContent
+         repoze.bfg.interfaces.IRequest"
+    provides="opencore.views.interfaces.IAtomEntry"
+    factory="opencore.views.atom.GenericAtomEntry"/>
+    
+  <adapter
+    for="openhcd.models.project.Project
+         repoze.bfg.interfaces.IRequest"
+    provides="opencore.views.interfaces.IAtomEntry"
+    factory="opencore.views.atom.GenericAtomEntry"/>
+    
+  <adapter
+    for="openhcd.models.story.Story
          repoze.bfg.interfaces.IRequest"
     provides="opencore.views.interfaces.IAtomEntry"
     factory="opencore.views.atom.GenericAtomEntry"/>

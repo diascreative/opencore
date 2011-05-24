@@ -17,11 +17,16 @@
 
 """ A commenting facility that can be hung off resources"""
 
+# Zope
 from zope.interface import implements
+
+# Repoze
 from repoze.folder import Folder
 
+# opencore
 from opencore.models.interfaces import ICommentsFolder
 from opencore.models.interfaces import IComment
+from opencore.models.interfaces import IHasFeed
 
 class CommentsFolder(Folder):
     implements(ICommentsFolder)
@@ -40,7 +45,7 @@ class CommentsFolder(Folder):
 class Comment(Folder):
     """ A comment can contain attachments """
 
-    implements(IComment)
+    implements(IComment, IHasFeed)
     attachments = None
     modified_by = None
 
