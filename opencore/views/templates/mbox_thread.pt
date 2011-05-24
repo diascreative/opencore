@@ -19,14 +19,14 @@
                     </ul>
 	    
 	    <div>
-		  <div id="container1">
-		  Hey how was the meeting yesterday?
+		  <div id="container1" tal:repeat="message messages">
+		  Hey how was the meeting yesterday? ${message.from_photo} ${message.payload} 
 		  </div>
 		  <div id="container">
 		      
 		      
 		      <div id="avator">IMAGE</div>
-		      <div id="mail_info">Liz Armstead - rockefeller foundation Kenya<br>5 hours ago</br></div>
+		      <div id="mail_info" >Liz Armstead - rockefeller foundation Kenya<br>5 hours ago</br></div>
 			  
 		      <div id="mail_body"> Etiam lacus diam, tempor sed dapibus ac, porttitor in metus. 
 			Nunc sapien diam, tincidunt a volutpat in, interdum eu dolor. Pellentesque 
@@ -55,7 +55,10 @@
 		  </div>
 	    
 	    </div>
-		${ queues }
+            
+		${ messages }
+          
+               
         <!--            <table id="messages">
                         <tr>
                             <th></th>
