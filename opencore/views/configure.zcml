@@ -670,7 +670,12 @@
     permission="view"
     />
 
-
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.image_upload"
+    name="gallery_image_upload"
+    permission="view"
+    renderer="templates/widgets/gallery_image_upload.pt"/>
 
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"

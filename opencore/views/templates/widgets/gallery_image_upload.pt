@@ -1,0 +1,5 @@
+Choose a file:
+<form action="">
+  <input type="file" />
+  <input type="submit" />
+</form>

@@ -1,5 +1,8 @@
 from PIL import Image
-from colander import null
+from colander import (
+        null,
+        Invalid,
+        )
 from deform import (
     Form,
     ValidationFailure,
@@ -186,6 +189,8 @@ class ContentController(BaseController):
             context.__class__.__name__+' edited'
             )
         return HTTPFound(location=location+msg)
+
+
     
 ### Widgets
 
@@ -262,6 +267,52 @@ class ImageUploadWidget(FileUploadWidget):
                 params['thumb_url'] = thumb_url(image, self.request, self.thumb_size or (290, 216))
             params['context'] = self.context
         return field.renderer(template, **params)
+
+
+class GalleryWidget(Widget):
+    """
+    A widget to work with galleries containing images and videos.
+    """
+
+    template = 'gallery'
+
+    def serialize(self, field, cstruct, readonly=False):
+#        if field.name!='users':
+#            raise Exception(
+#                "This widget must be used on a field named 'users'"
+#                )
+        # For now we don't bother with cstruct parsing.
+        # If we need to use this widget for edits, then we will have to
+        params = dict(field=field, cstruct=(), context=self.context,
+                request=self.request, api=self.request.api)
+        return field.renderer(self.template, **params)
+
+    def deserialize(self, field, pstruct):
+        return pstruct
+
+## Types
+
+class GalleryList(object):
+    """ A colander type representing a list of gallery items.
+    """
+
+    def serialize(self, node, value):
+        if value is null:
+            return null
+        return value
+
+    def deserialize(self, node, value):
+        if value is null:
+            return null
+        if not hasattr(value, '__iter__'):
+            raise Invalid(
+                node,
+                _('${value} is not iterable', mapping={'value':value})
+                )
+        value =  set(value)
+        if not value and not self.allow_empty:
+            raise Invalid(node, _('Required'))
+        return value
 
 
 ### Validators
