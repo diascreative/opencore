@@ -18,7 +18,7 @@
                         <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
                     </ul>
 	    
-<form class="comment-form" tal:define="my_url my_url|api.here_url" action="" method="post">
+<form class="comment-form" tal:define="my_url my_url|api.here_url" action="${ my_url }" method="POST">
 <table  border="0" cellspacing="15" cellpadding="0" bgcolor="#eaeaea" width="699px" height="327px" >
   <tr> 
     <td width="87px" align="left" valign="top"><p></p></td>
