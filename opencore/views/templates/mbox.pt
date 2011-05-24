@@ -11,10 +11,10 @@
 
                 <div class="column column-3-4 last">
                     <ul class="tabs"> 
-                        <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
+                        <li class="active"><a href="/mbox.html">Inbox (6 )</a></li>
                         <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
                     </ul>
-	                   <table id="messages">
+	                   <table id="messages" width="700px">
                         <tr>
                             <th></th>
                             <th></th>
@@ -26,7 +26,7 @@
                             <td><input type="checkbox" name="" value="" /></td>
                             <td></td>
                             <td></td>
-                            <td><a href="/mbox_thread.html?thread_id=${ message.name }">${message.first_message_to}</a></td>
+                            <td><a href="/mbox_thread.html?thread_id=${ message.id }">${message.first_message_to}</a></td>
                             <td>lorem</td>
                             <td>${message.first_message_date}</td>
                         </tr>
