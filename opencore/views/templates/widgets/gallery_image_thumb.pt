@@ -1,9 +1,9 @@
-<div class="gallery-image-thumb">
-  <input type="hidden" value="gallery_item:mapping" name="__start__" />
-  <input type="hidden" name="type" value="image" />
-  <input tal:condition="uid" type="hidden" name="uid" value="${uid}" />
-  <input type="checkbox" name="delete" />
-  <input type="hidden" value="gallery_item:mapping" name="__end__" />
-  <label>Delete</label>
-  <img src="${thumb_url}" />
-</div>
+<a href="#" rel="&lt;img src=&quot;${ thumb_url }&quot; /&gt;">
+    <input type="hidden" value="gallery_item:mapping" name="__start__" />
+    <input type="hidden" name="type" value="image" />
+    <input tal:condition="uid" type="hidden" name="uid" value="${uid}" />
+    <input type="checkbox" name="delete" />
+    <input type="hidden" value="gallery_item:mapping" name="__end__" />
+    <label>Delete</label>
+    <img src="${thumb_url}" />
+</a>
