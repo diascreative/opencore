@@ -670,12 +670,28 @@
     permission="view"
     />
 
+  <!-- gallery image upload form -->
   <view
     for="opencore.models.interfaces.ISite"
     view=".gallery.image_upload"
     name="gallery_image_upload"
     permission="view"
     renderer="templates/widgets/gallery_image_upload.pt"/>
+
+  <!-- HTML around an image preview -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.image_preview_layout"
+    name="gallery_image_preview_layout"
+    permission="view"
+    renderer="templates/widgets/gallery_image_preview.pt"/>
+
+  <!-- the image preview itself -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.image_preview"
+    name="gallery_image_preview"
+    permission="view" />
 
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"

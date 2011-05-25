@@ -1,2 +1,2 @@
-<iframe src="${api.app_url}/gallery_image_upload">
+<iframe width="400" src="${api.app_url}/gallery_image_upload">
 </iframe>

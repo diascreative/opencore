@@ -1,5 +1,6 @@
-Choose a file:
-<form action="">
-  <input type="file" />
-  <input type="submit" />
-</form>
+<c tal:condition="form" tal:replace="structure form"></c>
+<c tal:condition="preview_url">
+<script type="text/javascript">
+  console.log('${preview_url}');
+</script>
+</c>
