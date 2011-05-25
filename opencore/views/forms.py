@@ -310,6 +310,7 @@ class GalleryList(object):
                 _('${value} is not iterable', mapping={'value':value})
                 )
         result = []
+        print "****", value
         for item in value:
             item_type = item.get('type')
             if item_type == 'image':
