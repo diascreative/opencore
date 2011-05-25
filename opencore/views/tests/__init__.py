@@ -10,6 +10,7 @@ from zope.interface import implements
 
 # opencore
 from opencore.models.interfaces import ICommunityInfo, ITagQuery
+from opencore.testing import DummyProfile
 
 class DummyAPI(object):
     
@@ -17,6 +18,8 @@ class DummyAPI(object):
     
     def __init__(self):
         self.page_title = None
+        self._profile = None
+        self.people_url = ''
 
     def view_count(self, *args_ignored, **kwargs_ignored):
         pass
@@ -26,6 +29,12 @@ class DummyAPI(object):
 
     def like_count(self, *args_ignored, **kwargs_ignored):
         pass
+
+    def find_profile(self, uid):
+        if self._profile:
+            return self._profile
+        
+        return DummyProfile()
     
 class DummyAdapter(object):
     implements(ICommunityInfo, ITagQuery)
