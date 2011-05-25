@@ -581,6 +581,9 @@ class TemplateAPI(object):
         else :
             return 'moments'
 
+    def thumb_url(self, image, size=(200, 200)):
+        return thumb_url(image, self.request, size)
+
 class SettingsReader:
     """Convenience for reading settings in templates"""
     def __init__(self, context):

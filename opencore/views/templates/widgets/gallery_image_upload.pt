@@ -5,6 +5,8 @@
 <!-- Handle success: update the gallery preview -->
 <c tal:condition="thumb_url">
 <script type="text/javascript">
-  $('#gallery-preview', window.parent.document).load('${thumb_url}');
+  $.get('${thumb_url}', function(data, textStatus) {
+      $('#gallery-preview', window.parent.document).append(data);
+      });
 </script>
 </c>

@@ -1,6 +1,9 @@
 <input type="hidden" value="gallery:sequence" name="__start__" />
-  <div id="gallery-preview">
+<div id="gallery-preview">
+  <div tal:repeat="item context['gallery'].values()">
+    <img src="${api.thumb_url(item)}" />
   </div>
+</div>
 <input type="hidden" value="gallery:sequence" name="__end__" />
 <iframe width="400" src="${api.app_url}/gallery_image_upload">
 </iframe>
