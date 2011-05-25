@@ -44,6 +44,8 @@ class CommentsFolder(Folder):
 
 class Comment(Folder):
     """ A comment can contain attachments """
+    
+    atom_name = 'a comment'
 
     implements(IComment, IHasFeed)
     attachments = None

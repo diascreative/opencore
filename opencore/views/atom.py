@@ -190,35 +190,6 @@ class NullContentAtomEntry(AtomEntry):
     def content(self):
         return None
 
-class TwitterAtomEntry(AtomEntry):
-    @property
-    def author(self):
-        return {
-            "name": self.context.author,
-            "uri": 'https://twitter.com/' + self.context.author
-        }
-    
-    @property
-    def content(self):
-        return self.context.content
-    
-    @property
-    def uri(self):
-        return self.context.uri
-    
-class GenericAtomEntry(AtomEntry):
-    """ Can adapt any model object with a "text" or "description" attribute,
-    favoring "text" if it is available.
-    """
-    @property
-    @xml_content
-    def content(self):
-        if hasattr(self.context, "text"):
-            return self.context.text
-        if hasattr(self.context, "description"):
-            return self.context.description
-        return u""
-
 class CommunityAtomFeed(AtomFeed):
     """ Presents "Recent Activity" for community as an atom feed.
     """
@@ -306,7 +277,17 @@ def atom_model_list(*results):
         
     return atom_trim(models_list)
 
-class _TwitterItem(object):
+class TwitterItem(object):
+    def __init__(self, title, uri, modified, author, content):
+        self.title = title
+        self.__parent__ = None
+        self.uri = uri
+        self.modified = self.created = self.published = self.updated = modified
+        self.author = author
+        self.content = content
+        self.__name__ = content
+        
+class MethodUsedItem(object):
     def __init__(self, title, uri, modified, author, content):
         self.title = title
         self.__parent__ = None
