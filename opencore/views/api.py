@@ -25,12 +25,14 @@ from subprocess import PIPE
 from subprocess import Popen
 import sys
 import time
+from datetime import datetime
 
 from zope.component import getAdapter
 from zope.component import getMultiAdapter
 from zope.component import queryMultiAdapter
 from zope.component import queryUtility
 from zope.interface import Interface, Attribute
+from zope.interface import providedBy
 
 from repoze.bfg.chameleon_zpt import get_template
 from repoze.bfg.url import model_url
@@ -558,6 +560,26 @@ class TemplateAPI(object):
             if default.startswith('/'): # absolute local url
                 default = self.static_url + default
             return default
+
+    def get_interfaces(self, ob):
+        return [i.__name__ for i in providedBy(ob)]
+
+    def time_ago(self, time):
+        """ time difference
+        """
+        now = datetime.now()
+        delta = (now - time)
+
+        if( delta.days == 1 ) :
+            return '%d day' % delta.days
+        elif( delta.days > 0 ) :
+            return '%d days' % delta.days
+        elif ( (delta.seconds/3600) > 1 ) :
+            return '%d hours' % (delta.seconds/3600)
+        elif ( (delta.seconds/60) > 1 ) :
+            return '%d mins' % (delta.seconds/60)
+        else :
+            return 'moments'
 
 class SettingsReader:
     """Convenience for reading settings in templates"""
