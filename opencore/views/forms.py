@@ -313,9 +313,21 @@ class GalleryList(object):
         for item in value:
             item_type = item.get('type')
             if item_type == 'image':
-                uid = item['uid']
-                image = tmpstore[uid]
-                result.append({'type': item_type, 'image': image})
+                uid = item.get('uid')
+                if uid:
+                    image = tmpstore[uid]
+                    result.append({'new': True, 
+                                   'type': item_type, 
+                                   'image': image})
+                else:
+                    key = item.get('key')
+                    result.append({'key': key, 
+                                   'type': item_type, 
+                                   'order': item.get('order'), 
+                                   'delete': item.get('delete')})
+                    if not key:
+                        raise Invalid(node, 
+                             "An image field must have either an uid or key")
             else:
                 raise Invalid(
                         node,
@@ -323,9 +335,9 @@ class GalleryList(object):
                         mapping={'item_type': item_type}
                         )
 
-        value =  result
-        if not value and not self.allow_empty:
-            raise Invalid(node, _('Required'))
+        value = result
+#        if not value and not self.allow_empty:
+#            raise Invalid(node, _('Required'))
         return value
 
 
