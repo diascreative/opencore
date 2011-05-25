@@ -315,10 +315,11 @@ class GalleryList(object):
             if item_type == 'image':
                 uid = item.get('uid')
                 if uid:
-                    image = tmpstore[uid]
-                    result.append({'new': True, 
-                                   'type': item_type, 
-                                   'image': image})
+                    if not item.get('delete'):
+                        image = tmpstore[uid]
+                        result.append({'new': True, 
+                                       'type': item_type, 
+                                       'image': image})
                 else:
                     key = item.get('key')
                     result.append({'key': key, 
