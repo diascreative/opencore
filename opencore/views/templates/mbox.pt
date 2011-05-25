@@ -2,9 +2,6 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       metal:use-macro="api.generic_layout">
-
-
-
 <div metal:fill-slot="content">
 	    <h1>My Mailbox</h1>
 
@@ -25,13 +22,20 @@
                             <th><p></p>Date and time</th>
                         </tr>		
                         <tr tal:repeat="message queues" bgcolor="#eaeaea">
-                            <td width="40px" valign='center'>&nbsp;&nbsp;<input type="checkbox" name="" value="" /></td>
-                            <td width="20px">?</td>
+                            <td  width="40px" valign='center'><p style="margin:14px;"><input type="checkbox"  name="" value="" /></p></td>
+                            <td width="20px"><p style="margin:14px; "></p></td>
                             <td width="20px">(3)</td>
-                            <td width="209px" valign='center'>${message.first_message_from}<p></p></td>
+                            <td width="209px" >${message.first_message_from}</td>
                             <td width="381px"><a href="/mbox_thread.html?thread_id=${ message.id}">Subject waiting for backend to implement subject</a></td>
                             <td width="174px">${message.first_message_date}</td>
                         </tr>
+			   <tr bgcolor="#fff">
+                            <td colspan="4">Delete selected</td>
+                            <td width="381px"></td>
+                            <td width="174px" align='right'>Prev | 1 | 2 | 3 |... | Next</td>
+                        </tr>
+			
+			
                     </table> </div>
 		 <!-- ${ queues } -->
 
