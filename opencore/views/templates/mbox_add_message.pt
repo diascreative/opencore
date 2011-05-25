@@ -3,10 +3,8 @@
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       metal:use-macro="api.generic_layout">
 
-<div metal:fill-slot="content">
-       
+<div metal:fill-slot="content">       
             <h1>My Mailbox</h1>
-
             <div class="columns">
                 <div class="column column-1-4 first">left bar: variables that prefill this area are not being sent over to this template from the server side yet, do unable to pull in.
                        
@@ -17,50 +15,30 @@
                         <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
                         <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
                     </ul>
-	    
-<form class="comment-form" tal:define="my_url my_url|api.here_url" action="${ my_url }" method="POST">
-<table  border="0" cellspacing="15" cellpadding="0" bgcolor="#eaeaea" width="699px" height="327px" >
-  <tr> 
-    <td width="87px" align="left" valign="top"><p></p></td>
-    <td width="258px" valign="top"><p></p></td>
-  </tr>
-    <tr> 
-    <td width="87px" align="left" valign="top">&nbsp;&nbsp;<b>To:</b></td>
-    <td width="258px" valign="top"><input type="text" name="to" class="text" size="92px" /></td>
-  </tr>
-  <tr> 
-    <td align="left" valign="top" cellpadding="2">&nbsp;&nbsp;<b>Subject:</b></td>
-    <td valign="top"><input type="text" name="subject" class="text" size="92px"/></td>
-  </tr>
-  <tr> 
-    <td valign="top" align="left">&nbsp;&nbsp;<b>Message:</b></td>
-    <td valign="top">
-    	<div tal:condition="api.userid" tal:content="structure api.render_form_widget('textarea_fluid', 'payload', '', default='')" tal:omit-tag="" />
-    </td>
-  </tr>
-  <tr> 
-    <td></td>
-    <td align="right" valign="top">     
-    	<table>
-    		<tr><td valign="top">
-    			<div class="button-holder">
-    				<input type="submit" class="button primary_button" tal:attributes="value 'Cancel' if api.userid else 'Send mail'"/>
-    			</div>
-    		</td>
-    		<td>
-    		&nbsp;&nbsp;</td> 
-    		<td valign="top">     
-    			<div class="button-holder">
-    				<input type="submit" class="button post-comment highlight" tal:attributes="value 'Send' if api.userid else 'Send mail'"/>
-    			</div>
-    		</td>
-    	</tr>
-    </table>
-    	    
-     </td>
-  </tr>
+                    <form class="comment-form" tal:define="my_url my_url|api.here_url" action="${ my_url }" method="POST">
+                         <div id="add_message_container">
+                              <div id="add_message_to"><b>To:</b></div>
+                              <div id="add_message_to_textfield"><input type="text" name="to" class="text" size="92px" /></div>
+                              <div id="add_message_subject"><b>Subject:</b></div>
+                              <div id="add_message_subject_textfield"><input type="text" name="subject" class="text" size="92px"/></div>
+                              <div id="add_message"><b>Message:</b></div>
+                              <div id="add_message_textarea">
+                                   <div id="mail_reply">
+                                        <div id="add_message_mail_reply_textarea" style="width: 597px"> 
+                                             <div tal:condition="api.userid" tal:content="structure api.render_form_widget('textarea_fluid', 'payload', '', default='')" tal:omit-tag="" /></div>
+                                             <div id="add_message_cancel_button">
+                                                  <input type="submit" class="button primary_button" tal:attributes="value 'Cancel' if api.userid else 'Send mail'"/>
+                                             </div>
+                                             <div id="add_message_send_button">
+                                                  <input type="submit" class="button primary_button highlight" tal:attributes="value 'Send' if api.userid else 'Send mail'"/>
+                                             </div>
+                                        </div>
+                              </div>
+                         </div>
+                    </form>     
+                    <a href="/mbox.html"> Back to Inbox</a>
 
-</table></form><a href="/mbox.html"> Back to Inbox</a>
-
-                </div></div></div> 
+               </div>
+          </div>
+     </div> 
 </html>
