@@ -114,10 +114,21 @@ def show_profiles_view(context, request):
             continue
         profiles.append(model)
 
+
+    members = []
+
+    for profile in profiles:
+        members.append({
+                        'url' : '%s/%s/' % (request.api.people_url, profile.__name__),
+                        'title' :  profile.title,
+                        'firstname' : profile.firstname
+                        })
+
     return render_template_to_response(
         'templates/profiles.pt',
         api=api,
         profiles=profiles,
+        members=members,
         )
 
 def get_profile_actions(profile,request):
