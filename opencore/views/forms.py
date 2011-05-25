@@ -99,7 +99,7 @@ class DummyTempStore:
 
 class MemoryTempStore(dict):
     def preview_url(self, name):
-        return '/++preview++/' + name
+        return '/gallery_image_thumb/' + name
 
 tmpstore = MemoryTempStore()
 

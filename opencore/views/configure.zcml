@@ -681,16 +681,16 @@
   <!-- HTML around an image preview -->
   <view
     for="opencore.models.interfaces.ISite"
-    view=".gallery.image_preview_layout"
-    name="gallery_image_preview_layout"
+    view=".gallery.image_thumb_layout"
+    name="gallery_image_thumb_layout"
     permission="view"
-    renderer="templates/widgets/gallery_image_preview.pt"/>
+    renderer="templates/widgets/gallery_image_thumb.pt"/>
 
   <!-- the image preview itself -->
   <view
     for="opencore.models.interfaces.ISite"
-    view=".gallery.image_preview"
-    name="gallery_image_preview"
+    view=".gallery.image_thumb"
+    name="gallery_image_thumb"
     permission="view" />
 
   <subscriber

@@ -8,6 +8,7 @@ from colander import SchemaNode, MappingSchema, Function
 from deform import FileData, Form, ValidationFailure
 from deform.widget import FileUploadWidget
 from repoze.bfg.exceptions import NotFound
+from webob import Response
 
 from opencore.views.forms import is_image, tmpstore
 
@@ -24,7 +25,7 @@ class ImageUploadSchema(MappingSchema):
             )
 
 def image_upload(context, request):
-    data = {'form': None, 'preview_url': None}
+    data = {'api': request.api, 'form': None, 'thumb_url': None}
     form = Form(ImageUploadSchema(), buttons=('Submit',))
     if request.method == "POST":
         controls = request.POST.items()
@@ -37,37 +38,34 @@ def image_upload(context, request):
             # Handle success
             log.debug('validated data: %s', validated)
             uid = validated['image']['uid']
-            mimetype = validated['image']['mimetype']
-            preview_url = tmpstore.preview_url(uid)
-            preview_params = urllib.urlencode({'mimetype': mimetype})
-            data['preview_url'] = '?'.join([preview_url, preview_params])
+            data['thumb_url'] = '/'.join([ request.api.app_url,
+                                           'gallery_image_thumb_layout', 
+                                           uid ])
     else:
         data['form'] = form.render({})
 
     return data
 
-def image_preview_layout(context, request):
-    """
-    This view renders HTML containing an image preview
-    """
-    data = {}
-    try:
-        uid = request.subpath[0]
-        data['image_url'] = '?'.join([
-            tmpstore.preview_url(uid),
-            urllib.urlencode(request.GET)
-            ])
-    except IndexError, KeyError:
-        raise NotFound()
-    return data
-
-def image_preview(context, request):
+def _find_tmp_thumb(request):
     try:
         uid = request.subpath[0]
         image_file = tmpstore[uid]
-        mimetype = request.params['mimetype']
+        return image_file
     except (IndexError, KeyError), e:
-        log.warning(e.message)
+        log.warning("Gallery thumbnail not found: %s", e)
         raise NotFound()
-    print "***", image_file
 
+def image_thumb_layout(context, request):
+    """
+    This view renders HTML containing an image preview
+    """
+    thumb = _find_tmp_thumb(request)
+    data = {'thumb_url':  thumb['preview_url']}
+    return data
+
+def image_thumb(context, request):
+    thumb = _find_tmp_thumb(request)
+    data = thumb['fp'].read()
+    thumb['fp'].seek(0)
+    mimetype = thumb['mimetype']
+    return Response(data, content_type=mimetype)

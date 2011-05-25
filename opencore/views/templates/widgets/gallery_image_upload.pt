@@ -1,6 +1,10 @@
+<metal:resources use-macro="api.snippets.macros['js_resources']"/>
+
 <c tal:condition="form" tal:replace="structure form"></c>
-<c tal:condition="preview_url">
+
+<!-- Handle success: update the gallery preview -->
+<c tal:condition="thumb_url">
 <script type="text/javascript">
-  console.log('${preview_url}');
+  $('#gallery-preview', window.parent.document).load('${thumb_url}');
 </script>
 </c>

@@ -1,2 +1,5 @@
+<div id="gallery-preview">
+  PLOP
+</div>
 <iframe width="400" src="${api.app_url}/gallery_image_upload">
 </iframe>
