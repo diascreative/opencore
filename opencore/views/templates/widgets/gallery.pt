@@ -1,4 +1,4 @@
-<div class="gallery clearfix">
+<div id="admin-gallery" class="gallery clearfix">
     <div class="gallery-viewport"></div>
     <input type="hidden" value="gallery:sequence" name="__start__" />
     <div id="gallery-preview" class="gallery-thumbs">
