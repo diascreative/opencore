@@ -242,7 +242,7 @@ class ShowProfileView(object):
         """ Prepare all the data needed by a template without actually rendering
         anything so that subclasses can add additional information as they see fit.
         """
-        self.response = {'api':self.api,
+        self.response = {'api':self.request.api,
             'profile_currently_viewed':self.profile,
             'actions':self.actions,
             'head_data':self.head_data,
