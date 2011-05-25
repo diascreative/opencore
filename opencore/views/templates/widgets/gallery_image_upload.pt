@@ -7,6 +7,7 @@
 <script type="text/javascript">
   $.get('${thumb_url}', function(data, textStatus) {
       $('#gallery-preview', window.parent.document).append(data);
+      top.$.fancybox.close();
       });
 </script>
 </c>
