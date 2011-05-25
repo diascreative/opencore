@@ -5,5 +5,5 @@
     <input type="checkbox" name="delete" />
     <input type="hidden" value="gallery_item:mapping" name="__end__" />
     <label>Delete</label>
-    <img src="${thumb_url}" />
+    <span><img src="${thumb_url}" /></span>
 </a>
