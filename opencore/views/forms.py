@@ -278,19 +278,13 @@ class GalleryWidget(Widget):
     template = 'gallery'
 
     def serialize(self, field, cstruct, readonly=False):
-#        if field.name!='users':
-#            raise Exception(
-#                "This widget must be used on a field named 'users'"
-#                )
-        # For now we don't bother with cstruct parsing.
-        # If we need to use this widget for edits, then we will have to
-        # [{'type': u'image', 'order': u'0', 'key': u'1'}, {'type': u'image',
-        # 'order': u'1', 'key': u'2'}, {'type': u'image', 'uid': u'6IOK95Q1LW'}]
-        context = self.context
+        log.debug("*** GalleryWidget field: %s, cstruct: %s", field, cstruct)
         request = self.request
         api = request.api
         items = []
-        if isinstance(cstruct, CommunityFolder):
+        if cstruct is null:
+            pass
+        elif isinstance(cstruct, CommunityFolder):
             for key, val in cstruct.items():
                 items.append({
                           'key': key, 
@@ -303,7 +297,7 @@ class GalleryWidget(Widget):
                 if key:
                     items.append({
                               'key': key, 
-                              'thumb_url': api.thumb_url(context['gallery'][key]),
+                              'thumb_url': api.thumb_url(self.context['gallery'][key]),
                               'type': citem['type']
                               })
                 else:
@@ -317,8 +311,7 @@ class GalleryWidget(Widget):
                                                uid ]),
                                   'type': citem['type']
                                   })
-        log.debug("*** GalleryWidget field: %s, cstruct: %s", field, cstruct)
-        params = dict(field=field, cstruct=(), context=self.context,
+        params = dict(field=field, cstruct=(),
                 request=self.request, api=self.request.api, items=items)
         return field.renderer(self.template, **params)
 
