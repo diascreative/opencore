@@ -386,11 +386,12 @@ class ShowProfilesViewTests(unittest.TestCase):
         from zope.interface import Interface
         from opencore.models.interfaces import ICatalogSearch
         from opencore.models.adapters import CatalogSearch
+        from opencore.testing import DummyProfile
         catalog = opentesting.DummyCatalog({1:'/foo', 2:'/bar'})
         testing.registerAdapter(CatalogSearch, (Interface), ICatalogSearch)
         context = testing.DummyModel()
         context.catalog = catalog
-        foo = testing.DummyModel()
+        foo = DummyProfile()
         testing.registerModels({'/foo':foo})
         request = testing.DummyRequest(
             params={'titlestartswith':'A'})

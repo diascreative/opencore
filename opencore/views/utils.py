@@ -738,6 +738,16 @@ def comments_to_display(request, profile_thumb_size=None):
         newc['date'] = appdates(comment.created, 'longform')
         newc['timestamp'] = comment.created
         newc['text'] = comment.text
+        
+        
+        
+        if( 'IComment' not in api.get_interfaces(comment.__parent__.__parent__) ):
+            # this is a level 1 comment
+            newc['url'] = model_url(comment.__parent__.__parent__, request) + '#comment-' + comment.__name__
+        else :
+            # this is a reply
+            newc['url'] = model_url(comment.__parent__.__parent__.__parent__.__parent__, request) + '#comment-' + comment.__parent__.__parent__.__name__ + '-' + comment.__name__
+
         # a bit crude
         if hasattr(api, 'like_count'):
             newc['nlikes'] = api.like_count(comment)
