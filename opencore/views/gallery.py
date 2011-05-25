@@ -60,7 +60,7 @@ def image_thumb_layout(context, request):
     This view renders HTML containing an image preview
     """
     thumb = _find_tmp_thumb(request)
-    data = {'thumb_url':  thumb['preview_url']}
+    data = {'thumb_url':  thumb['preview_url'], 'uid': thumb['uid']}
     return data
 
 def image_thumb(context, request):

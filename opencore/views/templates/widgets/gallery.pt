@@ -1,5 +1,6 @@
-<div id="gallery-preview">
-  PLOP
-</div>
+<input type="hidden" value="gallery:sequence" name="__start__" />
+  <div id="gallery-preview">
+  </div>
+<input type="hidden" value="gallery:sequence" name="__end__" />
 <iframe width="400" src="${api.app_url}/gallery_image_upload">
 </iframe>

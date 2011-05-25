@@ -309,7 +309,21 @@ class GalleryList(object):
                 node,
                 _('${value} is not iterable', mapping={'value':value})
                 )
-        value =  set(value)
+        result = []
+        for item in value:
+            item_type = item.get('type')
+            if item_type == 'image':
+                uid = item['uid']
+                image = tmpstore[uid]
+                result.append({'type': item_type, 'image': image})
+            else:
+                raise Invalid(
+                        node,
+                        "${item_type} is not a valid gallery item type.",
+                        mapping={'item_type': item_type}
+                        )
+
+        value =  result
         if not value and not self.allow_empty:
             raise Invalid(node, _('Required'))
         return value
