@@ -13,7 +13,8 @@
                         <li class="active"><a href="/mbox.html">Inbox (6 )</a></li>
                         <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
                     </ul>
-	                   <table id="messages" width="700px" cellpadding="10">
+	                   <form class="comment-form" name="formname" action="mbox_delete_message.html" method="POST">
+			   <table id="messages" width="700px" cellpadding="10">
                         <tr>
                             <th ></th>
                             <th></th>
@@ -22,22 +23,21 @@
                             <th><p></p>Date and time</th>
                         </tr>		
                         <tr tal:repeat="message queues" bgcolor="#eaeaea">
-                            <td  width="40px" valign='center'><p style="margin:14px;"><input type="checkbox"  name="" value="" /></p></td>
+                            <td  width="40px" valign='center'><p style="margin:14px;"><input type="checkbox"  name="message_id" value="${ message.id}" /></p></td>
                             <td width="20px"><p style="margin:14px; "></p></td>
                             <td width="20px">(3)</td>
                             <td width="209px" >${message.first_message_from}</td>
                             <td width="381px"><a href="/mbox_thread.html?thread_id=${ message.id}">Subject waiting for backend to implement subject</a></td>
                             <td width="174px">${message.first_message_date}</td>
                         </tr>
-			   <tr bgcolor="#fff">
-                            <td colspan="4">Delete selected</td>
+			   <tr>
+                            <td colspan="4" class="name"><a href="http://192.168.1.229:6544/mbox_delete_message.html" onclick="document['formname'].submit()">Delete selected</a></td>
                             <td width="381px"></td>
-                            <td width="174px" align='right'>Prev | 1 | 2 | 3 |... | Next</td>
-                        </tr>
-			
-			
-                    </table> </div>
-		 <!-- ${ queues } -->
+                            <td width="174px" align='right' >Prev | <myrow tal:repeat="message queues" style="position:'inline;'"> 1 | </myrow> Next</td>
+                        </tr>			
+                    </table>
+		  </form></div>
+		 ${ queues }
 
             </div>
     </div>

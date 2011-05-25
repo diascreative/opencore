@@ -17,36 +17,34 @@
                         <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
                     </ul>
 	    
-	    <div>
-		  <div id="container1" tal:repeat="message messages">
-		  Hey how was the meeting yesterday? ${message.payload}
-                   
+	    <div tal:repeat="message messages">
+		  <div id="container1">
+                    Hey how was the meeting yesterday?? ${message.payload}   
 		  </div>
-		  <div id="container">
-		      
-		      
-		      <div id="avator" tal:repeat="message messages"> <img src="${message.from_photo}" class="sponsor-logo" alt="" width='50px' height="50px" /> </div>
-		      <div id="mail_info" tal:repeat="message messages"><a href="/profiles/${message['payload']}">${message.from_firstname}</a> - rockefeller foundation Kenya<br>5 hours ago</br></div>
-			  
-		      <div id="mail_body" tal:repeat="message messages"> ${message.payload} 
-		      </div>
+		  <div id="container" tal:repeat="message messages">
+		      <div id="avator"> <img src="${message.from_photo}" class="sponsor-logo" alt="" width='50px' height="50px" /> </div>
+		      <div id="mail_info" ><a href="/profiles/${message['payload']}">${message.from_firstname}</a> - rockefeller foundation Kenya<br>5 hours ago</br></div>
+			<div id="mail_body"> ${message.payload}</div>
 		     
 		  </div>
-		  <div id="container3">
+		 </div>
+                 
+                 <div id="container3">
 		  <form method="post" action="">
 			  <div id="mail_reply">
 			      <div id="mail_reply_textarea"> 
-				  <textarea id="comment.text" class="test" cols="105" rows="2" >Write a Reply</textarea>
-			    	<div class="button-holder">
-				    <input type="submit" class="button post-comment highlight" tal:attributes="value 'reply' if api.userid else 'Send mail'"/>
-			        </div>
-			  </div>
-			      
-			  </div>
+				  <textarea id="comment.text" class="test" cols="107" rows="2" >Write a Reply</textarea>
+			      </div>
+			 </div>
+                         <div id="mail_button">
+                            <div class="button-holder">
+			       <input type="submit" class="button post-comment" tal:attributes="value 'reply' if api.userid else 'Send mail'"/>
+			   </div>
+                         </div>
 		      </form> 
 		  </div>
 	    
-	    </div>
+	    
             
 		${ messages }
           
