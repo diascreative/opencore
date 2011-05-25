@@ -1,14 +1,15 @@
 <input type="hidden" value="gallery:sequence" name="__start__" />
 <div id="gallery-preview">
-  <div style="border-bottom:1px solid black" tal:repeat="item context['gallery'].items()">
+  <div style="border-bottom:1px solid black" tal:repeat="item items">
     <input type="hidden" value="gallery_item:mapping" name="__start__" />
     <input type="hidden" name="type" value="image" />
-    <input type="hidden" name="order" value="${repeat.item.index}" />
-    <input type="hidden" name="key" value="${item[0]}" />
-    <input type="checkbox" name="delete" id="delete_${item[0]}" />
+    <input type="hidden" name="order" value="0" />
+    <input tal:condition="item.get('key')" type="hidden" name="key" value="${item['key']}" />
+    <input tal:condition="item.get('uid')" type="hidden" name="uid" value="${item['uid']}" />
+    <input type="checkbox" name="delete" />
     <input type="hidden" value="gallery_item:mapping" name="__end__" />
-    <label for="delete_${item[0]}">Delete</label>
-    <img src="${api.thumb_url(item[1])}" />
+    <label>Delete</label>
+    <img src="${item['thumb_url']}" />
   </div>
 </div>
 <input type="hidden" value="gallery:sequence" name="__end__" />

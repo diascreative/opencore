@@ -17,6 +17,7 @@ from opencore.events import (
     ObjectWillBeModifiedEvent,
     ObjectModifiedEvent,
     )
+from opencore.models.files import CommunityFolder
 from opencore.models.interfaces import (
     ICommunity,
     ICommunityFile,
@@ -283,8 +284,42 @@ class GalleryWidget(Widget):
 #                )
         # For now we don't bother with cstruct parsing.
         # If we need to use this widget for edits, then we will have to
+        # [{'type': u'image', 'order': u'0', 'key': u'1'}, {'type': u'image',
+        # 'order': u'1', 'key': u'2'}, {'type': u'image', 'uid': u'6IOK95Q1LW'}]
+        context = self.context
+        request = self.request
+        api = request.api
+        items = []
+        if isinstance(cstruct, CommunityFolder):
+            for key, val in cstruct.items():
+                items.append({
+                          'key': key, 
+                          'thumb_url': api.thumb_url(val),
+                          'type': 'image'
+                          })
+        else:
+            for citem in cstruct:
+                key = citem.get('key')
+                if key:
+                    items.append({
+                              'key': key, 
+                              'thumb_url': api.thumb_url(context['gallery'][key]),
+                              'type': citem['type']
+                              })
+                else:
+                    uid = citem.get('uid')
+                    if uid:
+                        items.append({
+                                  'uid': uid, 
+                                  'thumb_url': '/'.join([ 
+                                               request.api.app_url,
+                                               'gallery_image_thumb', 
+                                               uid ]),
+                                  'type': citem['type']
+                                  })
+        log.debug("*** GalleryWidget field: %s, cstruct: %s", field, cstruct)
         params = dict(field=field, cstruct=(), context=self.context,
-                request=self.request, api=self.request.api)
+                request=self.request, api=self.request.api, items=items)
         return field.renderer(self.template, **params)
 
     def deserialize(self, field, pstruct):
@@ -297,6 +332,7 @@ class GalleryList(object):
     """
 
     def serialize(self, node, value):
+        log.debug("GalleryList *** field: %s, cstruct: %s", node, value)
         if value is null:
             return null
         return value
@@ -310,7 +346,6 @@ class GalleryList(object):
                 _('${value} is not iterable', mapping={'value':value})
                 )
         result = []
-        print "****", value
         for item in value:
             item_type = item.get('type')
             if item_type == 'image':
