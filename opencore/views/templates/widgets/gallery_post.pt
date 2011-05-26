@@ -1,9 +1,9 @@
 <div xmlns="http://www.w3.org/1999/xhtml" 
      xmlns:tal="http://xml.zope.org/namespaces/tal"
      xmlns:metal="http://xml.zope.org/namespaces/metal"
-     metal:use-macro="api.lightbox_layout">
+     metal:use-macro="api.lightbox_layout" tal:define="image_upload 'youtube' not in form">
 
-    <tal:block metal:fill-slot="title"><h4 class="main-heading">Upload an image</h4></tal:block>
+    <tal:block metal:fill-slot="title"><h4 class="main-heading">${ image_upload and 'Upload an image' or 'Link to a video' }</h4></tal:block>
 
     <tal:block metal:fill-slot="content">
     <div tal:condition="form" tal:replace="structure form" />
