@@ -416,7 +416,7 @@ class GalleryList(object):
                 _('${value} is not iterable', mapping={'value':value})
                 )
         result = []
-        for item in value:
+        for order, item in enumerate(value):
             item_type = item.get('type')
             if item_type in ('image', 'video'):
                 uid = item.get('uid')
@@ -430,13 +430,15 @@ class GalleryList(object):
                                 " Please try again. Key error: %s" % e)
                         result.append({'new': True, 
                                        'type': item_type, 
-                                       'data': item_data})
+                                       'data': item_data,
+                                       'order': order})
                 else:
                     key = item.get('key')
                     result.append({'key': key, 
                                    'type': item_type, 
                                    'order': item.get('order'), 
-                                   'delete': item.get('delete')})
+                                   'delete': item.get('delete'),
+                                   'order': order})
                     if not key:
                         raise Invalid(node, 
                              "An image field must have either an uid or key")

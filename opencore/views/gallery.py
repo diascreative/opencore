@@ -12,6 +12,7 @@ from repoze.lemonade.content import create_content
 from webob import Response
 
 from opencore.models.interfaces import ICommunityFile
+from opencore.models.files import CommunityFolder
 from opencore.views.forms import (
         is_image,
         tmpstore,
@@ -144,6 +145,11 @@ def video_thumb_layout(context, request):
 
 
 def handle_gallery_items(context, validated, userid):
+
+    if not 'gallery' in context:
+        context['gallery'] = CommunityFolder(title='Gallery for %s' %
+                context.title, creator=userid)
+
     def make_key():
         key = 1
         while str(key) in context['gallery']:
@@ -160,6 +166,7 @@ def handle_gallery_items(context, validated, userid):
             filename=image['filename'],
             creator=userid,
             )
+        content.order = item['order']
         key = make_key()
         context['gallery'][key] = content
 

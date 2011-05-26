@@ -355,6 +355,7 @@ one_pixel_jpeg = [
 one_pixel_jpeg = ''.join([chr(x) for x in one_pixel_jpeg])
 
 class DummyImageFile(object):
+    implements(IImage)
     def __init__(self, title=None, stream=None, mimetype=None, filename=None,
                  creator=None):
         self.title = title
