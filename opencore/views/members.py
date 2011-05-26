@@ -588,7 +588,9 @@ class AcceptInvitationController(MembersBaseController):
             community_href = model_url(community, request)
             groups = [ community.members_group_name ]
             users.add(username, username, password, groups)
-        
+        else:
+            users.add(username, username, password)
+                    
         plugin = request.environ['repoze.who.plugins']['auth_tkt']
         identity = {'repoze.who.userid':username}
         remember_headers = plugin.remember(request.environ, identity)
