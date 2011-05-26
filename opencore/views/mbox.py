@@ -149,6 +149,7 @@ def show_mbox_thread(context, request):
         msg_dict['queue_id'] = q.id
         msg_dict['message_id'] = raw_msg.message_id
         msg_dict['date'] = message['Date']
+        msg_dict['subject'] = message['Subject']
         msg_dict['flags'] = raw_msg.flags
         
         msg_dict['from'] = from_
