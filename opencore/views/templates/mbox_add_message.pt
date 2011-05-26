@@ -23,7 +23,7 @@
                               <div id="add_message_subject_textfield"><input type="text" name="subject" class="text" size="92px"/></div>
                               <div id="add_message"><b>Message:</b></div>
                               <div id="add_message_textarea">
-                                   <div id="mail_reply">
+                                   <div id="mail_reply_mbox_add_m">
                                         <div id="add_message_mail_reply_textarea" style="width: 597px"> 
                                              <div tal:condition="api.userid" tal:content="structure api.render_form_widget('textarea_fluid', 'payload', '', default='')" tal:omit-tag="" /></div>
                                              <div id="add_message_cancel_button">
