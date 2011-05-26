@@ -4,7 +4,7 @@
     <div id="gallery-preview" class="gallery-thumbs">
         <a href="#" tal:repeat="item items" rel="&lt;img src=&quot;${item['thumb_url']}&quot; /&gt;">
             <input type="hidden" value="gallery_item:mapping" name="__start__" />
-            <input type="hidden" name="type" value="image" />
+            <input type="hidden" name="type" value="${item['type']}" />
             <input type="hidden" name="order" value="0" />
             <input tal:condition="item.get('key')" type="hidden" name="key" value="${item['key']}" />
             <input tal:condition="item.get('uid')" type="hidden" name="uid" value="${item['uid']}" />

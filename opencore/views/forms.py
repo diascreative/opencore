@@ -297,31 +297,40 @@ class GalleryWidget(Widget):
             pass
         elif isinstance(cstruct, CommunityFolder):
             for key, val in cstruct.items():
-                items.append({
-                          'key': key, 
-                          'thumb_url': api.thumb_url(val),
-                          'type': 'image'
-                          })
+                item = {'key': key}
+                if hasattr(val, 'is_image') and val.is_image:
+                    item['thumb_url'] = api.thumb_url(val)
+                    item['type'] = 'image'
+                else:
+                    item['thumb_url'] = val['thumbnail_url']
+                    item['type'] = 'video'
+                items.append(item)
         else:
             for citem in cstruct:
                 key = citem.get('key')
                 if key:
+                    item = self.context['gallery'][key]
+                    if hasattr(item, 'is_image') and item.is_image:
+                        thumb_url = api.thumb_url(item)
+                    else:
+                        thumb_url = item['thumbnail_url']
                     items.append({
                               'key': key, 
-                              'thumb_url': api.thumb_url(self.context['gallery'][key]),
+                              'thumb_url': thumb_url,
                               'type': citem['type']
                               })
                 else:
                     uid = citem.get('uid')
                     if uid:
-                        items.append({
-                                  'uid': uid, 
-                                  'thumb_url': '/'.join([ 
+                        item = {'uid': uid, 'type': citem['type']}
+                        if citem['type'] == 'video':
+                            item['thumb_url'] = video_tmpstore[uid]['thumbnail_url']
+                        else:
+                            item['thumb_url'] = '/'.join([ 
                                                request.api.app_url,
                                                'gallery_image_thumb', 
-                                               uid ]),
-                                  'type': citem['type']
-                                  })
+                                               uid ])
+                        items.append(item)
         params = dict(field=field, cstruct=(),
                 request=self.request, api=self.request.api, items=items)
         return field.renderer(self.template, **params)
@@ -409,14 +418,14 @@ class GalleryList(object):
         result = []
         for item in value:
             item_type = item.get('type')
-            if item_type == 'image':
+            if item_type in ('image', 'video'):
                 uid = item.get('uid')
                 if uid:
                     if not item.get('delete'):
-                        image = tmpstore[uid]
+                        item_data = tmpstore[uid] if item_type == 'image' else video_tmpstore[uid]
                         result.append({'new': True, 
                                        'type': item_type, 
-                                       'image': image})
+                                       'data': item_data})
                 else:
                     key = item.get('key')
                     result.append({'key': key, 
@@ -429,8 +438,7 @@ class GalleryList(object):
             else:
                 raise Invalid(
                         node,
-                        "${item_type} is not a valid gallery item type.",
-                        mapping={'item_type': item_type}
+                        "%s is not a valid gallery item type." % item_type,
                         )
 
         value = result
