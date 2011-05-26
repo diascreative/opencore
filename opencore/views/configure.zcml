@@ -98,7 +98,7 @@
     for="opencore.models.interfaces.IProfile"
     view=".people.recent_content_view"
     name="recent_content.html"
-    permission="view"/>
+    />
 
   <view
     for="opencore.models.interfaces.IProfile"
@@ -130,19 +130,9 @@
     for="opencore.models.interfaces.ISite"
     view=".search.advancedsearch_view"
     renderer="templates/advancedsearch.pt"
-    permission="view"
     name="advancedsearch.html"
   />
 
-  <!--
-  <view
-    for="opencore.models.interfaces.ISite"
-    view=".search.SearchResultsView"
-    renderer="templates/searchresults.pt"
-    permission="view"
-    name="searchresults.html"
-  />
-  -->
 
   <!-- forums -->
   <view
@@ -205,13 +195,12 @@
     for="opencore.models.interfaces.ICommunity"
     name="rss_view.xml"
     view=".redirects.redirect_rss_view_xml"
-    permission="view"/>
+    />
 
   <view
     for="opencore.models.interfaces.ISite"
     view=".contentfeeds.show_feeds_view"
     renderer="templates/contentfeeds.pt"
-    permission="view"
     name="contentfeeds.html"
     />
 
@@ -220,7 +209,6 @@
     for="opencore.models.interfaces.ICommunity"
     view=".contentfeeds.community_feed_view"
     renderer="templates/contentfeeds.pt"
-    permission="view"
     name="contentfeed.html"
     />
 
@@ -246,7 +234,6 @@
     for="opencore.models.interfaces.ISite"
     view=".tags.showtag_view"
     renderer="templates/showtag.pt"
-    permission="view"
     name="showtag"
   />
 
@@ -262,7 +249,6 @@
     for="opencore.models.interfaces.IProfile"
     view=".tags.profile_showtag_view"
     renderer="templates/profile_showtag.pt"
-    permission="view"
     name="showtag"
   />
 
@@ -278,7 +264,6 @@
     for="opencore.models.interfaces.ISite"
     view=".tags.tag_cloud_view"
     renderer="templates/tagcloud.pt"
-    permission="view"
     name="tagcloud.html"
   />
 
@@ -302,7 +287,6 @@
     for="opencore.models.interfaces.ICommunity"
     view=".tags.community_tag_listing_view"
     renderer="templates/community_taglisting.pt"
-    permission="view"
     name="taglisting.html"
   />
 
@@ -331,7 +315,6 @@
     for="opencore.models.interfaces.IProfile"
     view=".tags.profile_tag_listing_view"
     renderer="templates/profile_taglisting.pt"
-    permission="view"
     name="taglisting.html"
   />
 
@@ -363,7 +346,6 @@
     for="opencore.models.interfaces.IProfile"
     view=".contentfeeds.profile_feed_view"
     renderer="templates/contentfeeds.pt"
-    permission="view"
     name="contentfeed.html"
     />
 
@@ -390,27 +372,26 @@
     for="opencore.models.interfaces.ICommunities"
     view=".communities.show_communities_view"
     renderer="templates/communities.pt"
-    permission="view"
   />
 
    <view
     for="opencore.models.interfaces.ICommunity"
     view=".community.redirect_community_view"
-    permission="view"/>
+    />
 
   <view
     for="opencore.models.interfaces.ICommunity"
     name="view.html"
     view=".community.show_community_view"
     renderer="templates/community.pt"
-    permission="view"/>
+    />
 
   <view
     for="opencore.models.interfaces.ICommunity"
     name="recent_items.html"
     view=".community.community_recent_items_ajax_view"
     renderer="templates/community_items_ajax.pt"
-    permission="view"/>
+    />
 
   <view
     for="opencore.models.interfaces.ICommunity"
@@ -424,13 +405,13 @@
     name="related.html"
     view=".community.related_communities_ajax_view"
     renderer="templates/community_items_ajax.pt"
-    permission="view"/>
+    />
 
   <view
     for="opencore.models.interfaces.ICommunity"
     view=".atom.community_atom_view"
     name="atom.xml"
-    permission="view"/>
+    />
 
   <view
     for="opencore.models.interfaces.ICommunity"
