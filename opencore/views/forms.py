@@ -1,3 +1,4 @@
+from cgi import escape
 from pprint import pformat
 import operator
 import string
@@ -285,6 +286,9 @@ class ImageUploadWidget(FileUploadWidget):
         return field.renderer(template, **params)
 
 
+IMAGE_PREVIEW_TEMPLATE = "&lt;img src=&quot;%s&quot; /&gt;"
+
+
 class GalleryWidget(Widget):
     """
     A widget to work with galleries containing images and videos.
@@ -304,9 +308,11 @@ class GalleryWidget(Widget):
                 item = {'key': key, 'order': val.order}
                 if hasattr(val, 'is_image') and val.is_image:
                     item['thumb_url'] = api.thumb_url(val)
+                    item['preview_code'] = IMAGE_PREVIEW_TEMPLATE % api.thumb_url(val)
                     item['type'] = 'image'
                 else:
                     item['thumb_url'] = val['thumbnail_url']
+                    item['preview_code'] = escape(val['html'], quote=True)
                     item['type'] = 'video'
                 items.append(item)
         else:
@@ -316,12 +322,15 @@ class GalleryWidget(Widget):
                     item = self.context['gallery'][key]
                     if hasattr(item, 'is_image') and item.is_image:
                         thumb_url = api.thumb_url(item)
+                        preview_code = IMAGE_PREVIEW_TEMPLATE % thumb_url
                     else:
                         thumb_url = item['thumbnail_url']
+                        preview_code = escape(item['html'], quote=True)
                     items.append({
                               'key': key, 
                               'order': order,
                               'thumb_url': thumb_url,
+                              'preview_code': preview_code,
                               'type': citem['type']
                               })
                 else:
@@ -331,13 +340,16 @@ class GalleryWidget(Widget):
                                 order}
                         if citem['type'] == 'video':
                             item['thumb_url'] = video_tmpstore[uid]['thumbnail_url']
+                            item['preview_code'] = escape(video_tmpstore[uid]['thumbnail_url'], True)
                         else:
                             item['thumb_url'] = '/'.join([ 
                                                request.api.app_url,
                                                'gallery_image_thumb', 
                                                uid ])
+                            item['preview_code'] = IMAGE_PREVIEW_TEMPLATE % item['thumb_url']
                         items.append(item)
         items.sort(key=operator.itemgetter('order'))
+        print items
         params = dict(field=field, cstruct=(),
                 request=self.request, api=self.request.api, items=items)
         return field.renderer(self.template, **params)
