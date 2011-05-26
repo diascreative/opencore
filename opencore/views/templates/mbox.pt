@@ -31,7 +31,7 @@
                     <td width="20px"><p style="margin:14px; "></p></td>
                     <td width="20px">(&nbsp;${ message.total_messages }&nbsp;)&nbsp;</td>
                     <td width="209px" >${ message.first_message_from }</td>
-                    <td width="381px"><a href="/mbox_thread.html?thread_id=${ message.id}">Subject waiting for backend to implement subject</a></td>
+                    <td width="410px"><a href="/mbox_thread.html?thread_id=${ message.id }">${message.name}</a></td>
                     <td width="174px">${ message.first_message_date }</td>
                 </tr>
                 <tr>

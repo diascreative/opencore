@@ -15,7 +15,7 @@
                         <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
                         <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
                     </ul>
-                    <form class="comment-form" action="" method="POST">
+                    <form class="comment-form" action="" method="post">
                          <div id="add_message_container">
                               <div id="add_message_to"><b>To:</b></div>
                               <div id="add_message_to_textfield"><input type="text" name="to" class="text" size="92px" /></div>
