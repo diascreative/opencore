@@ -33,7 +33,7 @@
 		  <form method="post" action="">
 			  <div id="mail_reply">
 			      <div id="mail_reply_textarea"> 
-				  <textarea id="comment.text" class="test" cols="107" rows="2" >Write a Reply</textarea>
+				  <textarea id="comment.text" class="test" cols="107" rows="2" style="width: 672px">Write a Reply</textarea>
 			      </div>
 			 </div>
                          <div id="mail_button">
