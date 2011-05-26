@@ -162,11 +162,11 @@ class ResetConfirmView(ResetConfirmSchema, BaseController):
         
         email = self._get_email_by_request_id(request_id)
         if not email:
-            raise Exception("No such key [%s]" % request_id)
+            return self._redirect('The key is invalid')
         
-    def _redirect(self):
+    def _redirect(self, status_message='Your password has been changed'):
         location = model_url(self.context, self.request,
-                             query={'status_message':'Your password has been changed'})
+                             query={'status_message':status_message})
         return HTTPFound(location=location)
     
     def handle_submit(self, validated):

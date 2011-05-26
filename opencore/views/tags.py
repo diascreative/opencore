@@ -200,8 +200,8 @@ def showtag_view(context, request, community=None, user=None, crumb_title=None):
             resource = find_model(context, address)
 
             # Skip documents which aren't viewable by authenticated user
-            if not has_permission('view', resource, request):
-                continue
+            #if not has_permission('view', resource, request):
+            #    continue
 
             # Do a secondary query for each result to find the
             # per-user info

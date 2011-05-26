@@ -316,9 +316,8 @@ class MailboxTool(object):
         self._create_add_queue_message(sent_mb, from_, message)
         
         # ..same goes for recipients and their 'inbox' queues.
-        for profile_name in to:
-            inbox_mb = _get_mailbox(site, profile_name, 'inbox')
-            self._create_add_queue_message(inbox_mb, profile_name, message)
+        inbox_mb = _get_mailbox(site, to.__name__, 'inbox')
+        self._create_add_queue_message(inbox_mb, to.__name__, message)
         
         if should_commit:
             transaction.commit()

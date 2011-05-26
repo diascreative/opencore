@@ -149,6 +149,7 @@ def show_mbox_thread(context, request):
         msg_dict['queue_id'] = q.id
         msg_dict['message_id'] = raw_msg.message_id
         msg_dict['date'] = message['Date']
+        msg_dict['subject'] = message['Subject']
         msg_dict['flags'] = raw_msg.flags
         
         msg_dict['from'] = from_
@@ -222,12 +223,12 @@ def add_message(context, request):
             eventinfo['content_type'] = 'MBoxMessage'
             eventinfo['context_url'] = from_profile.__name__
             
-            eventinfo.mfrom = from_profile.email
+            eventinfo.mfrom = from_profile.__name__
             eventinfo.mfrom_name = from_profile.__name__
             eventinfo.mto = [to_profile.email]
             eventinfo.message = msg
             
-            alert_user(from_profile, eventinfo)
+            alert_user(to_profile, eventinfo)
             transaction.commit()
             
         except Exception, e:

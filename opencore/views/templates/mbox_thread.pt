@@ -19,21 +19,20 @@
 	    
 	    <div tal:repeat="message messages">
 		  <div id="container1">
-                    Hey how was the meeting yesterday?? ${message.payload}   
+                    ${message.subject}   
 		  </div>
 		  <div id="container" tal:repeat="message messages">
 		      <div id="avator"> <img src="${message.from_photo}" class="sponsor-logo" alt="" width='50px' height="50px" /> </div>
-		      <div id="mail_info" ><a href="/profiles/${message['payload']}">${message.from_firstname}</a> - rockefeller foundation Kenya<br>5 hours ago</br></div>
-			<div id="mail_body"> ${message.payload}</div>
-		     
+		      <div id="mail_info" ><a href="/profiles/${message['payload']}">${message.from_firstname}</a> - ${message.subject}<br>${message.date}</br></div>
+		      <div id="mail_body"> ${message.payload}</div>
 		  </div>
-		 </div>
+	  </div>
                  
-                 <div id="container3">
+               <div id="container3">
 		  <form method="post" action="">
 			  <div id="mail_reply">
 			      <div id="mail_reply_textarea"> 
-				  <textarea id="comment.text" class="test" cols="107" rows="2" >Write a Reply</textarea>
+				  <textarea id="comment.text" class="test" cols="107" rows="2" style="width: 672px">Write a Reply</textarea>
 			      </div>
 			 </div>
                          <div id="mail_button">
@@ -42,38 +41,9 @@
 			   </div>
                          </div>
 		      </form> 
-		  </div>
-	    
-	    
-            
-		${ messages }
-          
-               
-        <!--            <table id="messages">
-                        <tr>
-                            <th></th>
-                            <th></th>
-                            <th colspan="2">From</th>
-                            <th>Headline</th>
-                            <th>Date and time</th>
-                        </tr>
-                        <tr>
-                            <td><input type="checkbox" name="" value="" /></td>
-                            <td></td>
-                            <td></td>
-                            <td><a href="mbox-from.html">Gary Numan</a></td>
-                            <td>lorem</td>
-                            <td>17 February</td>
-                        </tr>
-                    </table> -->
+	       </div>            
+		${ messages }     
                 </div>
             </div>
-    </div>
-    
-    
-    
-    <!-- START NEW LAYOUT -->
-    <!-- END NEW LAYOUT -->
-    
-    
+    </div>    
 </html>
