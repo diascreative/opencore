@@ -12,6 +12,7 @@ from webob import Response
 from opencore.views.forms import (
         is_image,
         tmpstore,
+        video_tmpstore,
         VideoEmbedData,
         )
 
@@ -56,7 +57,7 @@ def image_upload(context, request):
     return data
 
 
-def _find_tmp_thumb(request):
+def _find_tmp_thumb(request, tmpstore=tmpstore):
     """
     Helper function to retrieve and image from the tempstore from a
     request that has the image uid in its URL path
@@ -76,7 +77,7 @@ def image_thumb_layout(context, request):
     called via AJAX upon upload success.
     """
     thumb = _find_tmp_thumb(request)
-    data = {'thumb_url':  thumb['preview_url'], 'uid': thumb['uid']}
+    data = {'item_type': 'image', 'thumb_url':  thumb['preview_url'], 'uid': thumb['uid']}
     return data
 
 
@@ -118,13 +119,22 @@ def video_post(context, request):
             data['form'] = e.render()
         else:
             # Handle success
-            pass
-#            log.debug('validated data: %s', validated)
-#            uid = validated['image']['uid']
-#            data['thumb_url'] = '/'.join([request.api.app_url,
-#                                           'gallery_image_thumb_layout',
-#                                           uid])
+            log.debug('validated data: %s', validated)
+            uid = validated['video']['uid']
+            data['thumb_url'] = '/'.join([request.api.app_url,
+                                           'gallery_video_thumb_layout',
+                                           uid])
     else:
         data['form'] = form.render({})
 
+    return data
+
+
+def video_thumb_layout(context, request):
+    """
+    This view renders HTML containing an image preview. It is intended to be
+    called via AJAX upon upload success.
+    """
+    thumb = _find_tmp_thumb(request, tmpstore=video_tmpstore)
+    data = {'item_type': 'video', 'thumb_url':  thumb['thumbnail_url'], 'uid': thumb['uid']}
     return data
