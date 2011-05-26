@@ -693,6 +693,14 @@
     name="gallery_image_thumb"
     permission="view" />
 
+  <!-- gallery video form -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.video_post"
+    name="gallery_video_post"
+    permission="view"
+    renderer="templates/widgets/gallery_image_upload.pt"/>
+
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"
     handler=".api.handle_request_api" />
