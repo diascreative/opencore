@@ -5,9 +5,17 @@
 <!-- Handle success: update the gallery preview -->
 <c tal:condition="thumb_url">
 <script type="text/javascript">
-  $.get('${thumb_url}', function(data, textStatus) {
-      $('#gallery-preview', window.parent.document).append(data);
-      top.$.fancybox.close();
-      });
+    $.get('${thumb_url}', function(data, textStatus) {
+        $('#gallery-preview', window.parent.document).append(data);
+
+        top.$.fancybox.close();
+    
+        var thumbs = top.$('#gallery-preview').find('a');
+            thumbs.removeClass('last');
+
+            thumbs.each(function(i){
+                if( (i+1) % 5 === 0 ) $(this).addClass('last');
+            });
+    });
 </script>
 </c>
