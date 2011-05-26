@@ -120,7 +120,7 @@ class MBoxViewTestCase(unittest.TestCase):
                 # it be possible?)
                 self.assertTrue(len(q['id']) >= 20)
                 
-    def zztest_show_mbox(self):
+    def test_show_mbox(self):
         
         _people_url = uuid.uuid4().hex
         _firstname = uuid.uuid4().hex
@@ -185,7 +185,7 @@ class MBoxViewTestCase(unittest.TestCase):
                 self.assertTrue(name in ('joe', 'sarah'))
                 self.assertEquals(to_datum['photo_url'], _people_url + '/' + name + '/profile_thumbnail')
                 
-    def zztest_add_message(self):
+    def test_add_message(self):
         
         to = 'joe, sarah'
         
@@ -211,7 +211,7 @@ class MBoxViewTestCase(unittest.TestCase):
             
             transaction.commit()
             
-    def zztest_delete_message(self):
+    def test_delete_message(self):
         
         api = uuid.uuid4().hex
         
@@ -237,7 +237,7 @@ class MBoxViewTestCase(unittest.TestCase):
             else:
                 raise Exception('Expected a NoSuchThreadException here')
             
-    def zztest_mark_message_read(self):
+    def test_mark_message_read(self):
         
         api = uuid.uuid4().hex
         
