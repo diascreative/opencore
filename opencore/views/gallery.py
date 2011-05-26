@@ -185,6 +185,7 @@ def handle_gallery_items(context, validated, userid):
             key = make_key()
             data = item['data']
             context['gallery'][key] = PersistentMapping(data)
+            context['gallery'][key].order = item['order']
         else:
             key = item['key']
             if item['delete']:

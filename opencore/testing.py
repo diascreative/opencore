@@ -357,7 +357,7 @@ one_pixel_jpeg = ''.join([chr(x) for x in one_pixel_jpeg])
 class DummyImageFile(object):
     implements(IImage)
     def __init__(self, title=None, stream=None, mimetype=None, filename=None,
-                 creator=None):
+                 creator=None, order=0):
         self.title = title
         self.mimetype = mimetype
         if stream is not None:
@@ -368,6 +368,7 @@ class DummyImageFile(object):
         self.filename= filename
         self.creator = creator
         self.is_image = mimetype != 'x-application/not a jpeg'
+        self.order = order
 
 class DummySearchAdapter:
     def __init__(self, context):

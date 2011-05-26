@@ -1,4 +1,5 @@
 from pprint import pformat
+import operator
 import string
 import random
 from PIL import Image
@@ -300,7 +301,7 @@ class GalleryWidget(Widget):
             pass
         elif isinstance(cstruct, CommunityFolder):
             for key, val in cstruct.items():
-                item = {'key': key}
+                item = {'key': key, 'order': val.order}
                 if hasattr(val, 'is_image') and val.is_image:
                     item['thumb_url'] = api.thumb_url(val)
                     item['type'] = 'image'
@@ -309,7 +310,7 @@ class GalleryWidget(Widget):
                     item['type'] = 'video'
                 items.append(item)
         else:
-            for citem in cstruct:
+            for order, citem in enumerate(cstruct):
                 key = citem.get('key')
                 if key:
                     item = self.context['gallery'][key]
@@ -319,13 +320,15 @@ class GalleryWidget(Widget):
                         thumb_url = item['thumbnail_url']
                     items.append({
                               'key': key, 
+                              'order': order,
                               'thumb_url': thumb_url,
                               'type': citem['type']
                               })
                 else:
                     uid = citem.get('uid')
                     if uid:
-                        item = {'uid': uid, 'type': citem['type']}
+                        item = {'uid': uid, 'type': citem['type'], 'order':
+                                order}
                         if citem['type'] == 'video':
                             item['thumb_url'] = video_tmpstore[uid]['thumbnail_url']
                         else:
@@ -334,6 +337,7 @@ class GalleryWidget(Widget):
                                                'gallery_image_thumb', 
                                                uid ])
                         items.append(item)
+        items.sort(key=operator.itemgetter('order'))
         params = dict(field=field, cstruct=(),
                 request=self.request, api=self.request.api, items=items)
         return field.renderer(self.template, **params)
