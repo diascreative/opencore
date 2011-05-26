@@ -3,43 +3,44 @@
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       metal:use-macro="api.generic_layout">
 <div metal:fill-slot="content">
-	    <h1>My Mailbox</h1>
+    <h1>My Mailbox</h1>
 
-            <div class="columns">
-                <div class="column column-1-4 first">left bar: variables that prefill this area are not being sent over to this template from the server side yet, do unable to pull in.</div>
+    <div class="columns">
+        <div class="column column-1-4 first">
+            left bar: variables that prefill this area are not being sent over to this template from the server side yet, do unable to pull in.
+        </div>
 
-                <div class="column column-3-4 last">
-                    <ul class="tabs"> 
-                        <li class="active"><a href="/mbox.html">Inbox (6 )</a></li>
-                        <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
-                    </ul>
-	                   <form class="comment-form" name="formname" action="mbox_delete_message.html" method="POST">
-			   <table id="messages" width="700px" cellpadding="10">
-                        <tr>
-                            <th ></th>
-                            <th></th>
-                            <th colspan="2"><p></p>From</th>
-                            <th><p></p>Headline</th>
-                            <th><p></p>Date and time</th>
-                        </tr>		
-                        <tr tal:repeat="message queues" bgcolor="#eaeaea">
-                            <td  width="40px" valign='center'><p style="margin:14px;"><input type="checkbox"  name="message_id" value="${ message.id}" /></p></td>
-                            <td width="20px"><p style="margin:14px; "></p></td>
-                            <td width="20px">(3)</td>
-                            <td width="209px" >${message.first_message_from}</td>
-                            <td width="381px"><a href="/mbox_thread.html?thread_id=${ message.id}">Subject waiting for backend to implement subject</a></td>
-                            <td width="174px">${message.first_message_date}</td>
-                        </tr>
-			   <tr>
-                            <td colspan="4" class="name"><a href="http://192.168.1.229:6544/mbox_delete_message.html" onclick="document['formname'].submit()">Delete selected</a></td>
-                            <td width="381px"></td>
-                            <td width="174px" align='right' >Prev | <myrow tal:repeat="message queues" style="position:'inline;'"> 1 | </myrow> Next</td>
-                        </tr>			
-                    </table>
-		  </form></div>
-		 ${ queues }
+        <div class="column column-3-4 last">
+            <ul class="tabs"> 
+                <li class="active"><a href="/mbox.html">Inbox ( ${ len(queues) } )</a></li>
+                <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
+            </ul>
 
-            </div>
+            <table id="messages" width="700px" cellpadding="10">
+                <tr>
+                    <th ></th>
+                    <th></th>
+                    <th colspan="2"><p></p>From</th>
+                    <th><p></p>Headline</th>
+                    <th><p></p>Date and time</th>
+                </tr>		
+                <tr tal:repeat="message queues" bgcolor="#eaeaea">
+                    <td  width="40px" valign='center'><p style="margin:14px;">
+                        <input type="checkbox" name="thread_id" value="/mbox_delete_thread.html?thread_id=${ message.id}" /></p>
+                    </td>
+                    <td width="20px"><p style="margin:14px; "></p></td>
+                    <td width="20px">(&nbsp;${ message.total_messages }&nbsp;)&nbsp;</td>
+                    <td width="209px" >${ message.first_message_from }</td>
+                    <td width="381px"><a href="/mbox_thread.html?thread_id=${ message.id}">Subject waiting for backend to implement subject</a></td>
+                    <td width="174px">${ message.first_message_date }</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="name"><a href="#" id="delete-threads">Delete selected</a></td>
+                    <td width="381px"></td>
+                    <td width="174px" align='right' >Prev | <myrow tal:repeat="message queues" style="position:'inline;'"> 1 | </myrow> Next</td>
+                </tr>			
+            </table>
+        </div>
     </div>
-
+</div>
 </html>
