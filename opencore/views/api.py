@@ -581,6 +581,14 @@ class TemplateAPI(object):
         else :
             return 'moments'
 
+    def format_date(self, d, with_break=False, time_less=False):
+        if with_break and not time_less:
+            return d.strftime('%B %d, %Y<br /> %I:%M%p')
+        elif not time_less:
+            return d.strftime('%B %d, %Y, %I:%M%p')
+        else:
+            return d.strftime('%B %d, %Y')
+
 class SettingsReader:
     """Convenience for reading settings in templates"""
     def __init__(self, context):
