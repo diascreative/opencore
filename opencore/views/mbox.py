@@ -223,12 +223,12 @@ def add_message(context, request):
             eventinfo['content_type'] = 'MBoxMessage'
             eventinfo['context_url'] = from_profile.__name__
             
-            eventinfo.mfrom = from_profile.email
+            eventinfo.mfrom = from_profile.__name__
             eventinfo.mfrom_name = from_profile.__name__
             eventinfo.mto = [to_profile.email]
             eventinfo.message = msg
             
-            alert_user(from_profile, eventinfo)
+            alert_user(to_profile, eventinfo)
             transaction.commit()
             
         except Exception, e:
