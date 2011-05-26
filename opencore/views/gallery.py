@@ -6,9 +6,12 @@ import logging
 from colander import SchemaNode, MappingSchema, Function
 from deform import FileData, Form, ValidationFailure
 from deform.widget import FileUploadWidget, TextInputWidget
+from persistent.mapping import PersistentMapping
 from repoze.bfg.exceptions import NotFound
+from repoze.lemonade.content import create_content
 from webob import Response
 
+from opencore.models.interfaces import ICommunityFile
 from opencore.views.forms import (
         is_image,
         tmpstore,
@@ -138,3 +141,53 @@ def video_thumb_layout(context, request):
     thumb = _find_tmp_thumb(request, tmpstore=video_tmpstore)
     data = {'item_type': 'video', 'thumb_url':  thumb['thumbnail_url'], 'uid': thumb['uid']}
     return data
+
+
+def handle_gallery_items(context, validated, userid):
+    def make_key():
+        key = 1
+        while str(key) in context['gallery']:
+            key += 1
+        return str(key)
+
+    def create_image(item):
+        image = item['data']
+        content = create_content(
+            ICommunityFile,
+            title='Image of %s' % context.title,
+            stream=image['fp'],
+            mimetype=image['mimetype'],
+            filename=image['filename'],
+            creator=userid,
+            )
+        key = make_key()
+        context['gallery'][key] = content
+
+    def handle_image(item):
+        if item.get('new'):
+            create_image(item)
+        else:
+            key = item['key']
+            if item['delete']:
+                del context['gallery'][key]
+            else:
+                context['gallery'][key].order = item['order']
+
+    def handle_video(item):
+        if item.get('new'):
+            key = make_key()
+            data = item['data']
+            context['gallery'][key] = PersistentMapping(data)
+        else:
+            key = item['key']
+            if item['delete']:
+                del context['gallery'][key]
+            else:
+                context['gallery'][key].order = item['order']
+
+    # Handle gallery items
+    for item in validated['gallery']:
+        if item['type'] == 'image':
+            handle_image(item)
+        elif item['type'] == 'video':
+            handle_video(item)

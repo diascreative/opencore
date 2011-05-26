@@ -422,7 +422,12 @@ class GalleryList(object):
                 uid = item.get('uid')
                 if uid:
                     if not item.get('delete'):
-                        item_data = tmpstore[uid] if item_type == 'image' else video_tmpstore[uid]
+                        try:
+                            item_data = tmpstore[uid] if item_type == 'image' else video_tmpstore[uid]
+                        except KeyError, e:
+                            raise Invalid(node, 
+                                "There has been a problem uploading your image."
+                                " Please try again. Key error: %s" % e)
                         result.append({'new': True, 
                                        'type': item_type, 
                                        'data': item_data})
