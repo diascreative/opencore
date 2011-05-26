@@ -1,3 +1,6 @@
+from pprint import pformat
+import string
+import random
 from PIL import Image
 from colander import (
         null,
@@ -25,6 +28,7 @@ from opencore.models.interfaces import (
 from opencore.utils import find_profiles
 from opencore.utils import get_setting
 from opencore.utilities.image import thumb_url
+from opencore.utilities import oembed
 from pkg_resources import resource_filename
 from repoze.bfg.security import (
     has_permission,
@@ -81,6 +85,8 @@ def _get_manage_actions(community, request):
 
     return actions
 
+# Temporary stores
+
 class DummyTempStore:
 
     def get(self,name,default=None):
@@ -102,7 +108,12 @@ class MemoryTempStore(dict):
     def preview_url(self, name):
         return '/gallery_image_thumb/' + name
 
+class VideoTempStore(MemoryTempStore):
+    def preview_url(self, name):
+        return '/video_thumb/' + name
+
 tmpstore = MemoryTempStore()
+video_tmpstore = VideoTempStore()
 
 ### Controllers for form submission
     
@@ -319,6 +330,63 @@ class GalleryWidget(Widget):
         return pstruct
 
 ## Types
+
+YOUTUBE_URL_REGEXP = re.compile("http:\/\/(www\.)?youtube.com\/watch.+")
+
+def is_youtube_url(value):
+    return YOUTUBE_URL_REGEXP.search(value)
+
+class VideoEmbedData(object):
+    """
+    A colander type representing Youtube or Vimeo data
+    """
+    def serialize(self, node, value):
+        if value is null:
+            return null
+        return value
+
+    def deserialize(self, node, value):
+        log.debug("VideoEmbedData *** field: %s, cstruct: %s", node, value)
+
+        if value is null:
+            return null
+
+        consumer = oembed.OEmbedConsumer()
+        if is_youtube_url(value):
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://www.youtube.com/oembed',
+                    'http://*.youtube.com/watch*'))
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://www.youtube.com/oembed',
+                    'http://youtube.com/watch*'))
+        else:
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://vimeo.com/api/oembed.json',
+                'http://vimeo.com/*'))
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://vimeo.com/api/oembed.json',
+                'http://vimeo.com/groups/*/videos/*'))
+        try:
+            # Max width larger than 480 to support TV-format videos as well has
+            # wide-screen
+            data = consumer.embed(value, width=640, maxwidth=640, maxheight=500).getData()
+
+        except Exception, e:
+            log.warning(e.message, exc_info=True)
+            raise Invalid(node,
+                'Please enter a valid Vimeo or Youtube URL')
+
+        log.debug("Video data from provider:\n%s", pformat(data))
+        data['original_url'] = value
+
+        random_id = lambda: ''.join([
+            random.choice(string.uppercase+string.digits) for i in range(10)])
+
+        while 1:
+            uid = random_id()
+            if video_tmpstore.get(uid) is None:
+                data['uid'] = uid
+                data['preview_url'] = video_tmpstore.preview_url(uid)
+                video_tmpstore[uid] = data
+                break
+        return data
+
 
 class GalleryList(object):
     """ A colander type representing a list of gallery items.

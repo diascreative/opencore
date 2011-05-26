@@ -18,3 +18,4 @@
 </div>
 
 <button href="${api.app_url}/gallery_image_upload" class="button highlight gallery-add-image">Upload an image</button>
+<button href="${api.app_url}/gallery_video_post" class="button highlight gallery-add-image">Link to a video</button>

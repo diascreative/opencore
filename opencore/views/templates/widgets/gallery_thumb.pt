@@ -1,9 +1,9 @@
 <a href="#" rel="&lt;img src=&quot;${ thumb_url }&quot; /&gt;">
     <input type="hidden" value="gallery_item:mapping" name="__start__" />
-    <input type="hidden" name="type" value="image" />
+    <input type="hidden" name="type" value="${item_type}" />
     <input tal:condition="uid" type="hidden" name="uid" value="${uid}" />
     <input type="checkbox" name="delete" />
     <input type="hidden" value="gallery_item:mapping" name="__end__" />
     <label>Delete</label>
-    <span><img src="${thumb_url}" /></span>
+    <span><img width="110" height="78" src="${thumb_url}" /></span>
 </a>
