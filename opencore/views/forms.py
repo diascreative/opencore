@@ -111,7 +111,10 @@ class BaseController(object):
         self.data['actions']=()
         
     def __call__(self):
-        self.pre_call()
+        pre_call_result = self.pre_call()
+        if pre_call_result:
+            return pre_call_result
+        
         request = self.request
 
         form = Form(self.Schema(), buttons=self.buttons)
