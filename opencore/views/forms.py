@@ -302,12 +302,12 @@ class GalleryWidgetImageItem(object):
 
     preview_template = "&lt;img src=&quot;%s&quot; /&gt;"
 
-    def __init__(self, value, api, uid=None):
+    def __init__(self, value, api, uid=None, size=(200,200)):
         self.type = 'image'
         if uid is not None:
             self.thumb_url = '/'.join([api.app_url, 'gallery_image_thumb', uid])
         else:
-            self.thumb_url = api.thumb_url(value)
+            self.thumb_url = api.thumb_url(value, size)
         self.preview_code = self.preview_template % self.thumb_url
 
 
