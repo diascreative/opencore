@@ -428,7 +428,7 @@ class VideoEmbedData(object):
         try:
             # Max width larger than 480 to support TV-format videos as well has
             # wide-screen
-            data = consumer.embed(value, width=640, maxwidth=640, maxheight=500).getData()
+            data = consumer.embed(value, width=703, maxwidth=703, maxheight=549).getData()
 
         except Exception, e:
             log.warning(e.message, exc_info=True)
