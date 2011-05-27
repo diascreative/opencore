@@ -147,10 +147,16 @@ class AtomEntry(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
+        
+        self.make_titles_content()
 
     @property
     def title(self):
-        return self.context.title
+        return self._title
+    
+    @property
+    def title_html(self):
+        return self._title_html
 
     @property
     def uri(self):
@@ -278,13 +284,15 @@ def atom_model_list(*results):
     return atom_trim(models_list)
 
 class TwitterItem(object):
-    def __init__(self, title, uri, modified, author, content):
+    def __init__(self, title, title_html, uri, modified, author, content, content_html):
         self.title = title
+        self.title_html = title_html
         self.__parent__ = None
         self.uri = uri
         self.modified = self.created = self.published = self.updated = modified
         self.author = author
         self.content = content
+        self.content_html = content_html
         self.__name__ = content
         
 class MethodUsedItem(object):
