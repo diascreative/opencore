@@ -1,0 +1,20 @@
+<div id="admin-gallery" class="gallery clearfix">
+    <div class="gallery-viewport"></div>
+    <input type="hidden" value="gallery:sequence" name="__start__" />
+    <div id="gallery-preview" class="gallery-thumbs">
+      <a href="#" tal:repeat="item items" rel="${item.preview_code}">
+            <input type="hidden" value="gallery_item:mapping" name="__start__" />
+            <input type="hidden" name="type" value="${item.type}" />
+            <input tal:condition="item.key" type="hidden" name="key" value="${item.key}" />
+            <input tal:condition="item.uid" type="hidden" name="uid" value="${item.uid}" />
+            <input type="checkbox" name="delete" />
+            <input type="hidden" value="gallery_item:mapping" name="__end__" />
+            <label>Delete</label>
+            <span><img width="110" src="${item.thumb_url}" /></span>
+        </a>
+    </div>
+    <input type="hidden" value="gallery:sequence" name="__end__" />
+</div>
+
+<button href="${api.app_url}/gallery_image_upload" class="button highlight gallery-add-image">Upload an image</button>
+<button href="${api.app_url}/gallery_video_post" class="button highlight gallery-add-image">Link to a video</button>

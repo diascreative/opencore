@@ -16,6 +16,11 @@
                          class field.widget.css_class"
          id="${field.oid}"/>
 
+  <div tal:condition="cstruct.get('preview_url')">
+    ${api.app_url}/${cstruct.get('preview_url')}
+    ${cstruct.get('mimetype')}
+  </div>
+
   <img tal:condition="thumb_url" src="${thumb_url}" />
 
   <input type="hidden" name="__end__" value="${field.name}:mapping"/>

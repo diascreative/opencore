@@ -627,7 +627,44 @@
     permission="view"
     />
 
+  <!-- gallery image upload form -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.image_upload"
+    name="gallery_image_upload"
+    permission="view"
+    renderer="templates/widgets/gallery_post.pt"/>
 
+  <!-- HTML around an image preview -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.image_thumb_layout"
+    name="gallery_image_thumb_layout"
+    permission="view"
+    renderer="templates/widgets/gallery_thumb.pt"/>
+
+  <!-- the image preview itself -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.image_thumb"
+    name="gallery_image_thumb"
+    permission="view" />
+
+  <!-- gallery video form -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.video_post"
+    name="gallery_video_post"
+    permission="view"
+    renderer="templates/widgets/gallery_post.pt" />
+
+  <!-- HTML around an video preview -->
+  <view
+    for="opencore.models.interfaces.ISite"
+    view=".gallery.video_thumb_layout"
+    name="gallery_video_thumb_layout"
+    permission="view"
+    renderer="templates/widgets/gallery_thumb.pt"/>
 
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"

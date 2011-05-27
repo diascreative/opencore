@@ -1,0 +1,24 @@
+<div xmlns="http://www.w3.org/1999/xhtml" 
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     xmlns:metal="http://xml.zope.org/namespaces/metal"
+     metal:use-macro="api.lightbox_layout" tal:define="image_upload 'youtube' not in form|False">
+
+    <tal:block metal:fill-slot="title"><h4 class="main-heading">${ image_upload and 'Upload an image' or 'Link to a video' }</h4></tal:block>
+
+    <tal:block metal:fill-slot="content">
+    <div tal:condition="form" tal:replace="structure form" />
+    
+    <!-- Handle success: update the gallery preview -->
+    <tal:block condition="thumb_url">
+    <script type="text/javascript">
+        $.get('${thumb_url}', function(data, textStatus) {
+            $('#gallery-preview', window.parent.document).append(data);
+    
+            top.$.fancybox.close();
+    
+        });
+    </script>
+    </tal:block>
+
+    </tal:block>
+</div>

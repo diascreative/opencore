@@ -1,5 +1,13 @@
-from PIL import Image
-from colander import null
+from cgi import escape
+from pprint import pformat
+import operator
+import string
+import random
+
+from colander import (
+        null,
+        Invalid,
+        )
 from deform import (
     Form,
     ValidationFailure,
@@ -10,23 +18,24 @@ from deform.widget import (
     Widget,
     FormWidget,
     )
+from persistent.mapping import PersistentMapping
+from PIL import Image
+
 from opencore.events import (
     ObjectWillBeModifiedEvent,
     ObjectModifiedEvent,
     )
+from opencore.models.files import CommunityFolder
 from opencore.models.interfaces import (
-    ICommunity,
     ICommunityFile,
     )
-from opencore.utils import find_profiles
-from opencore.utils import get_setting
 from opencore.utilities.image import thumb_url
+from opencore.utilities import oembed
 from pkg_resources import resource_filename
 from repoze.bfg.security import (
     has_permission,
     authenticated_userid,
     )
-from repoze.bfg.traversal import find_interface
 from repoze.bfg.threadlocal import get_current_request
 from repoze.bfg.url import model_url
 from repoze.lemonade.content import create_content
@@ -77,6 +86,8 @@ def _get_manage_actions(community, request):
 
     return actions
 
+# Temporary stores
+
 class DummyTempStore:
 
     def get(self,name,default=None):
@@ -93,6 +104,17 @@ class DummyTempStore:
 
     def preview_url(self,name):
         return None
+
+class MemoryTempStore(dict):
+    def preview_url(self, name):
+        return '/gallery_image_thumb/' + name
+
+class VideoTempStore(MemoryTempStore):
+    def preview_url(self, name):
+        return '/video_thumb/' + name
+
+tmpstore = MemoryTempStore()
+video_tmpstore = VideoTempStore()
 
 ### Controllers for form submission
     
@@ -183,6 +205,21 @@ class ContentController(BaseController):
             context.__class__.__name__+' edited'
             )
         return HTTPFound(location=location+msg)
+
+
+class GalleryControllerMixin(object):
+
+    @staticmethod
+    def record_gallery_changes(context, validated, userid):
+
+        if not 'gallery' in context:
+            context['gallery'] = CommunityFolder(title='Gallery for %s' %
+                    context.title, creator=userid)
+
+        # Handle gallery items
+        for item in validated['gallery']:
+            item.record_change(context, userid)
+
     
 ### Widgets
 
@@ -235,7 +272,7 @@ class ImageUploadWidget(FileUploadWidget):
 
     def __init__(self, **kw):
         FileUploadWidget.__init__(self, None, **kw)
-        self.tmpstore = DummyTempStore()
+        self.tmpstore = tmpstore
         self.thumb_size = kw.get('thumb_size')
 
     def serialize(self, field, cstruct, readonly=False):
@@ -256,9 +293,271 @@ class ImageUploadWidget(FileUploadWidget):
             # We're in an edit form as opposed to an add form
             image = self.context.get(field.name)
             if image is not None:
-                thumbnail_url = thumb_url(image, self.request, self.thumb_size or (290, 216))
+                params['thumb_url'] = thumb_url(image, self.request, self.thumb_size or (290, 216))
             params['context'] = self.context
         return field.renderer(template, **params)
+
+
+class GalleryWidgetImageItem(object):
+
+    preview_template = "&lt;img src=&quot;%s&quot; /&gt;"
+
+    def __init__(self, value, api, uid=None):
+        self.type = 'image'
+        if uid is not None:
+            self.thumb_url = '/'.join([api.app_url, 'gallery_image_thumb', uid])
+        else:
+            self.thumb_url = api.thumb_url(value)
+        self.preview_code = self.preview_template % self.thumb_url
+
+
+class GalleryWidgetVideoItem(object):
+
+    def __init__(self, value, uid=None):
+        self.type = 'video'
+        if uid is not None:
+            self.value = video_tmpstore[uid]
+        else:
+            self.value = value
+        self.thumb_url = self.value['thumbnail_url']
+        self.preview_code = escape(self.value['html'], quote=True)
+
+
+class GalleryWidgetItem(object):
+
+    def __init__(self, order=None, api=None, key=None, uid=None, value=None):
+        self.api = api
+        self.value = value
+        self.key = key
+        self.uid = uid
+        if order is None:
+            if hasattr(value, 'order'):
+                self.order = value.order
+            else:
+                self.order = value['order']
+        else:
+            self.order = order
+
+        if self.key is not None:
+            self.is_image = hasattr(self.value, 'is_image') and self.value.is_image
+        elif self.uid is not None:
+            self.is_image = (value['type'] == 'image')
+        else:
+            raise Exception("GalleryWidgetItem expects a key or a tmpstore uid")
+
+        if self.is_image:
+            self.data_item = GalleryWidgetImageItem(self.value, api, uid=self.uid)
+        else:
+            self.data_item = GalleryWidgetVideoItem(self.value, uid=self.uid)
+
+    def __getattr__(self, name):
+        return getattr(self.data_item, name)
+
+
+class GalleryWidget(Widget):
+    """
+    A widget to work with galleries containing images and videos.
+    """
+
+    template = 'gallery'
+
+    def serialize(self, field, cstruct, readonly=False):
+        log.debug("*** GalleryWidget field: %s, cstruct: %s", field, cstruct)
+        request = self.request
+        api = request.api
+        items = []
+        if cstruct is null:
+            pass
+        elif isinstance(cstruct, CommunityFolder):
+            for key, val in cstruct.items():
+                item = GalleryWidgetItem(key=key, value=val, api=api)
+                items.append(item)
+        else:
+            for order, citem in enumerate(cstruct):
+                key = citem.get('key')
+                if key:
+                    item = GalleryWidgetItem(order=order, api=api, key=key,
+                            value=self.context['gallery'][key])
+                elif citem.get('uid'):
+                    item = GalleryWidgetItem(order=order, api=api, uid=citem['uid'],
+                                value=citem)
+                items.append(item)
+        items.sort(key=operator.attrgetter('order'))
+        params = dict(field=field, cstruct=(),
+                request=self.request, api=api, items=items)
+        return field.renderer(self.template, **params)
+
+    def deserialize(self, field, pstruct):
+        return pstruct
+
+## Types
+
+YOUTUBE_URL_REGEXP = re.compile("http:\/\/(www\.)?youtube.com\/watch.+")
+
+def is_youtube_url(value):
+    return YOUTUBE_URL_REGEXP.search(value)
+
+class VideoEmbedData(object):
+    """
+    A colander type representing Youtube or Vimeo data
+    """
+    def serialize(self, node, value):
+        if value is null:
+            return null
+        return value
+
+    def deserialize(self, node, value):
+        log.debug("VideoEmbedData *** field: %s, cstruct: %s", node, value)
+
+        if value is null:
+            return null
+
+        consumer = oembed.OEmbedConsumer()
+        if is_youtube_url(value):
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://www.youtube.com/oembed',
+                    'http://*.youtube.com/watch*'))
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://www.youtube.com/oembed',
+                    'http://youtube.com/watch*'))
+        else:
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://vimeo.com/api/oembed.json',
+                'http://vimeo.com/*'))
+            consumer.addEndpoint(oembed.OEmbedEndpoint('http://vimeo.com/api/oembed.json',
+                'http://vimeo.com/groups/*/videos/*'))
+        try:
+            # Max width larger than 480 to support TV-format videos as well has
+            # wide-screen
+            data = consumer.embed(value, width=640, maxwidth=640, maxheight=500).getData()
+
+        except Exception, e:
+            log.warning(e.message, exc_info=True)
+            raise Invalid(node,
+                'Please enter a valid Vimeo or Youtube URL')
+
+        log.debug("Video data from provider:\n%s", pformat(data))
+        data['original_url'] = value
+
+        random_id = lambda: ''.join([
+            random.choice(string.uppercase+string.digits) for i in range(10)])
+
+        while 1:
+            uid = random_id()
+            if video_tmpstore.get(uid) is None:
+                data['uid'] = uid
+                data['preview_url'] = video_tmpstore.preview_url(uid)
+                video_tmpstore[uid] = data
+                break
+        return data
+
+
+class GalleryPostItem(object):
+    """
+    Base class for gallery post data entries. 
+    """
+
+    def __init__(self, node, order, post_data):
+        self.order = order
+        self.new = ('uid' in post_data)
+        self.delete = ('delete' in post_data)
+        if self.new:
+            if not self.delete:
+                # Deleted before it was even saved. No need to get the data.
+                try:
+                    self.data = self.tmpstore[post_data['uid']]
+                except KeyError, e:
+                    raise Invalid(node, 
+                        "There has been a problem uploading your image."
+                        " Please try again. Key error: %s" % e)
+        else:
+            self.key = post_data.get('key')
+            if not self.key:
+                raise Invalid(node, 
+                     "An image field must have either an uid or key")
+
+    @staticmethod
+    def make_key(context):
+        key = 1
+        while str(key) in context['gallery']:
+            key += 1
+        return str(key)
+
+
+class GalleryImageItem(GalleryPostItem):
+
+    def __init__(self, node, order, post_data):
+        self.tmpstore = tmpstore
+        super(GalleryImageItem, self).__init__(node, order, post_data)
+
+    def create_image(self, context, userid):
+        image = self.data
+        content = create_content(
+            ICommunityFile,
+            title='Image of %s' % context.title,
+            stream=image['fp'],
+            mimetype=image['mimetype'],
+            filename=image['filename'],
+            creator=userid,
+            )
+        content.order = self.order
+        key = self.make_key(context)
+        context['gallery'][key] = content
+
+    def record_change(self, context, userid):
+        if self.new:
+            self.create_image(context, userid)
+        else:
+            if self.delete:
+                del context['gallery'][self.key]
+            else:
+                context['gallery'][self.key].order = self.order
+
+class GalleryVideoItem(GalleryPostItem):
+
+    def __init__(self, node, order, post_data):
+        self.tmpstore = video_tmpstore
+        super(GalleryVideoItem, self).__init__(node, order, post_data)
+
+    def record_change(self, context, _userid):
+        if self.new:
+            key = self.make_key(context)
+            data = self.data
+            context['gallery'][key] = PersistentMapping(data)
+            context['gallery'][key].order = self.order
+        else:
+            key = self.key
+            if self.delete:
+                del context['gallery'][key]
+            else:
+                context['gallery'][key].order = self.order
+
+
+class GalleryList(object):
+    """ 
+    A colander type representing a list of gallery items.
+    """
+
+    def serialize(self, node, value):
+        log.debug("GalleryList *** field: %s, cstruct: %s", node, value)
+        if value is null:
+            return null
+        return value
+
+    def deserialize(self, node, value):
+        if value is null:
+            return null
+        result = []
+        for order, post_data_entry in enumerate(value):
+            item_type = post_data_entry.get('type')
+            if item_type == 'image':
+                item = GalleryImageItem(node, order, post_data_entry)
+            elif item_type == 'video':
+                item = GalleryVideoItem(node, order, post_data_entry)
+            else:
+                raise Invalid(node, 
+                        "%s is not a valid gallery item type." % item_type)
+            if not (item.new and item.delete):
+                result.append(item)
+
+        return result
 
 
 ### Validators
