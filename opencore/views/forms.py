@@ -298,7 +298,60 @@ class ImageUploadWidget(FileUploadWidget):
         return field.renderer(template, **params)
 
 
-IMAGE_PREVIEW_TEMPLATE = "&lt;img src=&quot;%s&quot; /&gt;"
+class GalleryWidgetImageItem(object):
+
+    preview_template = "&lt;img src=&quot;%s&quot; /&gt;"
+
+    def __init__(self, value, api, uid=None):
+        self.type = 'image'
+        if uid is not None:
+            self.thumb_url = '/'.join([api.app_url, 'gallery_image_thumb', uid])
+        else:
+            self.thumb_url = api.thumb_url(value)
+        self.preview_code = self.preview_template % self.thumb_url
+
+
+class GalleryWidgetVideoItem(object):
+
+    def __init__(self, value, uid=None):
+        self.type = 'video'
+        if uid is not None:
+            self.value = video_tmpstore[uid]
+        else:
+            self.value = value
+        self.thumb_url = self.value['thumbnail_url']
+        self.preview_code = escape(self.value['html'], quote=True)
+
+
+class GalleryWidgetItem(object):
+
+    def __init__(self, order=None, api=None, key=None, uid=None, value=None):
+        self.api = api
+        self.value = value
+        self.key = key
+        self.uid = uid
+        if order is None:
+            if hasattr(value, 'order'):
+                self.order = value.order
+            else:
+                self.order = value['order']
+        else:
+            self.order = order
+
+        if self.key is not None:
+            self.is_image = hasattr(self.value, 'is_image') and self.value.is_image
+        elif self.uid is not None:
+            self.is_image = (value['type'] == 'image')
+        else:
+            raise Exception("GalleryWidgetItem expects a key or a tmpstore uid")
+
+        if self.is_image:
+            self.data_item = GalleryWidgetImageItem(self.value, api, uid=self.uid)
+        else:
+            self.data_item = GalleryWidgetVideoItem(self.value, uid=self.uid)
+
+    def __getattr__(self, name):
+        return getattr(self.data_item, name)
 
 
 class GalleryWidget(Widget):
@@ -317,52 +370,21 @@ class GalleryWidget(Widget):
             pass
         elif isinstance(cstruct, CommunityFolder):
             for key, val in cstruct.items():
-                item = {'key': key, 'order': val.order}
-                if hasattr(val, 'is_image') and val.is_image:
-                    item['thumb_url'] = api.thumb_url(val)
-                    item['preview_code'] = IMAGE_PREVIEW_TEMPLATE % api.thumb_url(val)
-                    item['type'] = 'image'
-                else:
-                    item['thumb_url'] = val['thumbnail_url']
-                    item['preview_code'] = escape(val['html'], quote=True)
-                    item['type'] = 'video'
+                item = GalleryWidgetItem(key=key, value=val, api=api)
                 items.append(item)
         else:
             for order, citem in enumerate(cstruct):
                 key = citem.get('key')
                 if key:
-                    item = self.context['gallery'][key]
-                    if hasattr(item, 'is_image') and item.is_image:
-                        thumb_url = api.thumb_url(item)
-                        preview_code = IMAGE_PREVIEW_TEMPLATE % thumb_url
-                    else:
-                        thumb_url = item['thumbnail_url']
-                        preview_code = escape(item['html'], quote=True)
-                    items.append({
-                              'key': key, 
-                              'order': order,
-                              'thumb_url': thumb_url,
-                              'preview_code': preview_code,
-                              'type': citem['type']
-                              })
-                else:
-                    uid = citem.get('uid')
-                    if uid:
-                        item = {'uid': uid, 'type': citem['type'], 'order':
-                                order}
-                        if citem['type'] == 'video':
-                            item['thumb_url'] = video_tmpstore[uid]['thumbnail_url']
-                            item['preview_code'] = escape(video_tmpstore[uid]['thumbnail_url'], True)
-                        else:
-                            item['thumb_url'] = '/'.join([ 
-                                               request.api.app_url,
-                                               'gallery_image_thumb', 
-                                               uid ])
-                            item['preview_code'] = IMAGE_PREVIEW_TEMPLATE % item['thumb_url']
-                        items.append(item)
-        items.sort(key=operator.itemgetter('order'))
+                    item = GalleryWidgetItem(order=order, api=api, key=key,
+                            value=self.context['gallery'][key])
+                elif citem.get('uid'):
+                    item = GalleryWidgetItem(order=order, api=api, uid=citem['uid'],
+                                value=citem)
+                items.append(item)
+        items.sort(key=operator.attrgetter('order'))
         params = dict(field=field, cstruct=(),
-                request=self.request, api=self.request.api, items=items)
+                request=self.request, api=api, items=items)
         return field.renderer(self.template, **params)
 
     def deserialize(self, field, pstruct):
