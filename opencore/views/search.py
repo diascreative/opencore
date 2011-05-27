@@ -132,7 +132,10 @@ def make_query(context, request, search_interfaces=[]):
             }
         terms.extend(iface.getTaggedValue('name') for iface in ifaces)
     else:
-        query['interfaces'] = search_interfaces
+        query['interfaces'] = {
+            'query': search_interfaces,
+            'operator': 'or'
+            }
 
     tags = params.getall('tags')
     if tags:
@@ -178,8 +181,8 @@ def get_batch(context, request, search_interfaces=[IContent], filter_func=None):
         context_path = model_path(context)
         if context_path and context_path != '/':
             query['path'] = {'query': context_path}
-        principals = effective_principals(request)
-        query['allowed'] = {'query':principals, 'operator':'or'}
+        #principals = effective_principals(request)
+        #query['allowed'] = {'query':principals, 'operator':'or'}
         batch = get_catalog_batch_grid(context, request, filter_func=filter_func, **query)
 
     else:
@@ -230,7 +233,12 @@ class SearchResultsView(object):
     # Subclasses may wish to define a method with that name. The method will
     # be called for each element in the results list, after the batching will
     # have been completed.
+    post_batch_func = None
+    
+    # May be overridden in subclasses. Will be called right before the search
+    # will return the results.
     pre_return_func = None
+    
 
     def __init__(self, context, request):
         self.context = context
@@ -287,11 +295,11 @@ class SearchResultsView(object):
             # Prepare the keys for result list. In the worst case, each key
             # will point to an empty list.
             results = []
-
+            
             for result in batch['entries']:
                 result.url = model_url(result, self.request)
-                if self.pre_return_func:
-                    result = self.pre_return_func(result)
+                if self.post_batch_func:
+                    result = self.post_batch_func(result)
 
                 results.append(result)
 
@@ -313,6 +321,9 @@ class SearchResultsView(object):
             query=self.request.params.get('body'),
             )
 
+        if self.pre_return_func:
+            return_data = self.pre_return_func(return_data)
+        
         return return_data
 
 

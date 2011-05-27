@@ -288,7 +288,7 @@ class MakeQueryTests(unittest.TestCase):
         query, terms = self._callFUT({'body': 'yo'})
         self.assertEqual(query, {
             'texts': 'yo',
-            'interfaces': [],
+            'interfaces': {'operator': 'or', 'query': []},
             'sort_index': 'texts',
             })
         self.assertEqual(terms, ['yo'])
@@ -321,7 +321,7 @@ class MakeQueryTests(unittest.TestCase):
         from repoze.lemonade.interfaces import IContent
         self.assertEqual(query, {
             'creator': {'query': ['admin'], 'operator': 'or'},
-            'interfaces': [],
+            'interfaces': {'operator': 'or', 'query': []},
             })
         self.assertEqual(terms, ['Ad'])
 
@@ -340,7 +340,7 @@ class MakeQueryTests(unittest.TestCase):
         from repoze.lemonade.interfaces import IContent
         query, terms = self._callFUT({'tags': 'a'})
         self.assertEqual(query, {
-            'interfaces': [],
+            'interfaces': {'operator': 'or', 'query': []},
             'tags': {'query': ['a'], 'operator': 'or'},
             })
         self.assertEqual(terms, ['a'])
@@ -349,7 +349,7 @@ class MakeQueryTests(unittest.TestCase):
         from repoze.lemonade.interfaces import IContent
         query, terms = self._callFUT({'year': '1990'})
         self.assertEqual(query,
-            {'creation_date': (6311520, 6626483), 'interfaces': []})
+            {'creation_date': (6311520, 6626483), 'interfaces': {'operator': 'or', 'query': []}})
         self.assertEqual(terms, [1990])
 
 
