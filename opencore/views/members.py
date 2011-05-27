@@ -39,6 +39,7 @@ from deform.widget import (
     DatePartsWidget,
     SelectWidget,
     TextAreaWidget,
+    TextInputWidget,
     )
 
 from email.Message import Message
@@ -48,7 +49,6 @@ import logging
 
 from webob.exc import HTTPFound
 from zope.component import getUtility
-from zope.component import queryMultiAdapter
 from zope.index.text.parsetree import ParseError
 
 from repoze.bfg.chameleon_zpt import render_template_to_response
@@ -58,12 +58,10 @@ from repoze.bfg.security import effective_principals
 from repoze.bfg.traversal import model_path
 from repoze.bfg.traversal import find_interface
 from repoze.bfg.url import model_url
-from repoze.bfg.exceptions import ExceptionResponse
 
 from repoze.lemonade.content import create_content
 from repoze.sendmail.interfaces import IMailDelivery
 
-from opencore.views.api import TemplateAPI
 from opencore.views.batch import get_catalog_batch
 
 from opencore.models.interfaces import ICommunity
@@ -84,10 +82,10 @@ from opencore.views.forms import (
     _get_manage_actions,
     BaseController,
     KarlUserWidget,
+    CommaSeparatedList,
     TOUWidget,
     instantiate,
     )
-from opencore.views.interfaces import IInvitationBoilerplate
 from opencore.views.validation import ValidationError
 
 
@@ -714,6 +712,13 @@ class NewUsersBaseController(MembersBaseController):
                      'before they can be added to this community.')
             )
 
+    def email_list_validator(self):
+        def validator(node, value):
+            for item in value:
+                validate_email = self.email_validator()
+                validate_email(node, item)
+        return validator
+
 class InviteNewUsersController(NewUsersBaseController):
 
     # schema
@@ -726,10 +731,10 @@ class InviteNewUsersController(NewUsersBaseController):
                 String(),
                 )
 
-        @instantiate(missing=())
-        class email_addresses(SequenceSchema):
-            address = SchemaNode(
-                String(),
+        email_addresses = SchemaNode(
+                CommaSeparatedList(),
+                widget=TextInputWidget(),
+                missing=[]
                 )
 
         text = SchemaNode(
@@ -758,7 +763,7 @@ class InviteNewUsersController(NewUsersBaseController):
         # This needs to be a function as we need multi-field validation
         # and some validators needs context
         s = self._Schema(validator=self.users_or_emails).clone()
-        s['email_addresses']['address'].validator=self.email_validator()
+        s['email_addresses'].validator = self.email_list_validator()
         s['users']['user'].validator=Function(
             self.valid_profile,
             'This is not a valid profile.'

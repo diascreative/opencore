@@ -302,12 +302,12 @@ class GalleryWidgetImageItem(object):
 
     preview_template = "&lt;img src=&quot;%s&quot; /&gt;"
 
-    def __init__(self, value, api, uid=None):
+    def __init__(self, value, api, uid=None, size=(200,200)):
         self.type = 'image'
         if uid is not None:
             self.thumb_url = '/'.join([api.app_url, 'gallery_image_thumb', uid])
         else:
-            self.thumb_url = api.thumb_url(value)
+            self.thumb_url = api.thumb_url(value, size)
         self.preview_code = self.preview_template % self.thumb_url
 
 
@@ -392,6 +392,8 @@ class GalleryWidget(Widget):
 
 ## Types
 
+# Gallery stuff
+
 YOUTUBE_URL_REGEXP = re.compile("http:\/\/(www\.)?youtube.com\/watch.+")
 
 def is_youtube_url(value):
@@ -426,7 +428,7 @@ class VideoEmbedData(object):
         try:
             # Max width larger than 480 to support TV-format videos as well has
             # wide-screen
-            data = consumer.embed(value, width=640, maxwidth=640, maxheight=500).getData()
+            data = consumer.embed(value, width=703, maxwidth=703, maxheight=549).getData()
 
         except Exception, e:
             log.warning(e.message, exc_info=True)
@@ -510,6 +512,7 @@ class GalleryImageItem(GalleryPostItem):
             else:
                 context['gallery'][self.key].order = self.order
 
+
 class GalleryVideoItem(GalleryPostItem):
 
     def __init__(self, node, order, post_data):
@@ -558,6 +561,23 @@ class GalleryList(object):
                 result.append(item)
 
         return result
+
+# CSV text input
+
+class CommaSeparatedList(object):
+
+    def serialize(self, node, value):
+        if value is null:
+            return null
+        return ", ".join(value)
+
+    def deserialize(self, node, value):
+        if value is null:
+            return []
+        if value.strip(): # Check we don't get a blank string
+            return [s.strip() for s in value.split(",")]
+        else:
+            return []
 
 
 ### Validators
