@@ -353,9 +353,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         controller = self._makeOne()
 
         self.request.POST = MultiDict([
-                ('__start__', u'email_addresses:sequence'),
-                ('address', u'yo@plope.com'),
-                ('__end__', u'email_addresses:sequence'),
+                ('email_addresses', u'yo@plope.com'),
                 ('text', u'some text'),
                 ('save', u'save')
                 ])
@@ -376,9 +374,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         controller = self._makeOne()
         
         self.request.POST = MultiDict([
-                ('__start__', u'email_addresses:sequence'),
-                ('address', u'd@x.org'),
-                ('__end__', u'email_addresses:sequence'),
+                ('email_addresses', u'd@x.org'),
                 ('text', u'some text'),
                 ('save', u'save')
                 ])
@@ -398,9 +394,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         controller = self._makeOne()
         
         self.request.POST  = MultiDict([
-                ('__start__', u'email_addresses:sequence'),
-                ('address', u'e@x.org'),
-                ('__end__', u'email_addresses:sequence'),
+                ('email_addresses', u'e@x.org'),
                 ('text', u'some text'),
                 ('save', u'save')
                 ])
@@ -418,9 +412,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         controller = self._makeOne()
         
         self.request.POST  = MultiDict([
-                ('__start__', u'email_addresses:sequence'),
-                ('address', u'a@x.org'),
-                ('__end__', u'email_addresses:sequence'),
+                ('email_addresses', u'a@x.org'),
                 ('text', u'some text'),
                 ('save', u'save')
                 ])

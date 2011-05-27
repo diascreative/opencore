@@ -392,6 +392,8 @@ class GalleryWidget(Widget):
 
 ## Types
 
+# Gallery stuff
+
 YOUTUBE_URL_REGEXP = re.compile("http:\/\/(www\.)?youtube.com\/watch.+")
 
 def is_youtube_url(value):
@@ -510,6 +512,7 @@ class GalleryImageItem(GalleryPostItem):
             else:
                 context['gallery'][self.key].order = self.order
 
+
 class GalleryVideoItem(GalleryPostItem):
 
     def __init__(self, node, order, post_data):
@@ -558,6 +561,23 @@ class GalleryList(object):
                 result.append(item)
 
         return result
+
+# CSV text input
+
+class CommaSeparatedList(object):
+
+    def serialize(self, node, value):
+        if value is null:
+            return null
+        return ", ".join(value)
+
+    def deserialize(self, node, value):
+        if value is null:
+            return []
+        if value.strip(): # Check we don't get a blank string
+            return [s.strip() for s in value.split(",")]
+        else:
+            return []
 
 
 ### Validators
