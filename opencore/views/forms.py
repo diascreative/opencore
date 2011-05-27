@@ -3,7 +3,7 @@ from pprint import pformat
 import operator
 import string
 import random
-from PIL import Image
+
 from colander import (
         null,
         Invalid,
@@ -18,17 +18,17 @@ from deform.widget import (
     Widget,
     FormWidget,
     )
+from persistent.mapping import PersistentMapping
+from PIL import Image
+
 from opencore.events import (
     ObjectWillBeModifiedEvent,
     ObjectModifiedEvent,
     )
 from opencore.models.files import CommunityFolder
 from opencore.models.interfaces import (
-    ICommunity,
     ICommunityFile,
     )
-from opencore.utils import find_profiles
-from opencore.utils import get_setting
 from opencore.utilities.image import thumb_url
 from opencore.utilities import oembed
 from pkg_resources import resource_filename
@@ -36,7 +36,6 @@ from repoze.bfg.security import (
     has_permission,
     authenticated_userid,
     )
-from repoze.bfg.traversal import find_interface
 from repoze.bfg.threadlocal import get_current_request
 from repoze.bfg.url import model_url
 from repoze.lemonade.content import create_content
@@ -208,6 +207,19 @@ class ContentController(BaseController):
         return HTTPFound(location=location+msg)
 
 
+class GalleryControllerMixin(object):
+
+    @staticmethod
+    def record_gallery_changes(context, validated, userid):
+
+        if not 'gallery' in context:
+            context['gallery'] = CommunityFolder(title='Gallery for %s' %
+                    context.title, creator=userid)
+
+        # Handle gallery items
+        for item in validated['gallery']:
+            item.record_change(context, userid)
+
     
 ### Widgets
 
@@ -349,7 +361,6 @@ class GalleryWidget(Widget):
                             item['preview_code'] = IMAGE_PREVIEW_TEMPLATE % item['thumb_url']
                         items.append(item)
         items.sort(key=operator.itemgetter('order'))
-        print items
         params = dict(field=field, cstruct=(),
                 request=self.request, api=self.request.api, items=items)
         return field.renderer(self.template, **params)
@@ -416,8 +427,90 @@ class VideoEmbedData(object):
         return data
 
 
+class GalleryPostItem(object):
+    """
+    Base class for gallery post data entries. 
+    """
+
+    def __init__(self, node, order, post_data):
+        self.order = order
+        self.new = ('uid' in post_data)
+        self.delete = ('delete' in post_data)
+        if self.new:
+            if not self.delete:
+                # Deleted before it was even saved. No need to get the data.
+                try:
+                    self.data = self.tmpstore[post_data['uid']]
+                except KeyError, e:
+                    raise Invalid(node, 
+                        "There has been a problem uploading your image."
+                        " Please try again. Key error: %s" % e)
+        else:
+            self.key = post_data.get('key')
+            if not self.key:
+                raise Invalid(node, 
+                     "An image field must have either an uid or key")
+
+    @staticmethod
+    def make_key(context):
+        key = 1
+        while str(key) in context['gallery']:
+            key += 1
+        return str(key)
+
+
+class GalleryImageItem(GalleryPostItem):
+
+    def __init__(self, node, order, post_data):
+        self.tmpstore = tmpstore
+        super(GalleryImageItem, self).__init__(node, order, post_data)
+
+    def create_image(self, context, userid):
+        image = self.data
+        content = create_content(
+            ICommunityFile,
+            title='Image of %s' % context.title,
+            stream=image['fp'],
+            mimetype=image['mimetype'],
+            filename=image['filename'],
+            creator=userid,
+            )
+        content.order = self.order
+        key = self.make_key(context)
+        context['gallery'][key] = content
+
+    def record_change(self, context, userid):
+        if self.new:
+            self.create_image(context, userid)
+        else:
+            if self.delete:
+                del context['gallery'][self.key]
+            else:
+                context['gallery'][self.key].order = self.order
+
+class GalleryVideoItem(GalleryPostItem):
+
+    def __init__(self, node, order, post_data):
+        self.tmpstore = video_tmpstore
+        super(GalleryVideoItem, self).__init__(node, order, post_data)
+
+    def record_change(self, context, _userid):
+        if self.new:
+            key = self.make_key(context)
+            data = self.data
+            context['gallery'][key] = PersistentMapping(data)
+            context['gallery'][key].order = self.order
+        else:
+            key = self.key
+            if self.delete:
+                del context['gallery'][key]
+            else:
+                context['gallery'][key].order = self.order
+
+
 class GalleryList(object):
-    """ A colander type representing a list of gallery items.
+    """ 
+    A colander type representing a list of gallery items.
     """
 
     def serialize(self, node, value):
@@ -429,48 +522,20 @@ class GalleryList(object):
     def deserialize(self, node, value):
         if value is null:
             return null
-        if not hasattr(value, '__iter__'):
-            raise Invalid(
-                node,
-                _('${value} is not iterable', mapping={'value':value})
-                )
         result = []
-        for order, item in enumerate(value):
-            item_type = item.get('type')
-            if item_type in ('image', 'video'):
-                uid = item.get('uid')
-                if uid:
-                    if not item.get('delete'):
-                        try:
-                            item_data = tmpstore[uid] if item_type == 'image' else video_tmpstore[uid]
-                        except KeyError, e:
-                            raise Invalid(node, 
-                                "There has been a problem uploading your image."
-                                " Please try again. Key error: %s" % e)
-                        result.append({'new': True, 
-                                       'type': item_type, 
-                                       'data': item_data,
-                                       'order': order})
-                else:
-                    key = item.get('key')
-                    result.append({'key': key, 
-                                   'type': item_type, 
-                                   'order': item.get('order'), 
-                                   'delete': item.get('delete'),
-                                   'order': order})
-                    if not key:
-                        raise Invalid(node, 
-                             "An image field must have either an uid or key")
+        for order, post_data_entry in enumerate(value):
+            item_type = post_data_entry.get('type')
+            if item_type == 'image':
+                item = GalleryImageItem(node, order, post_data_entry)
+            elif item_type == 'video':
+                item = GalleryVideoItem(node, order, post_data_entry)
             else:
-                raise Invalid(
-                        node,
-                        "%s is not a valid gallery item type." % item_type,
-                        )
+                raise Invalid(node, 
+                        "%s is not a valid gallery item type." % item_type)
+            if not (item.new and item.delete):
+                result.append(item)
 
-        value = result
-#        if not value and not self.allow_empty:
-#            raise Invalid(node, _('Required'))
-        return value
+        return result
 
 
 ### Validators
