@@ -169,7 +169,7 @@ class AddExistingUserTests(InviteNewUsersControllerBase):
                 ('__start__', u'users:sequence'),
                 ('a_user', u'nyc99'),
                 ('__end__', u'users:sequence'),
-                ('save', u'save')
+                ('send', u'send')
                 ])
         response = controller()
 
@@ -189,7 +189,7 @@ class AddExistingUserTests(InviteNewUsersControllerBase):
                 ('__start__', u'users:sequence'),
                 ('a_user', u'admin'),
                 ('__end__', u'users:sequence'),
-                ('save', u'save')
+                ('send', u'send')
                 ])
         
         response = controller()
@@ -316,6 +316,8 @@ class AcceptInvitationControllerTests(CommunityBase):
 
 class InviteNewUsersTests(InviteNewUsersControllerBase):
 
+    redirect_url = '/redirect-location'
+
     def _makeContext(self):
         community = testing.DummyModel()
         community.member_names = set(['a'])
@@ -335,6 +337,15 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         self.failUnless('api' in info)
         self.failUnless('actions' in info)
         self.assertTrue(info['form'].startswith('<form id="deform"'))
+        self.assertFalse(self.redirect_url in info['form'])
+
+    def test_get_with_redirect(self):
+        self.request = testing.DummyRequest(
+                params={'return_to': self.redirect_url})
+        self.request.api = get_template_api(self.context, self.request)
+        controller = self._makeOne()
+        info = controller()
+        self.assertTrue(self.redirect_url in info['form'])
    
     def test_handle_submit_no_users_or_emails(self):
         
@@ -342,7 +353,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
 
         self.request.POST = MultiDict([
                 ('text', u'some text'),
-                ('save', u'save')
+                ('send', u'send')
                 ])
         response = controller()
         
@@ -355,13 +366,11 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         self.request.POST = MultiDict([
                 ('email_addresses', u'yo@plope.com'),
                 ('text', u'some text'),
-                ('save', u'save')
+                ('return_to', u'http://example.com/some-redirection'),
+                ('send', u'send')
                 ])
         response = controller()
-        
-        self.assertEqual(response.location,
-          'http://example.com/manage.html?status_message=One+user+invited.++'
-                         )
+        self.assertTrue(u"top.location = 'http://example.com/some-redirection'" in response.body)
         invitation = self.context['A'*6]
         self.assertEqual(invitation.email, 'yo@plope.com')
         self.assertEqual(1, len(self.mailer))
@@ -376,7 +385,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         self.request.POST = MultiDict([
                 ('email_addresses', u'd@x.org'),
                 ('text', u'some text'),
-                ('save', u'save')
+                ('send', u'send')
                 ])
         response = controller()
         
@@ -396,7 +405,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         self.request.POST  = MultiDict([
                 ('email_addresses', u'e@x.org'),
                 ('text', u'some text'),
-                ('save', u'save')
+                ('send', u'send')
                 ])
         response = controller()
 
@@ -414,7 +423,7 @@ class InviteNewUsersTests(InviteNewUsersControllerBase):
         self.request.POST  = MultiDict([
                 ('email_addresses', u'a@x.org'),
                 ('text', u'some text'),
-                ('save', u'save')
+                ('send', u'send')
                 ])
         response = controller()
         

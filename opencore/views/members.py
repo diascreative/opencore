@@ -870,8 +870,8 @@ class InviteNewUsersController(NewUsersBaseController):
         
        
         if not usernames:
-            if request.params.get('return_to') is not None:
-                location  = request.params['return_to']
+            if request.POST.get('return_to') is not None:
+                location  = request.POST['return_to']
                 return render_template_to_response('templates/javascript_redirect.pt', 
                         url=location)
 
