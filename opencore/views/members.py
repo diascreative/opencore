@@ -721,6 +721,8 @@ class NewUsersBaseController(MembersBaseController):
 
 class InviteNewUsersController(NewUsersBaseController):
 
+    buttons = ('cancel', 'send')
+
     # schema
     
     class _Schema(MappingSchema):
