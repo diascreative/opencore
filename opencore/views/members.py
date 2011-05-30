@@ -33,6 +33,7 @@ from colander import (
     SchemaNode,
     SequenceSchema,
     String,
+    null,
     )
 from deform.widget import (
     CheckedPasswordWidget,
@@ -40,6 +41,7 @@ from deform.widget import (
     SelectWidget,
     TextAreaWidget,
     TextInputWidget,
+    HiddenWidget,
     )
 
 from email.Message import Message
@@ -745,6 +747,12 @@ class InviteNewUsersController(NewUsersBaseController):
             missing='',
             )
 
+        return_to = SchemaNode(
+                String(),
+                widget=HiddenWidget(),
+                missing = None,
+                )
+
     # form-specific validators
         
     def valid_profile(self,value):
@@ -789,6 +797,13 @@ class InviteNewUsersController(NewUsersBaseController):
                     )
         else:
             return super(InviteNewUsersController,self).__call__()
+
+    def form_defaults(self):
+        if self.request.params.get('return_to'):
+            return {'return_to': self.request.params['return_to']}
+        else:
+            return null
+
    
     def handle_submit(self, validated):
         request = self.request
@@ -855,9 +870,15 @@ class InviteNewUsersController(NewUsersBaseController):
         
        
         if not usernames:
-            location = model_url(context, request, 'manage.html',
+            if request.params.get('return_to') is not None:
+                location  = request.params['return_to']
+                return render_template_to_response('templates/javascript_redirect.pt', 
+                        url=location)
+
+            else:
+                location = model_url(context, request, 'manage.html',
                              query={'status_message': status})
-            return HTTPFound(location=location)
+                return HTTPFound(location=location)
                 
         users = []        
         for username in usernames:
