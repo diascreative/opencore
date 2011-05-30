@@ -394,6 +394,25 @@ class GalleryWidget(Widget):
     def deserialize(self, field, pstruct):
         return pstruct
 
+
+class MethodWidget(Widget):
+    """
+    A widget to select methods
+    """
+
+    template = 'methods'
+
+    def serialize(self, field, cstruct, readonly=False):
+        log.debug("*** MethodWidget.serialize field: %s, cstruct: %s", field, cstruct)
+        if cstruct is null:
+            pass
+        params = {'api': self.request.api, 'method_choices': self.choices}
+        print params
+        return field.renderer(self.template, **params)
+
+    def deserialize(self, field, pstruct):
+        return pstruct
+
 ## Types
 
 # Gallery stuff

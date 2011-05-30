@@ -1,0 +1,38 @@
+<div id="method-select">
+    <div id="selected-methods">
+        <h4>Selected Methods</h4>
+        <div id="items"></div>
+    </div>
+
+    <div id="method-panel">
+        <div id="click-add-method"></div>
+        <div id="search-methods">
+            <input type="text" id="search-methods-input" value="Search" />
+        </div>
+        <div id="search-method-results" class="small-methods"><div class="close-button"></div></div>
+        <ul id="search-method-listings">
+            <li>
+                <a href="" class="tab">hear</a>
+                <div class="methods-listed small-methods clearfix"
+                  tal:define="methods method_choices['hear']">
+                    <div metal:use-macro="api.snippets.macros['listing_methods_small']" />
+                </div>
+            </li>
+            <li>
+                <a href="" class="tab">create</a>
+                <div class="methods-listed small-methods clearfix"
+                  tal:define="methods method_choices['create']">
+                    <div metal:use-macro="api.snippets.macros['listing_methods_small']" />
+                </div>
+            </li>
+            <li>
+                <a href="" class="tab">deliver</a>
+                <div class="methods-listed small-methods clearfix"
+                  tal:define="methods method_choices['deliver']">
+                    <div metal:use-macro="api.snippets.macros['listing_methods_small']" />
+                </div>
+            </li>
+        </ul>
+    </div>
+    <div class="clear"></div>
+</div>
