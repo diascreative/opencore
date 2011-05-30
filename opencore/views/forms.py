@@ -406,8 +406,11 @@ class MethodWidget(Widget):
         log.debug("*** MethodWidget.serialize field: %s, cstruct: %s", field, cstruct)
         if cstruct is null:
             pass
-        params = {'api': self.request.api, 'method_choices': self.choices}
-        print params
+        params = {
+                'api': self.request.api, 
+                'selected_methods': cstruct,
+                'method_choices': self.choices,
+                }
         return field.renderer(self.template, **params)
 
     def deserialize(self, field, pstruct):
