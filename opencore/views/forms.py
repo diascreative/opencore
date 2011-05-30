@@ -405,7 +405,7 @@ class MethodWidget(Widget):
     def serialize(self, field, cstruct, readonly=False):
         log.debug("*** MethodWidget.serialize field: %s, cstruct: %s", field, cstruct)
         if cstruct is null:
-            pass
+            cstruct = []
         params = {
                 'api': self.request.api, 
                 'selected_methods': cstruct,
