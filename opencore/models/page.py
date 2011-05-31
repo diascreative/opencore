@@ -24,6 +24,7 @@ from opencore.models.attachments import AttachmentsFolder
 
 class Page(Folder):
     implements(IPage)
+    content_modified = None # will be set by subscriber
     modified_by = None
 
     def __init__(self, title, text, description, creator):

@@ -673,6 +673,13 @@
     permission="view"
     renderer="templates/page.pt"/>
 
+  <view
+    for="opencore.models.interfaces.IPage"
+    view=".page.EditPageController"
+    name="edit_page.html"
+    renderer="templates/edit_page.pt"
+    permission="edit"/>
+
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"
     handler=".api.handle_request_api" />
