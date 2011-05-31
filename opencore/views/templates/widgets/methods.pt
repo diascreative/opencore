@@ -22,7 +22,7 @@
             <input type="text" id="search-methods-input" value="Search" />
         </div>
         <div id="search-method-results" class="small-methods"><div class="close-button"></div></div>
-        <ul id="search-method-listings">
+        <ul id="search-method-listings" tal:define="columns 500">
             <li>
                 <a href="" class="tab">hear</a>
                 <div class="methods-listed small-methods clearfix"
