@@ -666,6 +666,13 @@
     permission="view"
     renderer="templates/widgets/gallery_thumb.pt"/>
 
+  <!-- Static pages -->
+  <view
+    for="opencore.models.interfaces.IPage"
+    view=".page.show_page"
+    permission="view"
+    renderer="templates/page.pt"/>
+
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"
     handler=".api.handle_request_api" />
