@@ -75,8 +75,8 @@ def get_catalog_batch(context, request, filter_func=None, **kw):
             if filter_func and not filter_func(model):
                 i -= 1
                 total -= 1
-                continue 
-                
+                continue
+
             batch.append(model)
     else:
         batch_start = total
