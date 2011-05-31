@@ -125,6 +125,7 @@ def show_mbox(context, request):
     return_data = {}
     return_data['queues'] = queues
     return_data['api'] = request.api
+    return_data['mbox_type'] = mbox_type
     
     return return_data
 
@@ -178,14 +179,18 @@ def show_mbox_thread(context, request):
     return_data = {}
     return_data['messages'] = messages
     return_data['api'] = request.api
+    return_data['mbox_type'] = mbox_type
     
     return return_data
 
 def add_message(context, request):
+    
+    mbox_type = _get_mbox_type(request)
 
     return_data = {}
     return_data['error_msg'] = ''
     return_data['api'] = request.api
+    return_data['mbox_type'] = mbox_type
     
     if request.method == 'POST':
     
