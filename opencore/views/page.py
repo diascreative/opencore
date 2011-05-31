@@ -40,4 +40,4 @@ class EditPageController(ContentController):
 
     def handle_content(self, context, request, validated):
         context.title = validated['title']
-        context.title = validated['text']
+        context.text = validated['text']

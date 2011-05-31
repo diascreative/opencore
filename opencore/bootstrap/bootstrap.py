@@ -16,8 +16,7 @@ from repoze.lemonade.content import create_content
 from opencore.bootstrap.interfaces import IInitialData
 from opencore.bootstrap.data import DefaultInitialData
 from opencore.models.contentfeeds import SiteEvents
-from opencore.models.interfaces import IProfile
-from opencore.models.page import Page
+from opencore.models.interfaces import IProfile, IPage
 from opencore.models.site import Site
 from opencore.security.policy import to_profile_active
 from opencore.views.utils import create_user_mboxes
@@ -118,8 +117,13 @@ def bootstrap_static_pages(site):
 def bootstrap_static_page(site, title):
     auto_gen = DefaultInitialData.initial_static_content_auto_generated
     text = title + ' - ' + auto_gen
-    page = Page(title, text, auto_gen.capitalize(),
-                DefaultInitialData.admin_user)
+    page = create_content(IPage,
+            title=title, 
+            text=text,
+            description=auto_gen.capitalize(),
+            creator=DefaultInitialData.admin_user,
+            )
+
     page_path = title.lower()
     try:
         site[page_path] = page
