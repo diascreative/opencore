@@ -9,6 +9,7 @@ from traceback import format_exc
 
 # Zope
 import transaction
+from zope.component import getUtility
 from zope.interface import implements
 
 # webob
@@ -23,6 +24,7 @@ from simplejson import JSONEncoder
 
 # opencore
 from opencore.models.interfaces import IEventInfo
+from opencore.models.interfaces import IProfileDict
 from opencore.models.mbox import(ALLOWED_MBOX_TYPES, DEFAULT_MBOX_TYPE,
             TO_SEPARATOR, STATUS_READ, ALLOWED_STATUSES)
 from opencore.utilities.alerts import alert_user
@@ -151,6 +153,13 @@ def _to_from_to_header(message):
     addresses = message.get('To', '').split(TO_SEPARATOR)
     return [elem.strip() for elem in addresses]
 
+def _get_profile_details(context, request, user):
+    profile = find_profiles(context).get(user)
+    profile_details = getUtility(IProfileDict, name='profile-details')
+    profile_details.update_details(profile, request, request.api, (220,150))
+
+    return profile_details
+
 def show_mbox(context, request):
     user = authenticated_userid(request)
 
@@ -208,6 +217,7 @@ def show_mbox(context, request):
         queues.append(queue)
 
     return_data = {}
+    return_data['profile'] = _get_profile_details(context, request, user)
     return_data['queues'] = queues
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
@@ -264,6 +274,7 @@ def show_mbox_thread(context, request):
         messages.append(msg_dict)
 
     return_data = {}
+    return_data['profile'] = _get_profile_details(context, request, user)
     return_data['messages'] = messages
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
@@ -283,6 +294,7 @@ def add_message(context, request):
     if request.method == 'POST':
 
         user = authenticated_userid(request)
+        return_data['profile'] = _get_profile_details(context, request, user)
 
         success = False
         error_msg = ''

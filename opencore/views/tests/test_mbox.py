@@ -97,6 +97,9 @@ class MBoxViewTestCase(unittest.TestCase):
         _country = uuid.uuid4().hex
 
         class _DummyAPI(object):
+
+            static_url = '/foo/bar'
+
             def find_profile(*ignored_args, **ignored_kwargs):
                 class _Dummy(object):
                     firstname = _firstname
