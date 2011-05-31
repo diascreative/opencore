@@ -15,6 +15,8 @@
             $('#gallery-preview', window.parent.document).append(data);
     
             top.$.fancybox.close();
+            
+            top.$('#gallery-preview a:last').click();
     
         });
     </script>
