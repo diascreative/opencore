@@ -42,7 +42,8 @@ messages queues are always linear, there's no tree view over the whole queue.
 Each message queue consists of at least one message. The name of the message
 queue is taken from the first message that's added to the queue however the name
 is not used for uniquely identifying queue because there can be many queues
-sharing the same name (the same message subject, that is).
+sharing the same name (the same message subject, that is), thus a thread ID is
+used for identifying the Queue objects.
 
 ASCII art below depicts relations between the classes.
 

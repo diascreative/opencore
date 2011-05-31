@@ -31,6 +31,80 @@ from opencore.utilities.mbox import MboxMessage
 from opencore.utilities.paginate import Pagination
 from opencore.utils import find_profiles
 
+"""
+Views API
+---------
+
+- return a list of Queues /mbox.html
+  - input: 
+        mailbox type (inbox/sent) [mbox_type],
+        page number [page]
+  - output: 
+        template API [api],
+        list of Queue objects [queues], each object has: 
+          Queue ID [id], 
+          Queue name [name],
+          number of Messages in the Queue [total_messages], 
+          from header of the first Message [first_message_from],
+          to header of the first Message [first_message_to], 
+          date header of the first Message [first_message_date], 
+          mailbox type (inbox/sent) [mbox_type]
+
+- return a list of Messages for the given Queue /mbox_thread.html
+  - input: 
+        mailbox type (inbox/sent) [mbox_type], 
+        Queue ID [thread_id]
+  - output: 
+        template API [api],
+        mailbox type (inbox/sent) [mbox_type],
+        list of Messages (possibly one-element in length only) [messages], each object has: 
+          ID of the Queue it belongs to [queue_id],
+          Message ID [message_id],
+          subject [subject],
+          date header [date], 
+          flags [flags],
+          user name of the person from the from header [from],
+          first & last name of the person from the from header [from_firstname] [from_lastname],
+          link to profile picture of the person from the from header [from_photo],
+          country code of the person from the from header [from_country],
+          payload [payload],
+          for each person in the Message's to header [to_data]:
+            user name [name],
+            first & last name [firstname] [lastname],
+            link to profile picture [photo_url],
+            country code [country]
+                
+- add a new Message: /mbox_add_message.html
+  - input: 
+        a comma-separated list of 'to: ' users [to],
+        subject (aka the name of the message) [subject], 
+        the actual payload [payload]
+  - output: 
+        template API [api],
+        boolean flag indicating whether it's succeeded or not [success],
+        message (Python exception) explaining the failure reason if not success [error_msg,
+        mailbox type (inbox/sent) [mbox_type]
+            
+- delete a Message (AJAX call) /mbox_delete_message.html
+  - input: 
+        mailbox type (inbox/sent) [mbox_type], 
+        Queue ID [thread_id], 
+        message ID [message_id]
+  - output: 
+        boolean flag indicating whether it's succeeded or not [success], 
+        message (Python exception) explaining the failure reason if not success [error_msg],
+
+- mark a Message read (AJAX call) /mbox_mark_message_read.html
+  Note: marking a message read twice is a no-op
+  - input: 
+        mailbox type (inbox/sent) [mbox_type], 
+        Queue ID [thread_id], 
+        message ID [message_id]
+  - output: 
+        boolean flag indicating whether it's succeeded or not [success],
+        message (Python exception) explaining the failure reason if not success [error_msg]
+"""
+
 # How many queues per page to show?
 PER_PAGE = 20
 
