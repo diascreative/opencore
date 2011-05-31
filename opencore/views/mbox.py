@@ -353,6 +353,27 @@ def delete_message(context, request):
     
     return _json_response(success, error_msg)
 
+def delete_thread(context, request):
+    
+    user = authenticated_userid(request)
+    
+    success = False
+    error_msg = ''
+    
+    thread_id = request.POST.get('thread_id', '')
+    mbox_type = _get_mbox_type(request)
+    
+    mbt = MailboxTool()
+    
+    try:
+        mbt.delete_thread(context, user, mbox_type, thread_id)
+    except Exception, e:
+        error_msg = format_exc(e)
+    else:
+        success = True
+    
+    return _json_response(success, error_msg)
+
 def mark_message_read(context, request):
     
     user = authenticated_userid(request)

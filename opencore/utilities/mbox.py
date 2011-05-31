@@ -341,6 +341,21 @@ class MailboxTool(object):
         if should_delete_q:
             del mb[q_no]
             
+    def delete_thread(self, site, profile_name, mbox_type, thread_id):
+        """ Deletes a whole message thread.
+        """
+        mbox = sent_mb = _get_mailbox(site, profile_name, mbox_type)
+        for q_no in mbox:
+            q = mbox.get(q_no)
+            if q.id == thread_id:
+                del mbox[q_no]
+                break
+        else:
+            error = 'Could not find thread [%s], profile [%s], mbox [%s]' % (
+                thread_id, profile_name, mbox_type)
+            raise NoSuchThreadException(error)
+        
+            
     def set_message_flags(self, site, profile_name, mbox_type, thread_id, message_id, flags):
         """ Sets the message's flags.
         """
