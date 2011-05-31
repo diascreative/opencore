@@ -21,6 +21,7 @@ from persistent import Persistent
 from ZODB.blob import Blob
 
 # opencore
+from opencore.models.mbox import STATUS_READ
 from opencore.security.policy import ADMINISTRATOR_PERMS
 from opencore.security.policy import MEMBER_PERMS
 from opencore.security.policy import NO_INHERIT
@@ -357,3 +358,18 @@ class MailboxTool(object):
                                     mbox_type, thread_id, message_id, True)
         
         return raw_msg, msg
+    
+    def get_unread(self, site, profile_name, mbox_type='inbox'):
+        """ Returns the number of unread messages in the user's mbox of a given
+        type.
+        """
+        total = 0
+        
+        mbox_queues = self.get_queues(site, profile_name, mbox_type)
+        for mbox_q in mbox_queues:
+            for msg_no in mbox_q._messages:
+                raw_msg = mbox_q._messages[msg_no]
+                if not STATUS_READ in raw_msg.flags:
+                    total += 1
+                    
+        return total

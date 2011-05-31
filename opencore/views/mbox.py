@@ -160,6 +160,7 @@ def show_mbox(context, request):
         
     mbt = MailboxTool()
     mbox_queues = mbt.get_queues(context, user, mbox_type)
+    unread = mbt.get_unread(context, user, 'inbox')
     
     pagination = Pagination(page, PER_PAGE, len(mbox_queues))
 
@@ -200,6 +201,7 @@ def show_mbox(context, request):
     return_data['queues'] = queues
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
+    return_data['unread'] = unread
     
     return return_data
 
@@ -211,6 +213,7 @@ def show_mbox_thread(context, request):
 
     mbt = MailboxTool()
     q, _, _ = mbt.get_queue_data(context, user, mbox_type, thread_id)
+    unread = mbt.get_unread(context, user, 'inbox')
 
     messages = []
     
@@ -254,6 +257,7 @@ def show_mbox_thread(context, request):
     return_data['messages'] = messages
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
+    return_data['unread'] = unread
     
     return return_data
 
@@ -283,6 +287,9 @@ def add_message(context, request):
         payload = request.POST.get('payload', '')
         
         mbt = MailboxTool()
+        
+        unread = mbt.get_unread(context, user, 'inbox')
+        return_data['unread'] = unread
         
         msg = MboxMessage(payload.encode('utf-8'))
         msg['Message-Id'] = MailboxTool.new_message_id()

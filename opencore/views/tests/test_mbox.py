@@ -227,12 +227,14 @@ class MBoxViewTestCase(unittest.TestCase):
     def test_get_unread(self):
         
         api = uuid.uuid4().hex
+        user_name = 'admin'
         
         with Replacer() as r:
             r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
 
             site, from_, _, msg, thread_id, msg_id, _, _, _, _ = get_data()
-            to = find_profiles(site)['admin']
+            to = find_profiles(site)[user_name]
+            
             self.mbt.send_message(site, from_, to, msg, should_commit=True)
             
             request = testing.DummyRequest()
@@ -243,5 +245,8 @@ class MBoxViewTestCase(unittest.TestCase):
             mark_message_read(site, request)
             transaction.commit()
             
-            raw_msg, msg = self.mbt.get_message(site, from_, 'inbox', thread_id, msg_id)
-            self.assertEquals(raw_msg.flags, ['READ'])
+            self.mbt.send_message(site, from_, to, msg, should_commit=True)
+            transaction.commit()
+            
+            unread = self.mbt.get_unread(site, user_name)
+            self.assertTrue(unread >= 1)
