@@ -53,8 +53,7 @@ def get_topic_options(context):
         return topic_options
 
     for topic in topic_line.split():
-        title = topic.capitalize()
-        topic_options.append((topic, title))
+        topic_options.append(topic)
     return topic_options
 
 def advancedsearch_view(context, request):
