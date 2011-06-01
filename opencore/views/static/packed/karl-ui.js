@@ -1633,7 +1633,7 @@ $.widget('ui.autobox3', {
         }
 
         // to be sure there is no FF-autocomplete
-        this.input.attr('autocomplete', 'off');
+        this.input.attr('autocomplete', 'off').addClass('text');
 
         // If a click bubbles all the way up to the window, close the autobox
         // (Note, bind to document and not to windows.
