@@ -21,6 +21,7 @@ from persistent import Persistent
 from ZODB.blob import Blob
 
 # opencore
+from opencore.models.mbox import STATUS_READ
 from opencore.security.policy import ADMINISTRATOR_PERMS
 from opencore.security.policy import MEMBER_PERMS
 from opencore.security.policy import NO_INHERIT
@@ -42,7 +43,8 @@ messages queues are always linear, there's no tree view over the whole queue.
 Each message queue consists of at least one message. The name of the message
 queue is taken from the first message that's added to the queue however the name
 is not used for uniquely identifying queue because there can be many queues
-sharing the same name (the same message subject, that is).
+sharing the same name (the same message subject, that is), thus a thread ID is
+used for identifying the Queue objects.
 
 ASCII art below depicts relations between the classes.
 
@@ -339,6 +341,21 @@ class MailboxTool(object):
         if should_delete_q:
             del mb[q_no]
             
+    def delete_thread(self, site, profile_name, mbox_type, thread_id):
+        """ Deletes a whole message thread.
+        """
+        mbox = sent_mb = _get_mailbox(site, profile_name, mbox_type)
+        for q_no in mbox:
+            q = mbox.get(q_no)
+            if q.id == thread_id:
+                del mbox[q_no]
+                break
+        else:
+            error = 'Could not find thread [%s], profile [%s], mbox [%s]' % (
+                thread_id, profile_name, mbox_type)
+            raise NoSuchThreadException(error)
+        
+            
     def set_message_flags(self, site, profile_name, mbox_type, thread_id, message_id, flags):
         """ Sets the message's flags.
         """
@@ -356,3 +373,18 @@ class MailboxTool(object):
                                     mbox_type, thread_id, message_id, True)
         
         return raw_msg, msg
+    
+    def get_unread(self, site, profile_name, mbox_type='inbox'):
+        """ Returns the number of unread messages in the user's mbox of a given
+        type.
+        """
+        total = 0
+        
+        mbox_queues = self.get_queues(site, profile_name, mbox_type)
+        for mbox_q in mbox_queues:
+            for msg_no in mbox_q._messages:
+                raw_msg = mbox_q._messages[msg_no]
+                if not STATUS_READ in raw_msg.flags:
+                    total += 1
+                    
+        return total

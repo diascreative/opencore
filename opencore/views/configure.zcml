@@ -622,6 +622,13 @@
     
   <view
     for="opencore.models.interfaces.ISite"
+    view="opencore.views.mbox.delete_thread"
+    name="mbox_delete_thread.html"
+    permission="view"
+    />
+    
+  <view
+    for="opencore.models.interfaces.ISite"
     view="opencore.views.mbox.mark_message_read"
     name="mbox_mark_message_read.html"
     permission="view"
