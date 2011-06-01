@@ -4,7 +4,7 @@
         <input type="hidden" name="__start__" value="methods:sequence" />
         <div id="items">
           <div tal:repeat="method selected_methods" class="column column-1-6">
-            <input type="hidden" name="methods" value="${method.__name__}" />
+              <input type="hidden" name="methods" value="${method.__name__}" />
               <div class="method new-method thumb">
                   <div class="close-button"></div>
                   <a class="image" href="#"><img src="http://localhost:6544/toolkit/en/hear/steps/3/methods/individual-interview/method_thumbnail" alt="" /><span></span></a>
