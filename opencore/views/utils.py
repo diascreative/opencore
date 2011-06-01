@@ -827,3 +827,20 @@ def get_gallery_first_thumb_url(context, request, size, default):
     else:
         url = request.api.static_url + default
     return HTTPFound(location=url)
+
+def get_gallery_items(context, request, size):
+    from opencore.views.forms import GalleryWidgetImageItem, GalleryWidgetVideoItem
+    items = []
+
+    if 'gallery' in context:
+        gallery_list = list(context['gallery'].values())
+        gallery_list.sort(key=operator.attrgetter('order'))
+
+        for item in gallery_list :
+            if getattr(item, 'is_image', False):
+                items.append(GalleryWidgetImageItem(item, request.api,
+                    size=size))
+            else:
+                items.append(GalleryWidgetVideoItem(item)) 
+
+    return items
