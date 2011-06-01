@@ -110,7 +110,7 @@ class CommunityFileTests(unittest.TestCase):
         stream = resource_stream('opencore.models.tests', 'test.jpg')
         o = self._makeOne(stream=stream, mimetype='image/jpeg')
         thumb = o.thumbnail((200, 200))
-        self.assertEqual(thumb.image_size, (200, 133))
+        self.assertEqual(thumb.image_size, (200, 200))
 
     def test_non_rgb_thumbnail(self):
         from cStringIO import StringIO
@@ -123,7 +123,7 @@ class CommunityFileTests(unittest.TestCase):
         buf.seek(0)
         o = self._makeOne(stream=buf, mimetype='image/jpeg')
         thumb = o.thumbnail((200, 200))
-        self.assertEqual(thumb.image_size, (200, 133))
+        self.assertEqual(thumb.image_size, (200, 200))
 
 class TestThumbnail(unittest.TestCase):
     def _getTargetClass(self):
@@ -143,13 +143,13 @@ class TestThumbnail(unittest.TestCase):
 
     def test_thumb(self):
         thumb = self._makeOne()
-        self.assertEqual(thumb.image_size, (200, 133))
-        self.assertEqual(thumb.image().size, (200, 133))
+        self.assertEqual(thumb.image_size, (200, 200))
+        self.assertEqual(thumb.image().size, (200, 200))
 
     def test_wide_thumb(self):
         thumb = self._makeOne(size=(200, 600))
-        self.assertEqual(thumb.image_size, (200, 133))
-        self.assertEqual(thumb.image().size, (200, 133))
+        self.assertEqual(thumb.image_size, (200, 600))
+        self.assertEqual(thumb.image().size, (200, 600))
 
 class TestFilesToolFactory(unittest.TestCase):
     def setUp(self):
