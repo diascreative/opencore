@@ -33,7 +33,6 @@ from opencore.models.interfaces import ISite
 from opencore.models.interfaces import IAttachmentPolicy
 from opencore.views.interfaces import IFolderAddables
 from opencore.views.interfaces import ILayoutProvider
-from opencore.utilities.interfaces import IAppDates
 
 def find_site(context):
     site = find_interface(context, ISite)
