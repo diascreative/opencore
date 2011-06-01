@@ -16,6 +16,7 @@
 # 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 """Useful functions that appear in several places in the UI"""
+import operator
 import os
 import re
 from itertools import islice
@@ -24,12 +25,9 @@ from zope.component import getMultiAdapter
 from zope.component import getUtility
 
 from repoze.bfg.security import authenticated_userid
-from repoze.bfg.threadlocal import get_current_request
 from repoze.bfg.traversal import traverse
 from repoze.bfg.url import model_url
-from repoze.bfg.settings import asbool
 from repoze.bfg.security import has_permission
-from repoze.bfg.traversal import find_root
 from repoze.lemonade.content import create_content
 
 from opencore.utils import find_communities
@@ -49,7 +47,7 @@ from textwrap import dedent
 from lxml.etree import XMLSyntaxError
 from lxml.html import document_fromstring
 from webob import Response
-import transaction
+from webob.exc import HTTPFound
 import logging
 
 log = logging.getLogger(__name__)
@@ -817,3 +815,15 @@ def create_user_mboxes(context):
         mbt = MailboxTool()
         mbt.get_mailbox(mboxes, mbox_name)
         
+
+def get_gallery_first_thumb_url(context, request, size, default):
+    from opencore.utilities.image import thumb_url
+    gallery = context.get('gallery', {})
+    if len(gallery):
+        gallery_images = [item for item in gallery.values() 
+                                        if getattr(item, 'is_image', False)]
+        ordered_gallery = sorted(gallery_images, key=operator.attrgetter('order'))
+        url = thumb_url(ordered_gallery[0], request, size)
+    else:
+        url = request.api.static_url + default
+    return HTTPFound(location=url)
