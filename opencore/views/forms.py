@@ -407,7 +407,7 @@ class MethodWidget(Widget):
         if cstruct is null:
             selected_methods = []
         else:
-            selected_methods = self.get_methods(cstruct)
+            selected_methods = self.get_methods(names=cstruct)
         params = {
                 'api': self.request.api, 
                 'selected_methods': selected_methods,
