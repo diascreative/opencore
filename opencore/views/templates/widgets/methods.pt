@@ -7,7 +7,7 @@
               <input type="hidden" name="methods" value="${method.__name__}" />
               <div class="method new-method thumb">
                   <div class="close-button"></div>
-                  <a class="image" href="#"><img src="http://localhost:6544/toolkit/en/hear/steps/3/methods/individual-interview/method_thumbnail" alt="" /><span></span></a>
+                  <a class="image" href="#"><img src="${ api.get_url(method) }method_thumb_medium" alt="" /><span></span></a>
                   <a class="title" href="#">${method.title}</a>
               </div>
             
