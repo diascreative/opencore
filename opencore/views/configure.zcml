@@ -89,6 +89,11 @@
 
   <view
     for="opencore.models.interfaces.IProfile"
+    view=".people.profile_thumbnail"
+    name="thumbnail"/>
+
+  <view
+    for="opencore.models.interfaces.IProfile"
     view=".people.EditProfileFormController"
     name="edit_profile.html"
     renderer="templates/edit_profile.pt"
