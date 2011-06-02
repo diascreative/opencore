@@ -19,6 +19,7 @@ from zope.interface import implements
 
 from repoze.lemonade.content import create_content
 from repoze.folder import Folder
+from repoze.bfg.security import Allow, Everyone
 
 from opencore.models.interfaces import IToolFactory
 from opencore.models.tool import ToolFactory
@@ -33,6 +34,9 @@ from opencore.models.attachments import AttachmentsFolder
 class ForumsFolder(Folder):
     implements(IForumsFolder)
     title = u'Forums'
+
+    __acl__ = [(Allow, Everyone, ['view'])]
+
 
 class Forum(Folder):
     implements(IForum)
