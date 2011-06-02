@@ -19,7 +19,7 @@ from zope.interface import implements
 
 from repoze.folder import Folder
 
-from opencore.models.interfaces import IPage
+from opencore.models.interfaces import IPage, IStaticPage
 from opencore.models.attachments import AttachmentsFolder
 
 class Page(Folder):
@@ -40,5 +40,9 @@ class Page(Folder):
         self.modified_by = self.creator
         # We might choose to make this more article-ish in KARL3
         self['attachments'] = AttachmentsFolder()
+
+
+class StaticPage(Page):
+    implements(IStaticPage)
 
 # No tool factory because these are stored in folders

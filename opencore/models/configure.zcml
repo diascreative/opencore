@@ -66,9 +66,8 @@
     type=".interfaces.IProfile"/>
 
   <lemonade:content
-    factory=".page.Page"
-    type=".interfaces.IPage"/>
-
+    factory=".page.StaticPage"
+    type=".interfaces.IStaticPage"/>
 
   <lemonade:content
     factory=".members.Invitation"

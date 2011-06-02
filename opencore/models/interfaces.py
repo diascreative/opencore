@@ -57,6 +57,11 @@ class IPages(Interface):
     """Grouping for LiveSearch and other purposes"""
     taggedValue('name', 'Pages')
 
+
+class IStaticPage(Interface):
+    taggedValue('name', 'Static Pages')
+
+
 class IFiles(Interface):
     """Grouping for LiveSearch and other purposes"""
     taggedValue('name', 'Files')
