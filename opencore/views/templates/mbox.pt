@@ -12,8 +12,8 @@
 
         <div class="column column-3-4 last">
             <ul class="tabs"> 
-                <li class="active"><a href="/mbox.html">Inbox ( ${ len(queues) } )</a></li>
-                <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
+                <li class="${ mbox_type == 'inbox' and 'active' or ' ' }"><a href="/mbox.html">Inbox ( ${ unread } )</a></li>
+                <li class="${ mbox_type == 'sent' and 'active' or ' ' }"><a href="/mbox.html?mbox_type=sent">Sent</a></li>
             </ul>
 
             <table id="messages" width="700px" cellpadding="10">
@@ -26,7 +26,7 @@
                 </tr>		
                 <tr tal:repeat="message queues" bgcolor="#eaeaea">
                     <td  width="40px" valign='center'><p style="margin:14px;">
-                        <input type="checkbox" name="thread_id" value="/mbox_delete_thread.html?thread_id=${ message.id}" /></p>
+                        <input type="checkbox" name="thread_id" value="/mbox_delete_thread.html?thread_id=${ message.id}&amp;mbox_type=${ mbox_type }" /></p>
                     </td>
                     <td width="20px"><p style="margin:14px; "></p></td>
                     <td width="20px">(&nbsp;${ message.total_messages }&nbsp;)&nbsp;</td>
