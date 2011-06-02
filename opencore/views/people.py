@@ -80,7 +80,7 @@ from opencore.views.batch import get_catalog_batch_grid
 
 
 log = logging.getLogger(__name__)
-PROFILE_THUMB_SIZE = (75, 100)
+PROFILE_THUMB_SIZE = (300,200)
 _MIN_PW_LENGTH = None
 max_reset_timedelta = datetime.timedelta(3)  # days
 
@@ -121,7 +121,8 @@ def show_profiles_view(context, request):
         members.append({
                         'url' : '%s/%s/' % (request.api.people_url, profile.__name__),
                         'title' :  profile.title,
-                        'firstname' : profile.firstname
+                        'firstname' : profile.firstname,
+                        'biography' : profile.biography
                         })
 
     return render_template_to_response(
