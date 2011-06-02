@@ -105,6 +105,7 @@ class MBoxViewTestCase(unittest.TestCase):
                     firstname = _firstname
                     lastname = _lastname
                     country = _country
+                    organization = uuid.uuid4().hex
 
                 return _Dummy()
 
