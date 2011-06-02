@@ -50,7 +50,7 @@ jQuery(document).ready(function($) {
                                 </block>
                                 <block tal:condition="profile.country" tal:omit-tag="">
                                     <dt tal:condition="profile.country">Location:</dt>
-                                    <dd tal:condition="profile.country">${profile.country}</dd>
+                                    <dd tal:condition="profile.country">${api.countries.as_dict[profile.country]}</dd>
                                 </block>
                                 <block tal:condition="profile.websites" tal:omit-tag="">
                                     <dt>Website:</dt>
