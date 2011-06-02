@@ -19,7 +19,7 @@
     <div id="method-panel">
         <div id="click-add-method"></div>
         <div id="search-methods">
-            <input type="text" id="search-methods-input" value="Search" />
+            <input type="text" id="search-methods-input" value="" alt="Search" />
         </div>
         <div id="search-method-results" class="small-methods"><div class="close-button"></div></div>
         <ul id="search-method-listings" tal:define="columns 500">
