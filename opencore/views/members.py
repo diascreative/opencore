@@ -589,7 +589,7 @@ class AcceptInvitationController(MembersBaseController):
             groups = [ community.members_group_name ]
             users.add(username, username, password, groups)
         else:
-            users.add(username, username, password)
+            users.add(username, username, password, ['group.KarlStaff'])
                     
         plugin = request.environ['repoze.who.plugins']['auth_tkt']
         identity = {'repoze.who.userid':username}
