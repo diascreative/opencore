@@ -30,7 +30,7 @@
         </tal:block>
         <tal:block condition="not disabled">
         <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${'\n'.join(default_value)}</textarea>
-        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${default_value}</textarea>
+        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" tal:attributes="alt alt" rows="1">${default_value}</textarea>
         </tal:block>
     </div>
 

@@ -255,6 +255,7 @@ def show_mbox_thread(context, request):
         msg_dict['from_firstname'] = from_profile.firstname
         msg_dict['from_lastname'] = from_profile.lastname
         msg_dict['from_country'] = from_profile.country
+        msg_dict['from_organization'] = from_profile.organization
         msg_dict['payload'] = message.get_payload()
 
         to_data = []

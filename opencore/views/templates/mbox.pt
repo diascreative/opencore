@@ -6,9 +6,7 @@
     <h1>My Mailbox</h1>
 
     <div class="columns">
-        <div class="column column-1-4 first">
-            left bar: variables that prefill this area are not being sent over to this template from the server side yet, do unable to pull in.
-        </div>
+        <div metal:use-macro="api.snippets.macros['profile_bar']" tal:condition="0" />
 
         <div class="column column-3-4 last">
             <ul class="tabs"> 
