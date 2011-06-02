@@ -18,6 +18,7 @@
 from zope.interface import implements
 
 from repoze.folder import Folder
+from repoze.bfg.security import Allow, Everyone
 
 from opencore.models.interfaces import IPage, IStaticPage
 from opencore.models.attachments import AttachmentsFolder
@@ -44,5 +45,6 @@ class Page(Folder):
 
 class StaticPage(Page):
     implements(IStaticPage)
+    __acl__ = [(Allow, Everyone, 'view')]
 
 # No tool factory because these are stored in folders

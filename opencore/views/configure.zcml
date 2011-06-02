@@ -675,7 +675,7 @@
 
   <!-- Static pages -->
   <view
-    for="opencore.models.interfaces.IPage"
+    for="opencore.models.interfaces.IStaticPage"
     view=".page.show_page"
     permission="view"
     renderer="templates/page.pt"/>
