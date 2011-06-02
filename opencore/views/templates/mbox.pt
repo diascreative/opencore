@@ -13,6 +13,8 @@
                 <li class="${ mbox_type == 'inbox' and 'active' or ' ' }"><a href="/mbox.html">Inbox ( ${ unread } )</a></li>
                 <li class="${ mbox_type == 'sent' and 'active' or ' ' }"><a href="/mbox.html?mbox_type=sent">Sent</a></li>
             </ul>
+            
+            <a href="./mbox_add_message.html" class="button highlight" id="create-message">Create a Message</a>
 
             <table id="messages" width="700px" cellpadding="10">
                 <tr>
