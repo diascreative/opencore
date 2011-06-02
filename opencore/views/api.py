@@ -579,7 +579,7 @@ class TemplateAPI(object):
         elif ( (delta.seconds/60) > 1 ) :
             return '%d mins' % (delta.seconds/60)
         else :
-            return 'moments'
+            return 'Moments'
 
     def format_date(self, d, with_break=False, time_less=False):
         if with_break and not time_less:
