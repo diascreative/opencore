@@ -305,7 +305,7 @@ class MethodSchema(object):
                 missing=''
                 )
 
-        @instantiate(title='Profile image')
+        @instantiate(title='Add a profile image')
         class profile_image(MappingSchema):
             photo = SchemaNode(
                 FileData(),
