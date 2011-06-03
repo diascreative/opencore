@@ -35,6 +35,8 @@ from opencore.utilities.paginate import Pagination
 from opencore.utils import find_profiles
 from opencore.utils import get_setting
 
+from openhcd.views.utils import find_site
+
 """
 Views API
 ---------
@@ -324,9 +326,11 @@ def add_message(context, request):
         msg['X-oc-thread-id'] = MailboxTool.new_thread_id()
 
         try:
+            site = find_site(context)
             profiles = find_profiles(context)
             to_profile = profiles[to]
             from_profile = profiles[user]
+            mbt.send_message(site, user, to_profile, msg)
 
             eventinfo = _MBoxEvent()
             eventinfo['content'] = msg
@@ -341,6 +345,7 @@ def add_message(context, request):
             alert_user(to_profile, eventinfo)
             transaction.commit()
 
+
         except Exception, e:
             error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
             log.error(error_msg)
@@ -350,6 +355,7 @@ def add_message(context, request):
 
         return_data['success'] = success
         return_data['error_msg'] = error_msg
+
 
     return_data['success'] = True
 
