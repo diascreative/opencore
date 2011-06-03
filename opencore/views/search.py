@@ -49,11 +49,13 @@ log = logging.getLogger(__name__)
 def get_topic_options(context):
     topic_options = []
     topic_line = get_setting(context, "topics")
+
     if not topic_line:
         return topic_options
 
-    for topic in topic_line.split():
-        topic_options.append(topic)
+    for topic in topic_line.split('\n'):
+        if topic != '':
+            topic_options.append(topic)
     return topic_options
 
 def advancedsearch_view(context, request):
