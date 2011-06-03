@@ -14,7 +14,7 @@
             <h4>Signup</h4>
             <div class="content">
             <p>
-               Type in you email address and you will be sent 
+               Type in your email address and you will be sent 
                a signup email shortly.
             </p>
             <tal:x replace="structure form"/>
