@@ -295,13 +295,15 @@ class MethodSchema(object):
                 validator=Email(),
                 title='Email address',
                 )
-        
-        password = SchemaNode(
-            String(),
-            widget=CheckedPasswordWidget(),
-            title='Change Password',
-            missing=''
-            )
+
+        @instantiate(title='Change Password')
+        class passwords(MappingSchema):    
+            password = SchemaNode(
+                String(),
+                widget=CheckedPasswordWidget(),
+                title='',
+                missing=''
+                )
 
         @instantiate(title='Profile image')
         class profile_image(MappingSchema):
@@ -412,9 +414,9 @@ class EditProfileFormController(MethodSchema, ContentController):
 
         # change password
         users = find_users(context)
-        if validated['password']:
+        if validated['passwords']['password']:
             users = find_users(context)
-            users.change_password(context.__name__,validated['password'])
+            users.change_password(context.__name__,validated['passwords']['password'])
 
         # handle websites
         context.websites=[]
