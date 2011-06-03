@@ -284,7 +284,8 @@ def atom_model_list(*results):
     return atom_trim(models_list)
 
 class TwitterItem(object):
-    def __init__(self, title, title_html, uri, modified, author, content, content_html):
+    def __init__(self, title, title_html, uri, modified, author, content,
+            content_html, thumb_url):
         self.title = title
         self.title_html = title_html
         self.__parent__ = None
@@ -293,6 +294,7 @@ class TwitterItem(object):
         self.author = author
         self.content = content
         self.content_html = content_html
+        self.thumb_url = thumb_url
         self.__name__ = content
         
 class MethodUsedItem(object):
