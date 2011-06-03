@@ -222,6 +222,7 @@ def show_mbox(context, request):
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
     return_data['unread'] = unread
+    return_data['page'] = page
 
     return return_data
 
