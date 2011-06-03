@@ -250,6 +250,7 @@ class MailboxTool(object):
             raise NoSuchMessageException(error)
         
         return mb, q, q_no, raw_msg, inner_message
+
     
     def set_acl(self, name, queue):
         """ Sets the appropriate permissions on the queue object.
@@ -323,7 +324,22 @@ class MailboxTool(object):
         
         if should_commit:
             transaction.commit()
+
+
+    def send_reply(self, site, thread_id, from_, to, message,
+            should_commit=False):
+
+        original_queue, _, _ = self.get_queue_data(site, from_, 'inbox',
+                thread_id)
+        original_subject = original_queue[0]['Subject']
+        reply_prefix = 'Re: '
+        if original_subject.startswith(reply_prefix):
+            message['Subject'] = original_subject
+        else:
+            message['Subject'] = reply_prefix + original_subject
+        self.send_message(site, from_, to, message, should_commit)
         
+
     def delete_message(self, site, profile_name, mbox_type, thread_id, message_id):
         """ Deletes a message. If it was the only message in a queue, the queue
         is also deleted.

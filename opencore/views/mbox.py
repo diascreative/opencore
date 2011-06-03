@@ -311,6 +311,7 @@ def add_message(context, request):
 
         subject = request.POST.get('subject', '')
         payload = request.POST.get('payload', '')
+        thread_id = request.POST.get('thread_id')
 
         mbt = MailboxTool()
 
@@ -319,18 +320,23 @@ def add_message(context, request):
 
         msg = MboxMessage(payload.encode('utf-8'))
         msg['Message-Id'] = MailboxTool.new_message_id()
-        msg['Subject'] = subject
+        if thread_id is None:
+            msg['Subject'] = subject
+            # We'll setup the subject automatically if it's a reply
         msg['From'] = user
         msg['To'] = to
         msg['Date'] = now
-        msg['X-oc-thread-id'] = MailboxTool.new_thread_id()
+        msg['X-oc-thread-id'] = thread_id or MailboxTool.new_thread_id()
 
         try:
             site = find_site(context)
             profiles = find_profiles(context)
             to_profile = profiles[to]
             from_profile = profiles[user]
-            mbt.send_message(site, user, to_profile, msg)
+            if thread_id is None:
+                mbt.send_message(site, user, to_profile, msg)
+            else:
+                mbt.send_reply(site, thread_id, user, to_profile, msg)
 
             eventinfo = _MBoxEvent()
             eventinfo['content'] = msg
@@ -390,7 +396,7 @@ def delete_thread(context, request):
     success = False
     error_msg = ''
 
-    thread_id = request.POST.get('thread_id', '')
+    thread_id = request.params.get('thread_id', '')
     mbox_type = _get_mbox_type(request)
 
     mbt = MailboxTool()

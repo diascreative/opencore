@@ -21,7 +21,7 @@
                     ${message.subject}   
                 </div>
 
-                <div class="inbox-message clearfix" tal:repeat="message messages">
+                <div class="inbox-message clearfix">
                     <div class="avatar">
                         <img src="${message.from_photo}" alt="" />
                     </div>
@@ -43,9 +43,11 @@
             </div>
 
             <div id="container3">
-                <form method="post" action="" id="inbox-reply" class="clearfix">
-                    <div tal:content="structure api.render_form_widget('textarea_fluid', 'comment.text', '', default='', alt='Write a Reply')" id="text-area" />
+              <form method="post" action="${api.app_url}/mbox_add_message.html" id="inbox-reply" class="clearfix">
+                    <div tal:content="structure api.render_form_widget('textarea_fluid', 'payload', '', default='', alt='Write a Reply')" id="text-area" />
 
+                    <input type="hidden" name="to" value="${messages[0]['from']}" />
+                    <input type="hidden" name="thread_id" value="${messages[0]['queue_id']}" />
                     <div class="button-holder">
                         <input type="submit" class="button post-comment" tal:attributes="value 'Reply'" />
                     </div>
