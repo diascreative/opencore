@@ -226,6 +226,7 @@ class TestEditProfileFormController(unittest.TestCase):
                 ('first_name', u'Joe'),
                 ('last_name', u'Marks'),
                 ('email', u'joe@example.com'),
+                ('__start__', u'profile_image:mapping'),
                 ('__start__', u'photo:mapping'),
                 ('upload', DummyUpload(
                         filename='test.jpg',
@@ -233,6 +234,7 @@ class TestEditProfileFormController(unittest.TestCase):
                         data='not a jpeg'
                         )),
                 ('__end__', u'photo:mapping'),
+                ('__end__', u'profile_image:mapping'),
                 ('__start__', u'details:mapping'),
                 ('country', u'TJ'),
                 ('__end__', u'details:mapping'),
@@ -259,8 +261,10 @@ class TestEditProfileFormController(unittest.TestCase):
                 ('__start__', u'details:mapping'),
                 ('country', u'TJ'),
                 ('__end__', u'details:mapping'),
+                ('__start__', u'profile_image:mapping'),
                 ('__start__', u'photo:mapping'),
                 ('__end__', u'photo:mapping'),
+                ('__end__', u'profile_image:mapping'),
                 ('save', u'save'),
                 ])
         controller = self._makeOne()
@@ -312,11 +316,13 @@ class TestEditProfileFormController(unittest.TestCase):
                 ('value', u'newpass'),
                 ('confirm', u'newpass'),
                 ('__end__', u'password:mapping'),
+                ('__start__', u'profile_image:mapping'),
                 ('__start__', u'photo:mapping'),
                 ('upload', DummyUpload(filename='test.jpg',
                                        mimetype='image/jpeg',
                                        data=one_pixel_jpeg)),
                 ('__end__', u'photo:mapping'),
+                ('__end__', u'profile_image:mapping'),
                 ('__start__', u'details:mapping'),
                 ('position', u'missionary'),
                 ('organization', u'foo'),

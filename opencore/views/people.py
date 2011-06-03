@@ -276,8 +276,8 @@ class MethodSchema(object):
 
     def Schema(self):
         schema = self._Schema().clone()
-        schema['photo'].widget.context = self.context
-        schema['photo'].widget.request = self.request
+        schema['profile_image']['photo'].widget.context = self.context
+        schema['profile_image']['photo'].widget.request = self.request
         return schema
 
     class _Schema(MappingSchema):
@@ -303,13 +303,15 @@ class MethodSchema(object):
             missing=''
             )
 
-        photo = SchemaNode(
-            FileData(),
-            widget=ImageUploadWidget(template='avatar'),
-            title='Profile image',
-            missing=None,
-            validator=Function(is_image),
-            )
+        @instantiate(title='Profile image')
+        class profile_image(MappingSchema):
+            photo = SchemaNode(
+                FileData(),
+                widget=ImageUploadWidget(template='avatar'),
+                title='',
+                missing=None,
+                validator=Function(is_image),
+                )
 
         @instantiate()
         class details(MappingSchema):
@@ -425,7 +427,7 @@ class EditProfileFormController(MethodSchema, ContentController):
             context.websites.append(url)
 
         # Handle the picture
-        handle_photo_upload(context, request, validated['photo'])
+        handle_photo_upload(context, request, validated['profile_image']['photo'])
 
         # Handle the social networking stuff
         socials = validated['details']['social_networks']
