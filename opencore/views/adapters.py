@@ -172,6 +172,10 @@ class BylineInfo(object):
             kd = getUtility(IAppDates)
             self._posted_date = kd(self.context.created, 'longform')
         return self._posted_date
+
+    @property
+    def timestamp(self):
+        return self.context.created
     
     def __str__(self):
         return 'BylineInfo: name=%s, url=%s, posted: %s' % (self.author_name,

@@ -527,6 +527,7 @@ class AcceptInvitationController(MembersBaseController):
             Date(),
             widget=DatePartsWidget(),
             missing=None,
+            description="Please make sure your enter the month in digits.",
             )
         gender = SchemaNode(
             String(),
