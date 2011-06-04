@@ -682,8 +682,7 @@
   <view
     for="opencore.models.interfaces.IStaticPage"
     view=".page.show_page"
-    permission="view"
-    renderer="templates/page.pt"/>
+    permission="view" />
 
   <view
     for="opencore.models.interfaces.IPage"

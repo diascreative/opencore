@@ -1,3 +1,5 @@
+from repoze.bfg.chameleon_zpt import render_template_to_response
+
 from colander import (
         MappingSchema,
         SchemaNode,
@@ -20,8 +22,10 @@ class PageSchema(MappingSchema):
 
 def show_page(context, request):
     api = request.api
-    
-    return {'api': api, 'page': context,}  
+    template = getattr(context, 'template', 'page.pt')
+    result = render_template_to_response("templates/" + template, api=api,
+            page=context)
+    return result
 
 
 class EditPageController(ContentController):

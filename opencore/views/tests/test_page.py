@@ -16,10 +16,8 @@ class TestViewPage(unittest.TestCase):
         context.text = 'Some text'
         request = testing.DummyRequest()
         request.api = get_template_api(context, request)
-        resp = show_page(context, request)
-        self.assertTrue('api' in resp)
-        self.assertEquals(resp['page'].title, 'A title')
-        self.assertEquals(resp['page'].text, 'Some text')
+        testing.registerDummyRenderer('templates/page.pt')
+        show_page(context, request)
 
 
 class TestEditPageController(unittest.TestCase):
