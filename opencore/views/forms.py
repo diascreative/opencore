@@ -113,6 +113,7 @@ class VideoTempStore(MemoryTempStore):
     def preview_url(self, name):
         return '/video_thumb/' + name
 
+dummy_tmpstore = DummyTempStore()
 tmpstore = MemoryTempStore()
 video_tmpstore = VideoTempStore()
 
