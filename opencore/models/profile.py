@@ -31,6 +31,7 @@ from opencore.models.interfaces import ITextIndexData
 from opencore.models.interfaces import IPeopleCategory
 from opencore.models.interfaces import IPeopleCategoryItem
 from opencore.models.interfaces import ISocial
+from opencore.utilities.image import thumb_url
 
 
 class Profile(Folder):
@@ -119,6 +120,13 @@ class Profile(Folder):
             raise ValueError("Invalid preference.")
 
         self._alert_prefs[community_name] = preference
+
+    def thumb_url(self, request, size=(46, 46)):
+        if 'photo' in self:
+            return thumb_url(self['photo'], request, size)
+        else:
+            return request.api.static_url + "/img/default_user.png"
+
 
 class CaseInsensitiveOOBTree(OOBTree):
     def __getitem__(self, name):

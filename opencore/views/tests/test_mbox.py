@@ -106,6 +106,7 @@ class MBoxViewTestCase(unittest.TestCase):
                     lastname = _lastname
                     country = _country
                     organization = uuid.uuid4().hex
+                    thumb_url = lambda _profile, _request: '/test-thumb.jpg'
 
                 return _Dummy()
 
@@ -139,7 +140,7 @@ class MBoxViewTestCase(unittest.TestCase):
             self.assertEquals(message['from_country'], _country)
             self.assertEquals(message['from_firstname'], _firstname)
             self.assertEquals(message['from_lastname'], _lastname)
-            self.assertEquals(message['from_photo'], _people_url + '/admin/profile_thumbnail')
+            self.assertEquals(message['from_photo'], '/test-thumb.jpg')
             self.assertEquals(message['payload'], payload)
             self.assertTrue(len(message['payload']) > 20)
             self.assertTrue(len(message['queue_id']) > 20)
@@ -154,7 +155,7 @@ class MBoxViewTestCase(unittest.TestCase):
 
                 name = to_datum['name']
                 self.assertTrue(name in ('joe', 'sarah'))
-                self.assertEquals(to_datum['photo_url'], _people_url + '/' + name + '/profile_thumbnail')
+                self.assertEquals(to_datum['photo_url'], '/test-thumb.jpg')
 
     def test_add_message(self):
 

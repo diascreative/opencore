@@ -3,7 +3,6 @@
 import logging
 import traceback
 from datetime import datetime
-from email import utils
 from time import strftime, strptime
 from traceback import format_exc
 
@@ -14,7 +13,6 @@ from zope.interface import implements
 
 # webob
 from webob import Response
-from webob.exc import HTTPUnauthorized
 
 # Repoze
 from repoze.bfg.security import authenticated_userid
@@ -26,9 +24,8 @@ from simplejson import JSONEncoder
 from opencore.models.interfaces import IEventInfo
 from opencore.models.interfaces import IProfileDict
 from opencore.models.mbox import(ALLOWED_MBOX_TYPES, DEFAULT_MBOX_TYPE,
-            TO_SEPARATOR, STATUS_READ, ALLOWED_STATUSES)
+            TO_SEPARATOR, STATUS_READ)
 from opencore.utilities.alerts import alert_user
-from opencore.utilities.alerts import Alert
 from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
 from opencore.utilities.paginate import Pagination
@@ -148,8 +145,9 @@ def _get_mbox_type(request):
 
     return mbox_type
 
-def _user_photo_url(request, user):
-    return '%s/%s/profile_thumbnail' % (request.api.people_url, user)
+def _user_photo_url(request, user): 
+    profile = request.api.find_profile(user)
+    return profile.thumb_url(request)
 
 def _to_from_to_header(message):
     addresses = message.get('To', '').split(TO_SEPARATOR)

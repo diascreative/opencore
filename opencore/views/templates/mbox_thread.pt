@@ -17,8 +17,8 @@
             </ul>
 
             <div tal:repeat="message messages">
-                <div id="thread-subject">
-                    ${message.subject}   
+                <div tal:condition="repeat.message.start" id="thread-subject">
+                  ${message.subject}
                 </div>
 
                 <div class="inbox-message clearfix">
@@ -28,9 +28,10 @@
 
                     <div class="text">
                         <div class="details">
-                            <a href="/profiles/${message['payload']}">${message.from_firstname}</a> - 
-                            <span condition="message.from_organization" tal:replace="message.from_organization" />
-                            <span class="location" tal:condition="message.from_country">
+                            <a href="/profiles/${message['from']}">${message.from_firstname}</a>
+                            <span tal:condition="message.from_organization or (message.from_country != 'XX')">–</span>
+                            <span tal:condition="message.from_organization" tal:replace="message.from_organization" />
+                            <span class="location" tal:condition="message.from_country != 'XX'">
                                 <a href="${ api.app_url }/searchresults.html?country=${ message.from_country }">${ api.countries.as_dict[message.from_country] }</a></span><br />
                             <em>${ message.date }</em>
                         </div>
