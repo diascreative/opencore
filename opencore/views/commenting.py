@@ -132,7 +132,9 @@ class AddCommentController(object):
         if not text:
             return self.status_response('Please enter a comment')
         converted = {'attachments' : []}   # todo: when required
-        converted['add_comment'] = safe_html(text)   
+        clean_html = safe_html(text)
+        clean_html = clean_html.replace("\n", "<br/>")
+        converted['add_comment'] = clean_html
         return self.handle_submit(converted)
     
     def status_response(self, msg):
