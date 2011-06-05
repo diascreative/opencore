@@ -31,7 +31,7 @@
                       name="site-announcement-input"
                       rows="1" cols="40"
 		      class="mceEditor karlrichtextfield">
-              ${api.site_announcement}
+              ${api.site_announcement.get('text')}
             </textarea>
           </fieldset>
           <br />

@@ -127,6 +127,10 @@ class Profile(Folder):
         else:
             return request.api.static_url + "/img/default_user.png"
 
+    @property
+    def fullname(self):
+        return self.firstname + " " + self.lastname
+
 
 class CaseInsensitiveOOBTree(OOBTree):
     def __getitem__(self, name):

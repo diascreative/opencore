@@ -129,7 +129,7 @@ class TemplateAPI(object):
         self.user_is_admin = 'group.KarlAdmin' in effective_principals(request)
         site = find_site(context)
         self.admin_url = model_url(site, request, 'admin.html')
-        self.site_announcement = getattr(site, 'site_announcement', '')
+        self.site_announcement = getattr(site, 'site_announcement', None)
         # XXX XXX XXX This will never work from peoples formish templates
         # XXX XXX XXX (edit_profile and derivates) because, in those form
         # XXX XXX XXX controllers, the api is instantiated from __init__,

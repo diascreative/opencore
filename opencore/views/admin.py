@@ -1,5 +1,6 @@
 from __future__ import with_statement
 
+from datetime import datetime
 import logging
 import codecs
 from cStringIO import StringIO
@@ -374,8 +375,10 @@ def site_announcement_view(context, request):
     Edit the text of the site announcement, which will be displayed on
     every page for every user of the site.
     """
+    api = AdminTemplateAPI(context, request, 'Admin UI: Move Content')
+    profile = api.find_profile(authenticated_userid(request))
+    site = find_site(context)
     if 'submit-site-announcement' in request.params:
-        site = find_site(context)
         annc = request.params.get('site-announcement-input', '').strip()
         log.debug('site-announcement-input: %s' % annc)
         if annc:
@@ -385,11 +388,15 @@ def site_announcement_view(context, request):
             match = paramatcher.search(annc)
             if match is not None:
                 annc = match.groups()[0]
-            site.site_announcement = annc
+            site.site_announcement = {
+                    'text': annc,
+                    'profile': profile,
+                    'timestamp': datetime.now(),
+                    }
     if 'remove-site-announcement' in request.params:
-        site = find_site(context)
-        site.site_announcement = u''
-    api = AdminTemplateAPI(context, request, 'Admin UI: Move Content')
+        site.site_announcement = {}
+    # Update because it's initialized when the api is instantiated
+    api.site_announcement = site.site_announcement
     return dict(
         api=api,
         menu=_menu_macro()
