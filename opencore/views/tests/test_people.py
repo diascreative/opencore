@@ -145,7 +145,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=DummyProfile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile+edited'
             )
         self.assertEqual(self.context.websites, [u'http://www.happy.com'])
         
@@ -169,7 +169,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=DummyProfile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile+edited'
             )
         self.assertEqual(self.context.websites, [u'https://www.happy.com'])
         
@@ -273,7 +273,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=DummyProfile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile+edited'
             )
 
         # stuff we changed
@@ -346,7 +346,7 @@ class TestEditProfileFormController(unittest.TestCase):
         self.assertEqual(
             response.location,
             # dunno why model_url doesn't quite work here
-            'http://example.comadmin/?status_message=DummyProfile%20edited'
+            'http://example.comadmin/?status_message=DummyProfile+edited'
             )
                                       
         # stuff we changed

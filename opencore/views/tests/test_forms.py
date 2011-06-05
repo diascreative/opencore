@@ -232,7 +232,7 @@ class TestContentController(TestCase):
         self.failUnless(isinstance(response,HTTPFound))
         self.assertEqual(
             response.location,
-            'http://example.com/?status_message=Our%20Model%20edited'
+            'http://example.com/?status_message=Our+Model+edited'
             )
 
 class TestKarlUserWidget(TestCase):
