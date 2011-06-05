@@ -1,4 +1,5 @@
 from cgi import escape
+import urllib
 from pprint import pformat
 import operator
 import string
@@ -195,16 +196,16 @@ class ContentController(BaseController):
         objectEventNotify(ObjectWillBeModifiedEvent(context))
 
         
-        self.handle_content(context,request,validated)
+        status_message = self.handle_content(context,request,validated)
+        if not status_message:
+            status_message = context.__class__.__name__ + ' edited'
 
         # store who modified
         context.modified_by = authenticated_userid(request)
        
         objectEventNotify(ObjectModifiedEvent(context))
         location = model_url(context, request)
-        msg = '?status_message='+quote(
-            context.__class__.__name__+' edited'
-            )
+        msg = '?' + urllib.urlencode({'status_message': status_message})
         return HTTPFound(location=location+msg)
 
 
