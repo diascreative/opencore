@@ -127,9 +127,8 @@ class TemplateAPI(object):
         self.page_title = page_title
         self.system_name = get_setting(context, 'system_name', 'KARL')
         self.user_is_admin = 'group.KarlAdmin' in effective_principals(request)
-        site = find_site(context)
-        self.admin_url = model_url(site, request, 'admin.html')
-        self.site_announcement = getattr(site, 'site_announcement', None)
+        self.site = find_site(context)
+        self.admin_url = model_url(self.site, request, 'admin.html')
         # XXX XXX XXX This will never work from peoples formish templates
         # XXX XXX XXX (edit_profile and derivates) because, in those form
         # XXX XXX XXX controllers, the api is instantiated from __init__,
@@ -173,6 +172,16 @@ class TemplateAPI(object):
         self.formdata = request.POST
         self.app_config = settings
         self.rdbstore = RDBMSStore()
+
+    @property
+    def site_announcement(self):
+        site_announcement = getattr(self.site, 'site_announcement', None)
+        if site_announcement:
+            site_announcement['profile'] = self.find_profile(
+                    site_announcement.get('userid', None))
+            if site_announcement['profile']:
+                return site_announcement
+        return {}
 
     def topics(self, context):
 	topics = get_setting(context, 'topics')

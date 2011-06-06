@@ -376,7 +376,7 @@ def site_announcement_view(context, request):
     every page for every user of the site.
     """
     api = AdminTemplateAPI(context, request, 'Admin UI: Move Content')
-    profile = api.find_profile(authenticated_userid(request))
+    userid = authenticated_userid(request)
     site = find_site(context)
     if 'submit-site-announcement' in request.params:
         annc = request.params.get('site-announcement-input', '').strip()
@@ -390,13 +390,11 @@ def site_announcement_view(context, request):
                 annc = match.groups()[0]
             site.site_announcement = {
                     'text': annc,
-                    'profile': profile,
+                    'userid': userid,
                     'timestamp': datetime.now(),
                     }
     if 'remove-site-announcement' in request.params:
         site.site_announcement = {}
-    # Update because it's initialized when the api is instantiated
-    api.site_announcement = site.site_announcement
     return dict(
         api=api,
         menu=_menu_macro()
