@@ -204,9 +204,16 @@ class ContentController(BaseController):
         context.modified_by = authenticated_userid(request)
        
         objectEventNotify(ObjectModifiedEvent(context))
+        self.post_submit()
         location = model_url(context, request)
         msg = '?' + urllib.urlencode({'status_message': status_message})
         return HTTPFound(location=location+msg)
+
+    def post_submit(self):
+        """
+        Do stuff after all events have been fired
+        """
+        pass
 
 
 class GalleryControllerMixin(object):
