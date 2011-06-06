@@ -154,7 +154,7 @@ def _to_from_to_header(message):
     return [elem.strip() for elem in addresses]
 
 def _get_profile_details(context, request, user):
-    profile = find_profiles(context).get(user)
+    profile = request.api.find_profile(user)
     profile_details = getUtility(IProfileDict, name='profile-details')
     profile_details.update_details(profile, request, request.api, (220,150))
 
@@ -284,84 +284,84 @@ def show_mbox_thread(context, request):
 
     return return_data
 
+
+def send_to(context, request, to):
+    user = authenticated_userid(request)
+
+    now = str(datetime.utcnow())
+
+    subject = request.POST.get('subject', '')
+    payload = request.POST.get('payload', '')
+    thread_id = request.POST.get('thread_id')
+
+    mbt = MailboxTool()
+
+#   FIXME not sure if this is actually used
+#    unread = mbt.get_unread(context, user, 'inbox')
+#    return_data['unread'] = unread
+
+    msg = MboxMessage(payload.encode('utf-8'))
+    msg['Message-Id'] = MailboxTool.new_message_id()
+    if thread_id is None:
+        msg['Subject'] = subject
+        # We'll setup the subject automatically if it's a reply
+    msg['From'] = user
+    msg['To'] = to
+    msg['Date'] = now
+    msg['X-oc-thread-id'] = thread_id or MailboxTool.new_thread_id()
+
+    site = find_site(context)
+    to_profile = request.api.find_profile(to)
+    from_profile = request.api.find_profile(user)
+    if thread_id is None:
+        mbt.send_message(site, user, to_profile, msg)
+    else:
+        mbt.send_reply(site, thread_id, user, to_profile, msg)
+
+    eventinfo = _MBoxEvent()
+    eventinfo['content'] = msg
+    eventinfo['content_type'] = 'MBoxMessage'
+    eventinfo['context_url'] = from_profile.__name__
+
+    eventinfo.mfrom = from_profile.__name__
+    eventinfo.mfrom_name = from_profile.__name__
+    eventinfo.mto = [to_profile.email]
+    eventinfo.message = msg
+
+    alert_user(to_profile, eventinfo)
+
+
+
+
 def add_message(context, request):
 
     mbox_type = _get_mbox_type(request)
 
     return_data = {}
     return_data['error_msg'] = ''
+    return_data['success'] = False
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
+    user = authenticated_userid(request)
+    return_data['profile'] = _get_profile_details(context, request, user)
 
     if request.method == 'POST':
-
-        user = authenticated_userid(request)
-        return_data['profile'] = _get_profile_details(context, request, user)
-
-        success = False
-        error_msg = ''
-
-        now = str(datetime.utcnow())
-        to = request.POST['to']
-        to = [elem.strip() for elem in to.split(',')]
-
-        to = to[0]
-
-        subject = request.POST.get('subject', '')
-        payload = request.POST.get('payload', '')
-        thread_id = request.POST.get('thread_id')
-
-        mbt = MailboxTool()
-
-        unread = mbt.get_unread(context, user, 'inbox')
-        return_data['unread'] = unread
-
-        msg = MboxMessage(payload.encode('utf-8'))
-        msg['Message-Id'] = MailboxTool.new_message_id()
-        if thread_id is None:
-            msg['Subject'] = subject
-            # We'll setup the subject automatically if it's a reply
-        msg['From'] = user
-        msg['To'] = to
-        msg['Date'] = now
-        msg['X-oc-thread-id'] = thread_id or MailboxTool.new_thread_id()
-
+        recipients_list = request.POST.getall('to')
         try:
-            site = find_site(context)
-            profiles = find_profiles(context)
-            to_profile = profiles[to]
-            from_profile = profiles[user]
-            if thread_id is None:
-                mbt.send_message(site, user, to_profile, msg)
-            else:
-                mbt.send_reply(site, thread_id, user, to_profile, msg)
-
-            eventinfo = _MBoxEvent()
-            eventinfo['content'] = msg
-            eventinfo['content_type'] = 'MBoxMessage'
-            eventinfo['context_url'] = from_profile.__name__
-
-            eventinfo.mfrom = from_profile.__name__
-            eventinfo.mfrom_name = from_profile.__name__
-            eventinfo.mto = [to_profile.email]
-            eventinfo.message = msg
-
-            alert_user(to_profile, eventinfo)
-            transaction.commit()
-
-
+            for recipient in recipients_list:
+                send_to(context, request, recipient)
         except Exception, e:
             error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
             log.error(error_msg)
+            return_data['error_msg'] = error_msg
             transaction.abort()
+            success = False
         else:
+            transaction.commit()
             success = True
 
         return_data['success'] = success
-        return_data['error_msg'] = error_msg
 
-
-    return_data['success'] = True
 
     return return_data
 

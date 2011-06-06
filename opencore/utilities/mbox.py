@@ -315,11 +315,11 @@ class MailboxTool(object):
         # Is it a new thread from the sender's perspective? Add a new 'sent'
         # queue if so. In other case, append the message to an already existing
         # 'sent' queue..
-        sent_mb = _get_mailbox(site, from_, 'sent')
+        sent_mb = self.get_mailbox(site['mailboxes'], from_ + '.sent')
         self._create_add_queue_message(sent_mb, from_, message)
         
         # ..same goes for recipients and their 'inbox' queues.
-        inbox_mb = _get_mailbox(site, to.__name__, 'inbox')
+        inbox_mb = self.get_mailbox(site['mailboxes'], to.__name__ + '.inbox')
         self._create_add_queue_message(inbox_mb, to.__name__, message)
         
         if should_commit:

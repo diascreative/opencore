@@ -8,9 +8,15 @@ import transaction
 
 # webob
 from webob import Response
+from webob.multidict import MultiDict
 
 # Repoze
-from repoze.bfg import testing
+from repoze.bfg.testing import (
+    DummyModel,
+    DummyRequest,
+    cleanUp,
+    registerUtility,
+    )
 from repoze.folder import Folder
 
 # testfixtures
@@ -21,6 +27,8 @@ from testfixtures import Replacer
 from simplejson import JSONDecoder
 
 # opencore
+from opencore.models.adapters import ProfileDict
+from opencore.models.interfaces import IProfileDict
 from opencore.scripting import get_default_config
 from opencore.scripting import open_root
 from opencore.utilities.mbox import MailboxTool
@@ -28,6 +36,7 @@ from opencore.utilities.mbox import MboxMessage
 from opencore.utilities.mbox import NoSuchThreadException
 from opencore.utilities.tests.test_mbox import get_data
 from opencore.utils import find_profiles
+from opencore.views.api import get_template_api
 from opencore.views.mbox import _format_date
 from opencore.views.mbox import _get_mbox_type
 from opencore.views.mbox import _json_response
@@ -38,6 +47,13 @@ from opencore.views.mbox import delete_message
 from opencore.views.mbox import mark_message_read
 from opencore.views.mbox import show_mbox
 from opencore.views.mbox import show_mbox_thread
+from opencore.testing import (
+    DummyUsers,
+    DummyProfile,
+    )
+from opencore.views.tests import (
+        DummyAPI,
+        )
 
 def _authenticated_user_id(request):
     return 'admin'
@@ -47,12 +63,19 @@ class MBoxViewTestCase(unittest.TestCase):
     def setUp(self):
         self.mbt = MailboxTool()
         self.log = LogCapture()
+        self.context = DummyModel()
+        self.context['mailboxes'] = DummyModel()
+        self.context.users = DummyUsers()
+        self.bob = DummyProfile()
+        self.bob.__name__ = 'bob'
+        self.alice = DummyProfile()
+        self.alice.__name__ = 'alice'
 
     def tearDown(self):
-        testing.cleanUp()
+        cleanUp()
 
     def _get_mbox_request(self, mbox_type, key='mbox_type'):
-        request = testing.DummyRequest()
+        request = DummyRequest()
         request.params[key] =  mbox_type
 
         return request
@@ -114,6 +137,8 @@ class MBoxViewTestCase(unittest.TestCase):
 
         with Replacer() as r:
             r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
+            r.replace('opencore.views.mbox._get_profile_details',
+                    lambda context, request, user: {})
 
 
             site, from_, _, msg, thread_id, _, _, _, payload, _ = get_data()
@@ -121,7 +146,7 @@ class MBoxViewTestCase(unittest.TestCase):
             self.mbt.send_message(site, from_, to, msg, should_commit=True)
 
             site, _ = open_root(get_default_config())
-            request = testing.DummyRequest()
+            request = DummyRequest()
             request.params['thread_id'] = thread_id
             request.api = _DummyAPI()
 
@@ -161,24 +186,64 @@ class MBoxViewTestCase(unittest.TestCase):
 
         subject = uuid.uuid4().hex
         payload = uuid.uuid4().hex
-        api = uuid.uuid4().hex
 
         site, _ = open_root(get_default_config())
         to = find_profiles(site)['sarah']
 
         with Replacer() as r:
             r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
+            r.replace('opencore.views.mbox._get_profile_details',
+                    lambda context, request, user: {})
 
-            request = testing.DummyRequest()
-            request.api = api
-            request.POST['to'] = to
-            request.POST['subject'] = subject
-            request.POST['payload'] = payload
+            request = DummyRequest(method='POST')
+            request.api = DummyAPI()
+            request.api.find_profile = (lambda userid: 
+                    self.bob if userid == 'bob' else self.alice)
+            request.POST = MultiDict([
+                ('to', 'bob'),
+                ('subject', subject),
+                ('payload', payload),
+                ])
 
             response = add_message(site, request)
-            self.assertEquals(response['api'], api)
-            self.assertEquals(response['error_msg'], '')
+            self.assertEquals(response['api'], request.api)
+            self.assertEquals(response['error_msg'], '', response['error_msg'])
             self.assertEquals(response['success'], True)
+
+            transaction.commit()
+
+    def test_add_message_multiple_recipients(self):
+        subject = uuid.uuid4().hex
+        payload = uuid.uuid4().hex
+
+        with Replacer() as r:
+            r.replace('opencore.views.mbox.authenticated_userid', _authenticated_user_id)
+            r.replace('opencore.views.mbox._get_profile_details',
+                    lambda context, request, user: {})
+
+            request = DummyRequest(method='POST')
+            request.POST = MultiDict([
+                ('to', 'bob'),
+                ('to', 'alice'),
+                ('subject', subject),
+                ('payload', payload),
+                ])
+            request.api = DummyAPI()
+            request.api.find_profile = (lambda userid: 
+                    self.bob if userid == 'bob' else self.alice)
+
+            response = add_message(self.context, request)
+            self.assertEquals(response['api'], request.api)
+            self.assertEquals(response['error_msg'], '', response['error_msg'])
+            self.assertEquals(response['success'], True)
+            self.assertTrue('bob.inbox' in self.context['mailboxes'])
+            self.assertTrue('alice.inbox' in self.context['mailboxes'])
+
+            bob_inbox = self.context['mailboxes']['bob.inbox']
+            alice_inbox = self.context['mailboxes']['alice.inbox']
+            self.assertEquals(len(bob_inbox), 1)
+            self.assertEquals(len(alice_inbox), 1)
+            r.restore()
 
             transaction.commit()
 
@@ -193,7 +258,7 @@ class MBoxViewTestCase(unittest.TestCase):
             to = find_profiles(site)['admin']
             self.mbt.send_message(site, from_, to, msg, should_commit=True)
 
-            request = testing.DummyRequest()
+            request = DummyRequest()
             request.api = api
             request.params['thread_id'] = thread_id
             request.params['message_id'] = msg_id
@@ -219,7 +284,7 @@ class MBoxViewTestCase(unittest.TestCase):
             to = find_profiles(site)['admin']
             self.mbt.send_message(site, from_, to, msg, should_commit=True)
 
-            request = testing.DummyRequest()
+            request = DummyRequest()
             request.api = api
             request.params['thread_id'] = thread_id
             request.params['message_id'] = msg_id
@@ -243,7 +308,7 @@ class MBoxViewTestCase(unittest.TestCase):
 
             self.mbt.send_message(site, from_, to, msg, should_commit=True)
 
-            request = testing.DummyRequest()
+            request = DummyRequest()
             request.api = api
             request.params['thread_id'] = thread_id
             request.params['message_id'] = msg_id
