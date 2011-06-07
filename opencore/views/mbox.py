@@ -256,6 +256,7 @@ def show_mbox_thread(context, request):
         for msg_no in q._messages:
             msg_dict = {}
             raw_msg = q._messages[msg_no]
+            raw_msg.flags.append(STATUS_READ)
             message = raw_msg.get()
             from_ = message['From']
             from_profile = request.api.find_profile(from_)
