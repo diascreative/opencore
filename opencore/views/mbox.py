@@ -257,7 +257,7 @@ def show_mbox_thread(context, request):
         msg_dict['from_lastname'] = from_profile.lastname
         msg_dict['from_country'] = from_profile.country
         msg_dict['from_organization'] = from_profile.organization
-        msg_dict['payload'] = message.get_payload()
+        msg_dict['payload'] = message.get_payload().decode('utf-8')
 
         to_data = []
         for name in sorted(_to_from_to_header(message)):
