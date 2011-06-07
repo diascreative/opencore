@@ -30,9 +30,9 @@
                     </td>
                     <td><p style="margin:14px; "></p></td>
                     <td width="20px">(&nbsp;${ message.total_messages }&nbsp;)&nbsp;</td>
-                    <td width="209px" >${ message.first_message_from }</td>
+                    <td width="209px" >${ message.thread_from }</td>
                     <td><a href="/mbox_thread.html?thread_id=${ message.id }&amp;mbox_type=${ mbox_type }">${message.name}</a></td>
-                    <td>${ message.first_message_date }</td>
+                    <td>${ message.thread_last_date }</td>
                 </tr>
                 <tr>
                     <td class="name" colspan="3"><a href="#" id="delete-threads">Delete selected</a></td>
