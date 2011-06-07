@@ -2,6 +2,7 @@
 # stdlib
 import logging
 import traceback
+from operator import itemgetter
 from datetime import datetime
 from time import strftime, strptime
 from traceback import format_exc
@@ -233,47 +234,61 @@ def show_mbox_thread(context, request):
     mbox_type = _get_mbox_type(request)
 
     mbt = MailboxTool()
-    q, _, _ = mbt.get_queue_data(context, user, mbox_type, thread_id)
+    queues = []
+    if mbt.has_queue(context, user, 'inbox', thread_id):
+        inbox_q, _, _ = mbt.get_queue_data(context, user, 'inbox', thread_id)
+        queues.append(inbox_q)
+    if mbt.has_queue(context, user, 'sent', thread_id):
+        sent_q, _, _ = mbt.get_queue_data(context, user, 'sent', thread_id)
+        queues.append(sent_q)
     unread = mbt.get_unread(context, user, 'inbox')
 
     messages = []
 
-    for msg_no in q._messages:
-        msg_dict = {}
-        raw_msg = q._messages[msg_no]
-        message = raw_msg.get()
-        from_ = message['From']
-        from_profile = request.api.find_profile(from_)
+    reply_recipients = set()
 
-        msg_dict['queue_id'] = q.id
-        msg_dict['message_id'] = raw_msg.message_id
-        msg_dict['date'] = _format_date(context, message['Date'])
-        msg_dict['subject'] = message['Subject']
-        msg_dict['flags'] = raw_msg.flags
+    for q in queues:
+        for msg_no in q._messages:
+            msg_dict = {}
+            raw_msg = q._messages[msg_no]
+            message = raw_msg.get()
+            from_ = message['From']
+            from_profile = request.api.find_profile(from_)
 
-        msg_dict['from'] = from_
-        msg_dict['from_photo'] = _user_photo_url(request, message['From'])
-        msg_dict['from_firstname'] = from_profile.firstname
-        msg_dict['from_lastname'] = from_profile.lastname
-        msg_dict['from_country'] = from_profile.country
-        msg_dict['from_organization'] = from_profile.organization
-        msg_dict['payload'] = message.get_payload().decode('utf-8')
+            msg_dict['queue_id'] = q.id
+            msg_dict['message_id'] = raw_msg.message_id
+            msg_dict['raw_date'] = message['Date']
+            msg_dict['date'] = _format_date(context, message['Date'])
+            msg_dict['subject'] = message['Subject']
+            msg_dict['flags'] = raw_msg.flags
 
-        to_data = []
-        for name in sorted(_to_from_to_header(message)):
-            to_datum = {}
-            to_profile = request.api.find_profile(name)
+            msg_dict['from'] = from_
+            reply_recipients.add(from_)
+            msg_dict['from_photo'] = _user_photo_url(request, message['From'])
+            msg_dict['from_firstname'] = from_profile.firstname
+            msg_dict['from_lastname'] = from_profile.lastname
+            msg_dict['from_country'] = from_profile.country
+            msg_dict['from_organization'] = from_profile.organization
+            msg_dict['payload'] = message.get_payload().decode('utf-8')
 
-            to_datum['name'] = name
-            to_datum['firstname'] = to_profile.firstname
-            to_datum['lastname'] = to_profile.lastname
-            to_datum['photo_url'] = _user_photo_url(request, name)
-            to_datum['country'] = to_profile.country
-            to_data.append(to_datum)
+            to_data = []
+            for name in sorted(_to_from_to_header(message)):
+                to_datum = {}
+                to_profile = request.api.find_profile(name)
 
-        msg_dict['to_data'] = to_data
+                to_datum['name'] = name
+                to_datum['firstname'] = to_profile.firstname
+                to_datum['lastname'] = to_profile.lastname
+                to_datum['photo_url'] = _user_photo_url(request, name)
+                to_datum['country'] = to_profile.country
+                to_data.append(to_datum)
 
-        messages.append(msg_dict)
+            msg_dict['to_data'] = to_data
+
+            messages.append(msg_dict)
+
+    messages.sort(key=itemgetter('raw_date'))
+    reply_recipients.remove(user)
 
     return_data = {}
     return_data['profile'] = _get_profile_details(context, request, user)
@@ -281,6 +296,7 @@ def show_mbox_thread(context, request):
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
     return_data['unread'] = unread
+    return_data['reply_recipients'] = reply_recipients
 
     return return_data
 

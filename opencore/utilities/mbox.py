@@ -293,6 +293,15 @@ class MailboxTool(object):
             queues.append(mb[q_no])
             
         return queues
+
+    def has_queue(self, site, profile_name, mbox_type, thread_id):
+        mb = _get_mailbox(site, profile_name, mbox_type)
+        for q_no in mb:
+            q = mb.get(q_no)
+            if q.id == thread_id:
+                return True
+        return False
+
     
     def get_queue_data(self, site, profile_name, mbox_type, thread_id):
         mb = _get_mailbox(site, profile_name, mbox_type)
