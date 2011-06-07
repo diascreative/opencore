@@ -11,6 +11,12 @@
         <span class="err-text">${ error and error or '' }</span>
     </div>
 
+    <div metal:define-macro="input_fluid" class="text-holder fluid${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <input type="text" class="text${compulsory and ' check-text' or ''}" name="${name}" value="${default_value}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
     <!-- Textareas -->
 
     <div metal:define-macro="textarea" class="text-holder${ error and ' error' or '' }">
