@@ -17,7 +17,7 @@
                     </ul>
 
                     <form class="clearfix" action="" method="post" id="add_message_form">
-                        <div tal:condition="api.userid" tal:content="structure api.render_form_widget('input_fluid', 'to', 'To:')" tal:omit-tag="" />
+                        <div tal:condition="api.userid" tal:content="structure api.render_form_widget('select', 'to', 'To:')" tal:omit-tag="" />
                         <div tal:condition="api.userid" tal:content="structure api.render_form_widget('input_fluid', 'subject', 'Subject:', default='')" tal:omit-tag="" />
                         <div tal:condition="api.userid" tal:content="structure api.render_form_widget('textarea_fluid', 'payload', 'Message:', default='')" tal:omit-tag="" />
 

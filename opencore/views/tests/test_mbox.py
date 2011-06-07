@@ -223,8 +223,8 @@ class MBoxViewTestCase(unittest.TestCase):
 
             request = DummyRequest(method='POST')
             request.POST = MultiDict([
-                ('to', 'bob'),
-                ('to', 'alice'),
+                ('to[]', 'bob'),
+                ('to[]', 'alice'),
                 ('subject', subject),
                 ('payload', payload),
                 ])

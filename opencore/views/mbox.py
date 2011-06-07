@@ -368,7 +368,7 @@ def add_message(context, request):
     return_data['profile'] = _get_profile_details(context, request, user)
 
     if request.method == 'POST':
-        recipients_list = request.POST.getall('to')
+        recipients_list = request.POST.getall('to[]')
         try:
             for recipient in recipients_list:
                 send_to(context, request, recipient)

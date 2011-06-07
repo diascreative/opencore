@@ -47,4 +47,16 @@
         <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${default_value}</textarea>
     </div>
 
+    <div metal:define-macro="select" class="text-holder fluid${ error and ' error' or '' }">
+        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
+        <select name="${name}" class="text${compulsory and ' check-text' or ''}" id="${ name }">
+        <div tal:repeat="id,title choices" tal:omit-tag="">
+            <option selected="selected" value="${id}" tal:condition="id in default_list">${title}</option>
+            <option value="${id}" tal:condition="id not in default_list">${title}</option>
+        </div>
+        </select>
+
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
 </div>
