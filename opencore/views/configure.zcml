@@ -89,7 +89,7 @@
 
   <view
     for="opencore.models.interfaces.IProfile"
-    view=".people.profile_thumbnail"
+    view=".people.thumbnail"
     name="thumbnail"/>
 
   <view

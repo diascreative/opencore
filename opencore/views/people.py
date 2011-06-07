@@ -80,7 +80,7 @@ from opencore.views.batch import get_catalog_batch_grid
 
 
 log = logging.getLogger(__name__)
-PROFILE_THUMB_SIZE = (300,200)
+PROFILE_THUMB_SIZE = (60,60)
 _MIN_PW_LENGTH = None
 max_reset_timedelta = datetime.timedelta(3)  # days
 
@@ -261,13 +261,24 @@ class ShowProfileView(object):
         return render_template_to_response('templates/profile.pt', **self.response)
 
 
-@bfg_view(for_=IProfile, name="thumbnail")
+@bfg_view(for_=IProfile, name="profile_thumbnail")
 def profile_thumbnail(context, request):
     api = request.api
     api.page_title = 'Profile thumbnail redirector'
     photo = context.get('photo')
     if photo is not None:
         url = thumb_url(photo, request, PROFILE_THUMB_SIZE)
+    else:
+        url = api.static_url + "/img/default_user.png"
+    return HTTPFound(location=url)
+
+@bfg_view(for_=IProfile, name="thumbnail")
+def thumbnail(context, request):
+    api = request.api
+    api.page_title = 'Profile thumbnail redirector'
+    photo = context.get('photo')
+    if photo is not None:
+        url = thumb_url(photo, request, (300,200))
     else:
         url = api.static_url + "/img/default_user.png"
     return HTTPFound(location=url)

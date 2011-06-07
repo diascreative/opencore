@@ -99,7 +99,7 @@ jQuery(document).ready(function($) {
                         <h4>My Testimonials</h4>
                         <div class="content comment-create" tal:condition="api.userid is not None" tal:define="profile api.find_profile(api.userid)">
                             <a class="avatar medium" href="${api.profile_url}" >
-                                <img src="${api.find_image_url(profile)}" alt="${profile.firstname} ${profile.lastname}" />
+                                <img src="${ ${ api.profile_url }/profile_thumbnail }" alt="${profile.firstname} ${profile.lastname}" />
                             </a>
                             <metal:resources use-macro="api.snippets.macros['comment_form']"/>
                         </div>
