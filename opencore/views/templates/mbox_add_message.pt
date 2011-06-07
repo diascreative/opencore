@@ -12,7 +12,7 @@
 
                 <div class="column column-3-4 last">
                     <ul class="tabs"> 
-                        <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
+                      <li class="active"><a href="/mbox.html">Inbox (${unread})</a></li>
                         <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
                     </ul>
 
