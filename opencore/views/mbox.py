@@ -180,6 +180,7 @@ def show_mbox(context, request):
 
     mbt = MailboxTool()
     mbox_queues = mbt.get_queues(context, user, mbox_type)
+    alternate_mbox_type = 'sent' if mbox_type == 'inbox' else 'inbox'
     unread = mbt.get_unread(context, user, 'inbox')
 
     pagination = Pagination(page, PER_PAGE, len(mbox_queues))
@@ -208,6 +209,10 @@ def show_mbox(context, request):
         queue['id'] = mbox_q.id
         queue['name'] = mbox_q.name
         queue['total_messages'] = len(mbox_q)
+        if mbt.has_queue(context, user, alternate_mbox_type, queue['id']):
+            alternate_queue, _, _ = mbt.get_queue_data(context, user,
+                    alternate_mbox_type, queue['id'])
+            queue['total_messages'] += len(alternate_queue)
 
         first_message = mbox_q.get(0)
 
@@ -263,7 +268,8 @@ def show_mbox_thread(context, request):
             msg_dict['flags'] = raw_msg.flags
 
             msg_dict['from'] = from_
-            reply_recipients.add(from_)
+            if from_ != user:
+                reply_recipients.add(from_)
             msg_dict['from_photo'] = _user_photo_url(request, message['From'])
             msg_dict['from_firstname'] = from_profile.firstname
             msg_dict['from_lastname'] = from_profile.lastname
@@ -288,7 +294,6 @@ def show_mbox_thread(context, request):
             messages.append(msg_dict)
 
     messages.sort(key=itemgetter('raw_date'))
-    reply_recipients.remove(user)
 
     return_data = {}
     return_data['profile'] = _get_profile_details(context, request, user)
