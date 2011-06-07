@@ -220,6 +220,8 @@ def show_mbox(context, request):
         queue['thread_from'] = ', '.join(sender_names)
         last_message = messages[queue['total_messages'] - 1]
         queue['thread_last_date'] = _format_date(context, last_message['Date'])
+        queue['unread'] = mbox_q.get_unread()
+
 
         queues.append(queue)
 

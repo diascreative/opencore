@@ -31,7 +31,7 @@
                     <td><p style="margin:14px; "></p></td>
                     <td width="20px">(&nbsp;${ message.total_messages }&nbsp;)&nbsp;</td>
                     <td width="209px" >${ message.thread_from }</td>
-                    <td><a href="/mbox_thread.html?thread_id=${ message.id }&amp;mbox_type=${ mbox_type }">${message.name}</a></td>
+                    <td><a tal:attributes="class 'unread' if message.unread else 'read'" href="/mbox_thread.html?thread_id=${ message.id }&amp;mbox_type=${ mbox_type }">${message.name}</a></td>
                     <td>${ message.thread_last_date }</td>
                 </tr>
                 <tr>

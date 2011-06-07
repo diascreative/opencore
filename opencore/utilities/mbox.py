@@ -151,6 +151,17 @@ class Queue(Persistent):
         """ 
         message = self._messages[index]
         return message.get()
+
+    def get_unread(self):
+        """ Returns the number of unread messages in the queue """
+        total = 0
+        
+        for msg_no in self._messages:
+            raw_msg = self._messages[msg_no]
+            if not STATUS_READ in raw_msg.flags:
+                total += 1
+                    
+        return total
          
     def __iter__(self):   
         return QueueIterator(self)  
