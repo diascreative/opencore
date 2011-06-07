@@ -9,6 +9,7 @@ from uuid import uuid4
 
 # Zope
 import transaction
+from persistent.list import PersistentList
 
 # Repoze
 from repoze.folder import Folder
@@ -177,7 +178,7 @@ class _QueuedMessage(Persistent):
                              message.__class__.__name__)
 
         self.message_id = message['Message-Id']
-        self.flags = flags
+        self.flags = PersistentList(flags)
         
         self._v_message = message   # transient attribute
         self._blob_file = blob = Blob()
