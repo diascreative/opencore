@@ -2,7 +2,7 @@
 # stdlib
 import logging
 import traceback
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 from datetime import datetime
 from time import strftime, strptime
 from traceback import format_exc
@@ -208,17 +208,18 @@ def show_mbox(context, request):
         queue = {}
         queue['id'] = mbox_q.id
         queue['name'] = mbox_q.name
-        queue['total_messages'] = len(mbox_q)
+        messages = list(mbox_q)
         if mbt.has_queue(context, user, alternate_mbox_type, queue['id']):
             alternate_queue, _, _ = mbt.get_queue_data(context, user,
                     alternate_mbox_type, queue['id'])
-            queue['total_messages'] += len(alternate_queue)
+            messages += list(alternate_queue)
 
-        first_message = mbox_q.get(0)
+        sender_names = get_sender_names(request, user, messages)
 
-        queue['first_message_from'] = first_message['From']
-        queue['first_message_to'] = _to_from_to_header(first_message)
-        queue['first_message_date'] = _format_date(context, first_message['Date'])
+        queue['total_messages'] = len(messages)
+        queue['thread_from'] = ', '.join(sender_names)
+        last_message = messages[queue['total_messages'] - 1]
+        queue['thread_last_date'] = _format_date(context, last_message['Date'])
 
         queues.append(queue)
 
@@ -231,6 +232,20 @@ def show_mbox(context, request):
     return_data['page'] = page
 
     return return_data
+
+def get_sender_names(request, user, messages):
+    messages.sort(key=itemgetter('Date'))
+    senders = set(message['From'] for message in messages 
+                  if message['From'] != user)
+    display_attr = 'firstname' if len(senders) > 1 else 'fullname'
+    sender_names = []
+    for sender in senders:
+        profile = request.api.find_profile(sender)
+        if profile is not None:
+            sender_names.append(getattr(profile, display_attr))
+        else:
+            sender_names.append(sender)
+    return sender_names
 
 def show_mbox_thread(context, request):
     user = authenticated_userid(request)

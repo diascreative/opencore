@@ -551,7 +551,7 @@ class TemplateAPI(object):
 
     def find_profile(self, uid):
         profiles = find_profiles(self.context)
-        return profiles.get(uid)
+        return profiles.get(uid, None)
 
 
     def find_image_url(self, ob, search='photo', default='/img/default_user.png', size=None):
