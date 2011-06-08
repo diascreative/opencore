@@ -81,7 +81,9 @@
   <view
     for="opencore.models.interfaces.IProfiles"
     view=".people.profile_json_list"
-    name="list.json"/>
+    name="list.json"
+    permission="comment"
+    />
 
   <view
     for="opencore.models.interfaces.IProfile"

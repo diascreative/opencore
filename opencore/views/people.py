@@ -137,29 +137,29 @@ def show_profiles_view(context, request):
         )
 
 def profile_json_list(context, request):
+    records = []
+    prefix = request.params.get('tag')
+    if prefix:
+        prefix = prefix.lower()
 
-    api = request.api
-    prefix = request.params['tag'].lower()
+        query = dict(
+            member_name='%s*' % prefix,
+            interfaces=[IProfile],
+            sort_index='title',
+            limit=20,
+            )
 
-    query = dict(
-        member_name='%s*' % prefix,
-        sort_index='title',
-        limit=20,
-        )
-
-    searcher = ICatalogSearch(context)
-    try:
-        total, docids, resolver = searcher(**query)
-        profiles = filter(None, map(resolver, docids))
-        records = [dict(
-                    key = profile.__name__,
-                    value = profile.title,
-                    )
-                   for profile in profiles
-                   if profile.security_state != 'inactive'
-                   and profile.__name__ != api.userid]
-    except ParseError:
-        records = []
+        searcher = ICatalogSearch(context)
+        try:
+            total, docids, resolver = searcher(**query)
+            records = dict((profile.__name__, profile.title)
+                            for profile
+                            in map(resolver, docids)
+                            if profile.security_state != 'inactive'
+                            and profile.__name__ != request.api.userid
+                            )
+        except ParseError:
+            records = []
     result = JSONEncoder().encode(records)
     return Response(result, content_type="application/x-json")
 
