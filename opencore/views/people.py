@@ -24,6 +24,10 @@ from deform.widget import (
     TextAreaWidget,
     )
 
+from zope.index.text.parsetree import ParseError
+from webob import Response
+from simplejson import JSONEncoder
+
 from repoze.bfg.traversal import model_path
 from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.bfg.chameleon_zpt import render_template
@@ -131,6 +135,33 @@ def show_profiles_view(context, request):
         profiles=profiles,
         members=members,
         )
+
+def profile_json_list(context, request):
+
+    api = request.api
+    prefix = request.params['tag'].lower()
+
+    query = dict(
+        member_name='%s*' % prefix,
+        sort_index='title',
+        limit=20,
+        )
+
+    searcher = ICatalogSearch(context)
+    try:
+        total, docids, resolver = searcher(**query)
+        profiles = filter(None, map(resolver, docids))
+        records = [dict(
+                    key = profile.__name__,
+                    value = profile.title,
+                    )
+                   for profile in profiles
+                   if profile.security_state != 'inactive'
+                   and profile.__name__ != api.userid]
+    except ParseError:
+        records = []
+    result = JSONEncoder().encode(records)
+    return Response(result, content_type="application/x-json")
 
 def get_profile_actions(profile,request):
     # XXX - this should probably be a utility to aid overriding!

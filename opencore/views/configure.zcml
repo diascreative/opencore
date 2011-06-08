@@ -79,6 +79,11 @@
     view=".people.show_profiles_view"/>
 
   <view
+    for="opencore.models.interfaces.IProfiles"
+    view=".people.profile_json_list"
+    name="list.json"/>
+
+  <view
     for="opencore.models.interfaces.IProfile"
     view=".people.ShowProfileView"/>
 
