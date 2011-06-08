@@ -6,15 +6,21 @@
     <div metal:fill-slot="content">
         <div metal:use-macro="api.snippets.macros['actions_box']"/>
 
-        <h1>${api.page_title}</h1>
-        <p class="page-intro">
-            Lorem ipsum dolo sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-        </p>
-        
-            <div class="column column-3-4 first">
-            <tal:x replace="structure form"/>
+        <div class="column block column-3-4">
+            <h4>Reset password</h4>
+
+            <div class="content" tal:content="structure form" />
 	    </div>
-	                
+
+        <div class="column column-1-4 last">
+            <div class="block fill split">
+                <h4>Or Login</h4>
+                <div class="content">
+                    <a href="${api.app_url}/login.html" class="trigger-slide" rel="login-panel">Login</a>
+                </div>
+            </div>
+            
+        </div>
 
         <script type="text/javascript">
         deform.load()

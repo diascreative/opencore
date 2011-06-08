@@ -58,7 +58,7 @@ class ResetRequestSchema(object):
     
 class ResetConfirmSchema(object):
     class _Schema(MappingSchema):
-        password = SchemaNode(String(), title='password1', description='Enter new password',
+        password = SchemaNode(String(), title='Enter a New Password',
                            validator=Length(min=min_pw_length(), max=100), 
                            widget=deform.widget.CheckedPasswordWidget(size=20))
         
