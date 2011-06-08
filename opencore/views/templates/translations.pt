@@ -1,13 +1,40 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:tal="http://xml.zope.org/namespaces/tal"
-      xmlns:metal="http://xml.zope.org/namespaces/metal"
-      metal:use-macro="api.generic_layout">
-  <div metal:fill-slot="content">
-      <h1>${page.title}</h1>
-      <p><em>the template is opencore/opencore/views/templates/translations.pt</em></p>
-      <c tal:replace="structure page.text"></c>
-      <p>
-        <li tal:condition="api.user_is_admin"><a class="button" href="${api.here_url}edit_page.html" title="Edit this page">Edit this page</a></li>     
-      </p>
-  </div>
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    xmlns:metal="http://xml.zope.org/namespaces/metal"
+    metal:use-macro="api.generic_layout">
+<tal:block metal:fill-slot="content">
+
+        <h1 class="heading">
+            <a class="title" href="/toolkit/en">HCD Toolkit</a>
+            <span class="divide">&gt;</span>
+            <a href="${ api.static_url }/pdf/IDEO_HCD_ToolKit_Complete.pdf" class="subtitle" target="_blank">Download PDF</a>
+            <a class="purchase_link"    href="http://www.blurb.com/user/IDEObooks" target="_blank">Purchase<br />the Book</a>
+        </h1>
+        
+        
+        <div id="translation-head" class="clearfix">
+            <a class="translation-item" href="${ api.static_url }/pdf/IDEO_HCD_ToolKit_Complete.pdf">
+                <img src="${ api.static_url }/img/flags/uk.png" />
+                English
+            </a>
+            Download a copy of the HCD Toolkit.
+            <span class="button-offset lined left"></span>
+        </div>
+
+        <a class="translation-item" href="${ api.static_url }/pdf/IDEO_HCD_ToolKit_Complete.pdf" tal:repeat="i range(0,0)">
+            <img src="${ api.static_url }/img/flags/uk.png" />
+            English
+        </a>
+        
+        <div class="block">
+            <h4>Edit a Translation</h4>
+            <div class="content">
+                <p>See a way to make this copy more clear? You can help us to improve the quality and accessibility of the HCD Toolkit by editing a translation.</p>
+            </div>
+        </div>
+
+        <a class="button" href="${ api.app_url }/toolkit/en/upload_translation.html" title="Edit a translation">Edit a translation</a>
+        <a class="button" href="${api.here_url}edit_page.html" title="Edit this page" tal:condition="api.user_is_admin">Edit this page</a>
+
+</tal:block>
 </html>
