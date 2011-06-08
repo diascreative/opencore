@@ -9,6 +9,7 @@ from uuid import uuid4
 
 # Zope
 import transaction
+from persistent.list import PersistentList
 
 # Repoze
 from repoze.folder import Folder
@@ -150,6 +151,17 @@ class Queue(Persistent):
         """ 
         message = self._messages[index]
         return message.get()
+
+    def get_unread(self):
+        """ Returns the number of unread messages in the queue """
+        total = 0
+        
+        for msg_no in self._messages:
+            raw_msg = self._messages[msg_no]
+            if not STATUS_READ in raw_msg.flags:
+                total += 1
+                    
+        return total
          
     def __iter__(self):   
         return QueueIterator(self)  
@@ -177,7 +189,7 @@ class _QueuedMessage(Persistent):
                              message.__class__.__name__)
 
         self.message_id = message['Message-Id']
-        self.flags = flags
+        self.flags = PersistentList(flags)
         
         self._v_message = message   # transient attribute
         self._blob_file = blob = Blob()
@@ -250,6 +262,7 @@ class MailboxTool(object):
             raise NoSuchMessageException(error)
         
         return mb, q, q_no, raw_msg, inner_message
+
     
     def set_acl(self, name, queue):
         """ Sets the appropriate permissions on the queue object.
@@ -292,6 +305,15 @@ class MailboxTool(object):
             queues.append(mb[q_no])
             
         return queues
+
+    def has_queue(self, site, profile_name, mbox_type, thread_id):
+        mb = _get_mailbox(site, profile_name, mbox_type)
+        for q_no in mb:
+            q = mb.get(q_no)
+            if q.id == thread_id:
+                return True
+        return False
+
     
     def get_queue_data(self, site, profile_name, mbox_type, thread_id):
         mb = _get_mailbox(site, profile_name, mbox_type)
@@ -314,16 +336,31 @@ class MailboxTool(object):
         # Is it a new thread from the sender's perspective? Add a new 'sent'
         # queue if so. In other case, append the message to an already existing
         # 'sent' queue..
-        sent_mb = _get_mailbox(site, from_, 'sent')
+        sent_mb = self.get_mailbox(site['mailboxes'], from_ + '.sent')
         self._create_add_queue_message(sent_mb, from_, message)
         
         # ..same goes for recipients and their 'inbox' queues.
-        inbox_mb = _get_mailbox(site, to.__name__, 'inbox')
+        inbox_mb = self.get_mailbox(site['mailboxes'], to.__name__ + '.inbox')
         self._create_add_queue_message(inbox_mb, to.__name__, message)
         
         if should_commit:
             transaction.commit()
+
+
+    def send_reply(self, site, thread_id, from_, to, message,
+            should_commit=False):
+
+        original_queue, _, _ = self.get_queue_data(site, from_, 'inbox',
+                thread_id)
+        original_subject = original_queue[0]['Subject']
+        reply_prefix = 'Re: '
+        if original_subject.startswith(reply_prefix):
+            message['Subject'] = original_subject
+        else:
+            message['Subject'] = reply_prefix + original_subject
+        self.send_message(site, from_, to, message, should_commit)
         
+
     def delete_message(self, site, profile_name, mbox_type, thread_id, message_id):
         """ Deletes a message. If it was the only message in a queue, the queue
         is also deleted.

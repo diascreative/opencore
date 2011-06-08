@@ -1,0 +1,13 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      metal:use-macro="api.generic_layout">
+  <div metal:fill-slot="content">
+      <h1>${page.title}</h1>
+      <p><em>the template is opencore/opencore/views/templates/translations.pt</em></p>
+      <c tal:replace="structure page.text"></c>
+      <p>
+        <li tal:condition="api.user_is_admin"><a class="button" href="${api.here_url}edit_page.html" title="Edit this page">Edit this page</a></li>     
+      </p>
+  </div>
+</html>

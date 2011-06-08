@@ -2,17 +2,6 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       xmlns:metal="http://xml.zope.org/namespaces/metal"
       metal:use-macro="api.generic_layout">
-
-<head>
-<metal:block metal:fill-slot="extra-headers">
-<script src="${api.static_url}/jquery-plugins/jquery.timeago.js"></script>
-<script type="text/javascript">
-jQuery(document).ready(function($) {
-    $("abbr.timeago").timeago();
-});
-</script>
-</metal:block>
-</head>
 <body>
 
 <div metal:fill-slot="content" tal:omit-tag="">
@@ -50,7 +39,7 @@ jQuery(document).ready(function($) {
                                 </block>
                                 <block tal:condition="profile.country" tal:omit-tag="">
                                     <dt tal:condition="profile.country">Location:</dt>
-                                    <dd tal:condition="profile.country">${profile.country}</dd>
+                                    <dd tal:condition="profile.country">${api.countries.as_dict[profile.country]}</dd>
                                 </block>
                                 <block tal:condition="profile.websites" tal:omit-tag="">
                                     <dt>Website:</dt>
@@ -99,7 +88,7 @@ jQuery(document).ready(function($) {
                         <h4>My Testimonials</h4>
                         <div class="content comment-create" tal:condition="api.userid is not None" tal:define="profile api.find_profile(api.userid)">
                             <a class="avatar medium" href="${api.profile_url}" >
-                                <img src="${api.find_image_url(profile)}" alt="${profile.firstname} ${profile.lastname}" />
+                                <img src="${ ${ api.profile_url }/profile_thumbnail }" alt="${profile.firstname} ${profile.lastname}" />
                             </a>
                             <metal:resources use-macro="api.snippets.macros['comment_form']"/>
                         </div>

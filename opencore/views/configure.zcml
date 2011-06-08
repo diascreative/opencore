@@ -79,6 +79,11 @@
     view=".people.show_profiles_view"/>
 
   <view
+    for="opencore.models.interfaces.IProfiles"
+    view=".people.profile_json_list"
+    name="list.json"/>
+
+  <view
     for="opencore.models.interfaces.IProfile"
     view=".people.ShowProfileView"/>
 
@@ -86,6 +91,11 @@
     for="opencore.models.interfaces.IProfile"
     view=".people.profile_thumbnail"
     name="profile_thumbnail"/>
+
+  <view
+    for="opencore.models.interfaces.IProfile"
+    view=".people.thumbnail"
+    name="thumbnail"/>
 
   <view
     for="opencore.models.interfaces.IProfile"
@@ -672,6 +682,19 @@
     name="gallery_video_thumb_layout"
     permission="view"
     renderer="templates/widgets/gallery_thumb.pt"/>
+
+  <!-- Static pages -->
+  <view
+    for="opencore.models.interfaces.IStaticPage"
+    view=".page.show_page"
+    permission="view" />
+
+  <view
+    for="opencore.models.interfaces.IPage"
+    view=".page.EditPageController"
+    name="edit_page.html"
+    renderer="templates/edit_page.pt"
+    permission="edit"/>
 
   <subscriber
     for="repoze.bfg.interfaces.IAfterTraversal"

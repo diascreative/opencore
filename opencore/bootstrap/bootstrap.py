@@ -16,8 +16,7 @@ from repoze.lemonade.content import create_content
 from opencore.bootstrap.interfaces import IInitialData
 from opencore.bootstrap.data import DefaultInitialData
 from opencore.models.contentfeeds import SiteEvents
-from opencore.models.interfaces import IProfile
-from opencore.models.page import Page
+from opencore.models.interfaces import IProfile, IStaticPage
 from opencore.models.site import Site
 from opencore.security.policy import to_profile_active
 from opencore.views.utils import create_user_mboxes
@@ -95,7 +94,7 @@ def populate(root, do_transaction_begin=True, post_app_setup=None):
 
     # Static pages.
     bootstrap_static_pages(site)
-    
+
     site['reset_password'] = Folder()
 
 def bootstrap_evolution(root):
@@ -115,11 +114,41 @@ def bootstrap_static_pages(site):
     for title in DefaultInitialData.initial_static_titles:
         bootstrap_static_page(site, title)
 
+def bootstrap_translations_page(site):
+    page = create_content(IStaticPage,
+            title='Download PDF', 
+            text='''
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
+non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            ''',
+            description='''
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
+non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+''',
+
+            creator=DefaultInitialData.admin_user,
+            )
+    page.template = 'translations.pt'
+    site['toolkit']['en']['translations'] = page
+
 def bootstrap_static_page(site, title):
     auto_gen = DefaultInitialData.initial_static_content_auto_generated
     text = title + ' - ' + auto_gen
-    page = Page(title, text, auto_gen.capitalize(),
-                DefaultInitialData.admin_user)
+    page = create_content(IStaticPage,
+            title=title, 
+            text=text,
+            description=auto_gen.capitalize(),
+            creator=DefaultInitialData.admin_user,
+            )
+
     page_path = title.lower()
     try:
         site[page_path] = page

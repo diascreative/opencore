@@ -285,7 +285,7 @@ class TestAddForumTopicController(unittest.TestCase):
         self.request.POST = MultiDict([
                 ('title','title'),
                 ('description','abc',),
-                ('save','save'),
+                ('post','post'),
                 ])
         
         controller = self._makeOne()

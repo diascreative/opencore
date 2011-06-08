@@ -31,6 +31,8 @@ from opencore.models.interfaces import (
         IImage,
         )
 
+from opencore.views.forms import tmpstore
+
 class DummyImageModel(DummyModel):
     implements(IImage)
 
@@ -99,6 +101,7 @@ class DummyProfile(DummyModel):
 
     title = 'title'
     firstname = 'firstname'
+    biography = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
     lastname = 'lastname'
     position = 'position'
     organization = 'organization'
@@ -498,3 +501,12 @@ def registerSettings(**kw):
     from repoze.bfg.interfaces import ISettings
     settings = DummySettings(**kw)
     registerUtility(settings, ISettings)
+
+
+def insert_in_tmpstore(key='store-key', filename='one_pixel.jpg'):
+    data = {}
+    data['fp'] = StringIO(one_pixel_jpeg)
+    data['filename'] = filename
+    data['mimetype'] = 'image/jpeg'
+    data['size']  = len(one_pixel_jpeg)
+    tmpstore[key] = data

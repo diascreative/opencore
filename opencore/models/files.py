@@ -17,6 +17,7 @@
 
 from cStringIO import StringIO
 import PIL.Image
+from PIL import ImageOps
 
 from persistent import Persistent
 from BTrees.OOBTree import OOBTree
@@ -112,8 +113,7 @@ class Thumbnail(Persistent):
     mimetype = 'image/jpeg'
 
     def __init__(self, image, max_size):
-        thumb_size = _thumb_size(image.size, max_size)
-        thumb_img = image.resize(thumb_size, PIL.Image.ANTIALIAS)
+        thumb_img = ImageOps.fit(image, max_size, method=PIL.Image.ANTIALIAS)
         img_buf = StringIO()
         if thumb_img.mode != 'RGB':
             thumb_img = thumb_img.convert('RGB')
@@ -128,23 +128,6 @@ class Thumbnail(Persistent):
     def image(self):
         return PIL.Image.open(self.blobfile.open())
 
-def _thumb_size(orig_size, max_size):
-    orig_x, orig_y = orig_size
-    max_x, max_y = max_size
-
-    x = max_x
-    ratio = float(max_x) / float(orig_x)
-    y = int(orig_y * ratio)
-
-    if y <= max_y:
-        return x, y
-
-    y = max_y
-    ratio = float(max_y) / float(orig_y)
-    x = int(orig_x * ratio)
-
-    assert x < max_x
-    return x, y
 
 class FilesToolFactory(ToolFactory):
     implements(IToolFactory)

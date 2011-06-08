@@ -127,9 +127,8 @@ class TemplateAPI(object):
         self.page_title = page_title
         self.system_name = get_setting(context, 'system_name', 'KARL')
         self.user_is_admin = 'group.KarlAdmin' in effective_principals(request)
-        site = find_site(context)
-        self.admin_url = model_url(site, request, 'admin.html')
-        self.site_announcement = getattr(site, 'site_announcement', '')
+        self.site = find_site(context)
+        self.admin_url = model_url(self.site, request, 'admin.html')
         # XXX XXX XXX This will never work from peoples formish templates
         # XXX XXX XXX (edit_profile and derivates) because, in those form
         # XXX XXX XXX controllers, the api is instantiated from __init__,
@@ -173,6 +172,16 @@ class TemplateAPI(object):
         self.formdata = request.POST
         self.app_config = settings
         self.rdbstore = RDBMSStore()
+
+    @property
+    def site_announcement(self):
+        site_announcement = getattr(self.site, 'site_announcement', None)
+        if site_announcement:
+            site_announcement['profile'] = self.find_profile(
+                    site_announcement.get('userid', None))
+            if site_announcement['profile']:
+                return site_announcement
+        return {}
 
     def topics(self, context):
 	topics = get_setting(context, 'topics')
@@ -503,7 +512,7 @@ class TemplateAPI(object):
             return []
         return get_user_bookmarks(self.context, self.userid, filter_challenge)
 
-    def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None, description=None, disabled=False):
+    def render_form_widget(self, widget_id, id, label, choices=[], compulsory=False, default=None, description=None, disabled=False, alt=False):
         if default is None:
             default = self.formdata.get(id, '')
         error = self.formerrors.get(id, '')
@@ -526,6 +535,7 @@ class TemplateAPI(object):
                                                      default_list=default_list,
                                                      error=error,
                                                      disabled=disabled,
+                                                     alt=alt,
                                                      api=self,))
 
     def model_path(self, obj):
@@ -541,7 +551,7 @@ class TemplateAPI(object):
 
     def find_profile(self, uid):
         profiles = find_profiles(self.context)
-        return profiles.get(uid)
+        return profiles.get(uid, None)
 
 
     def find_image_url(self, ob, search='photo', default='/img/default_user.png', size=None):
@@ -579,7 +589,7 @@ class TemplateAPI(object):
         elif ( (delta.seconds/60) > 1 ) :
             return '%d mins' % (delta.seconds/60)
         else :
-            return 'moments'
+            return 'Moments'
 
     def format_date(self, d, with_break=False, time_less=False):
         if with_break and not time_less:

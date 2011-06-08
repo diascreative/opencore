@@ -296,7 +296,7 @@ def get_topic_batch(forum, request):
 @bfg_view(for_=IForumTopic, permission='view', name='add_forum_topic.html',
           renderer='templates/add_forum_topic.pt')
 class AddForumTopicController(BaseController):
-    
+    buttons = ('cancel', 'post')
     class Schema(MappingSchema):
 
         title = SchemaNode(

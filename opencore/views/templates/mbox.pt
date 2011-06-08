@@ -6,38 +6,43 @@
     <h1>My Mailbox</h1>
 
     <div class="columns">
-        <div class="column column-1-4 first">
-            left bar: variables that prefill this area are not being sent over to this template from the server side yet, do unable to pull in.
-        </div>
+        <div metal:use-macro="api.snippets.macros['profile_bar']" tal:condition="0" />
 
         <div class="column column-3-4 last">
             <ul class="tabs"> 
-                <li class="active"><a href="/mbox.html">Inbox ( ${ len(queues) } )</a></li>
-                <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
+                <li class="${ mbox_type == 'inbox' and 'active' or ' ' }"><a href="/mbox.html">Inbox ( ${ unread } )</a></li>
+                <li class="${ mbox_type == 'sent' and 'active' or ' ' }"><a href="/mbox.html?mbox_type=sent">Sent</a></li>
             </ul>
+            
+            <a href="./mbox_add_message.html" class="button highlight" id="create-message">Create a Message</a>
 
             <table id="messages" width="700px" cellpadding="10">
                 <tr>
-                    <th ></th>
-                    <th></th>
+                    <th width="40px"></th>
+                    <th width="20px"></th>
                     <th colspan="2"><p></p>From</th>
-                    <th><p></p>Headline</th>
-                    <th><p></p>Date and time</th>
+                    <th width="410px"><p></p>Headline</th>
+                    <th width="174px"><p></p>Date and time</th>
                 </tr>		
                 <tr tal:repeat="message queues" bgcolor="#eaeaea">
-                    <td  width="40px" valign='center'><p style="margin:14px;">
-                        <input type="checkbox" name="thread_id" value="/mbox_delete_thread.html?thread_id=${ message.id}" /></p>
+                    <td valign='center'><p style="margin:14px;">
+                        <input type="checkbox" name="thread_id" value="/mbox_delete_thread.html?thread_id=${ message.id}&amp;mbox_type=${ mbox_type }" /></p>
                     </td>
-                    <td width="20px"><p style="margin:14px; "></p></td>
+                    <td><p style="margin:14px; "></p></td>
                     <td width="20px">(&nbsp;${ message.total_messages }&nbsp;)&nbsp;</td>
-                    <td width="209px" >${ message.first_message_from }</td>
-                    <td width="410px"><a href="/mbox_thread.html?thread_id=${ message.id }">${message.name}</a></td>
-                    <td width="174px">${ message.first_message_date }</td>
+                    <td width="209px" >${ message.thread_from }</td>
+                    <td><a tal:attributes="class 'unread' if message.unread else 'read'" href="/mbox_thread.html?thread_id=${ message.id }&amp;mbox_type=${ mbox_type }">${message.name}</a></td>
+                    <td>${ message.thread_last_date }</td>
                 </tr>
                 <tr>
-                    <td colspan="4" class="name"><a href="#" id="delete-threads">Delete selected</a></td>
-                    <td width="381px"></td>
-                    <td width="174px" align='right' >Prev | <myrow tal:repeat="message queues" style="position:'inline;'"> 1 | </myrow> Next</td>
+                    <td class="name" colspan="3"><a href="#" id="delete-threads">Delete selected</a></td>
+                    <td colspan="3" tal:define="page_url api.here_url_with_get('page')" class="mailbox-pagination">
+                        <a href="${ page_url }&amp;page=${ page - 1}" tal:condition="page &gt; 1">Prev</a>
+                        <span tal:condition="page &lt; 2">Prev</span> | 
+                        <tal:block repeat="message queues"><a href="${ page_url }&amp;page=${ repeat.message.number }" class="${ repeat.message.number == page and 'active' or ' ' }"> ${ repeat.message.number }</a> | </tal:block>
+                        <a href="${ page_url }&amp;page=${ page + 1}" tal:condition="page &lt; len(queues)">Next</a>
+                        <span tal:condition="page == len(queues)">Next</span>
+                    </td>
                 </tr>			
             </table>
         </div>

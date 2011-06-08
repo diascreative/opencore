@@ -1,4 +1,5 @@
 from cgi import escape
+import urllib
 from pprint import pformat
 import operator
 import string
@@ -113,6 +114,7 @@ class VideoTempStore(MemoryTempStore):
     def preview_url(self, name):
         return '/video_thumb/' + name
 
+dummy_tmpstore = DummyTempStore()
 tmpstore = MemoryTempStore()
 video_tmpstore = VideoTempStore()
 
@@ -194,17 +196,24 @@ class ContentController(BaseController):
         objectEventNotify(ObjectWillBeModifiedEvent(context))
 
         
-        self.handle_content(context,request,validated)
+        status_message = self.handle_content(context,request,validated)
+        if not status_message:
+            status_message = context.__class__.__name__ + ' edited'
 
         # store who modified
         context.modified_by = authenticated_userid(request)
        
         objectEventNotify(ObjectModifiedEvent(context))
+        self.post_submit()
         location = model_url(context, request)
-        msg = '?status_message='+quote(
-            context.__class__.__name__+' edited'
-            )
+        msg = '?' + urllib.urlencode({'status_message': status_message})
         return HTTPFound(location=location+msg)
+
+    def post_submit(self):
+        """
+        Do stuff after all events have been fired
+        """
+        pass
 
 
 class GalleryControllerMixin(object):
@@ -230,6 +239,27 @@ class KarlUserWidget(Widget):
     """
 
     template = 'karluserwidget'
+
+    def serialize(self, field, cstruct, readonly=False):
+        if field.name!='users':
+            raise Exception(
+                "This widget must be used on a field named 'users'"
+                )
+        # For now we don't bother with cstruct parsing.
+        # If we need to use this widget for edits, then we will have to
+        return field.renderer(self.template, field=field, cstruct=())
+
+    def deserialize(self, field, pstruct):
+        return pstruct
+
+
+class UserWidget(Widget):
+    """
+    A widget to work with the #membersearch-input magic.
+    The field this is user on *must* be called 'users'.
+    """
+
+    template = 'userwidget'
 
     def serialize(self, field, cstruct, readonly=False):
         if field.name!='users':
@@ -302,7 +332,7 @@ class GalleryWidgetImageItem(object):
 
     preview_template = "&lt;img src=&quot;%s&quot; /&gt;"
 
-    def __init__(self, value, api, uid=None, size=(200,200), prev_size=(600,800)):
+    def __init__(self, value, api, uid=None, size=(200,200), prev_size=(800,600)):
         self.type = 'image'
         if uid is not None:
             self.thumb_url = '/'.join([api.app_url, 'gallery_image_thumb', uid])
@@ -405,10 +435,12 @@ class MethodWidget(Widget):
     def serialize(self, field, cstruct, readonly=False):
         log.debug("*** MethodWidget.serialize field: %s, cstruct: %s", field, cstruct)
         if cstruct is null:
-            cstruct = []
+            selected_methods = []
+        else:
+            selected_methods = self.get_methods(names=cstruct)
         params = {
                 'api': self.request.api, 
-                'selected_methods': cstruct,
+                'selected_methods': selected_methods,
                 'method_choices': self.choices,
                 }
         return field.renderer(self.template, **params)

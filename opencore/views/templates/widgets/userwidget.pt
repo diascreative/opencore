@@ -1,0 +1,5 @@
+<span tal:omit-tag="">
+    <input type="hidden" name="__start__" value="${field.name}:sequence"/>
+    <select name="a_user" class="text add-user"></select>
+    <input type="hidden" name="__end__" value="${field.name}:sequence"/>
+</span>

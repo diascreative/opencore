@@ -4,10 +4,10 @@
         <input type="hidden" name="__start__" value="methods:sequence" />
         <div id="items">
           <div tal:repeat="method selected_methods" class="column column-1-6">
-            <input type="hidden" name="methods" value="${method.__name__}" />
-              <div class="method new-method thumb">
+              <input type="hidden" name="methods" value="${method.__name__}" />
+              <div class="method new-method thumb" title="${ method.title }">
                   <div class="close-button"></div>
-                  <a class="image" href="#"><img src="http://localhost:6544/toolkit/en/hear/steps/3/methods/individual-interview/method_thumbnail" alt="" /><span></span></a>
+                  <a class="image" href="#"><img src="${ api.get_url(method) }method_thumb_medium" alt="" /><span></span></a>
                   <a class="title" href="#">${method.title}</a>
               </div>
             
@@ -19,7 +19,7 @@
     <div id="method-panel">
         <div id="click-add-method"></div>
         <div id="search-methods">
-            <input type="text" id="search-methods-input" value="Search" />
+            <input type="text" id="search-methods-input" value="" alt="Search" />
         </div>
         <div id="search-method-results" class="small-methods"><div class="close-button"></div></div>
         <ul id="search-method-listings" tal:define="columns 500">

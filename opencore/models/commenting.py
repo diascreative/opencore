@@ -22,6 +22,7 @@ from zope.interface import implements
 
 # Repoze
 from repoze.folder import Folder
+from repoze.bfg.security import Allow, Everyone
 
 # opencore
 from opencore.models.interfaces import ICommentsFolder
@@ -31,6 +32,8 @@ from opencore.models.interfaces import IHasFeed
 class CommentsFolder(Folder):
     implements(ICommentsFolder)
     title = u'Comments Folder'
+
+    __acl__ = [(Allow, Everyone, ['view'])]
 
     @property
     def next_id(self):
@@ -50,6 +53,7 @@ class Comment(Folder):
     implements(IComment, IHasFeed)
     attachments = None
     modified_by = None
+
 
     # XXX: description is probalby not needed--not sure when that would show
     #      up in UI.

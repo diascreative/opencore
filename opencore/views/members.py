@@ -84,6 +84,7 @@ from opencore.views.forms import (
     _get_manage_actions,
     BaseController,
     KarlUserWidget,
+    UserWidget,
     CommaSeparatedList,
     TOUWidget,
     instantiate,
@@ -504,47 +505,56 @@ class AcceptInvitationController(MembersBaseController):
     
     class _Schema(MappingSchema):
 
-        username = SchemaNode(
-            String(),
-            )
-        password = SchemaNode(
-            String(),
-            widget=CheckedPasswordWidget()
-            )
-        first_name = SchemaNode(
-            String(),
-            )
-        last_name = SchemaNode(
-            String(),
-            )
-        country = SchemaNode(
-            String(),
-            widget=SelectWidget(
-                values=[('', 'Select your country')] + countries
+        @instantiate(title="")
+        class account(MappingSchema):
+            username = SchemaNode(
+                String(),
                 )
-            )
-        date_of_birth = SchemaNode(
-            Date(),
-            widget=DatePartsWidget(),
-            missing=None,
-            )
-        gender = SchemaNode(
-            String(),
-            widget=SelectWidget(
-                values=[('', 'Select your gender'),
-                        ('male', 'male'),
-                        ('female', 'female'),]
-                ),
-            missing=''
-            )
-        terms_of_use = SchemaNode(
-            Boolean(),
-            widget=TOUWidget(),
-            validator=Function(
-                lambda value: value==True,
-                'You must agree to the terms of use',
+            password = SchemaNode(
+                String(),
+                widget=CheckedPasswordWidget()
                 )
-            )
+
+        @instantiate(title="")
+        class details(MappingSchema):
+            first_name = SchemaNode(
+                String(),
+                )
+            last_name = SchemaNode(
+                String(),
+                )
+            country = SchemaNode(
+                String(),
+                widget=SelectWidget(
+                    values=[('', 'Select your country')] + countries
+                    )
+                )
+            date_of_birth = SchemaNode(
+                Date(),
+                widget=DatePartsWidget(),
+                missing=None,
+                description="Please make sure your enter the month in digits.",
+                )
+            gender = SchemaNode(
+                String(),
+                widget=SelectWidget(
+                    values=[('', 'Select your gender'),
+                            ('male', 'male'),
+                            ('female', 'female'),]
+                    ),
+                missing=''
+                )
+
+        @instantiate(title="")
+        class terms(MappingSchema):
+            terms_of_use = SchemaNode(
+                Boolean(),
+                widget=TOUWidget(),
+                validator=Function(
+                    lambda value: value==True,
+                    'You must agree to the terms of use',
+                    )
+                )
 
     # buttons
         
@@ -562,7 +572,7 @@ class AcceptInvitationController(MembersBaseController):
     def Schema(self):
         # This needs to be a function some validators needs context
         s = self._Schema().clone()
-        s['username'].validator=All(
+        s['account']['username'].validator=All(
             Regex(
                 '^[\w-]+$',
                 'Username must contain only letters, numbers, and dashes'
@@ -581,27 +591,27 @@ class AcceptInvitationController(MembersBaseController):
         users = find_users(context)
         profiles = self.profiles
 
-        password = validated['password']
-        username = validated['username']
+        password = validated['account']['password']
+        username = validated['account']['username']
 
         if community:
             community_href = model_url(community, request)
             groups = [ community.members_group_name ]
             users.add(username, username, password, groups)
         else:
-            users.add(username, username, password)
+            users.add(username, username, password, ['group.KarlStaff'])
                     
         plugin = request.environ['repoze.who.plugins']['auth_tkt']
         identity = {'repoze.who.userid':username}
         remember_headers = plugin.remember(request.environ, identity)
         profile = create_content(
             IProfile,
-            firstname=validated['first_name'],
-            lastname=validated['last_name'],
+            firstname=validated['details']['first_name'],
+            lastname=validated['details']['last_name'],
             email=context.email,
-            country=validated['country'],
-            dob=validated['date_of_birth'],
-            gender=validated['gender']
+            country=validated['details']['country'],
+            dob=validated['details']['date_of_birth'],
+            gender=validated['details']['gender']
             )
         profiles[username] = profile
         to_profile_active(profile)
@@ -729,7 +739,7 @@ class InviteNewUsersController(NewUsersBaseController):
     
     class _Schema(MappingSchema):
         
-        @instantiate(widget=KarlUserWidget(),missing=())
+        @instantiate(widget=UserWidget(),missing=())
         class users(SequenceSchema):
             user = SchemaNode(
                 String(),
@@ -951,7 +961,7 @@ def _send_signup_email(request, invitation):
     mailer.send(info['mfrom'], [invitation.email,], msg)    
 
 def jquery_member_search_view(context, request):
-    prefix = request.params['val'].lower()
+    prefix = request.params['tag'].lower()
     community = find_interface(context, ICommunity)
     member_names = community.member_names
     moderator_names = community.moderator_names
@@ -966,8 +976,8 @@ def jquery_member_search_view(context, request):
         total, docids, resolver = searcher(**query)
         profiles = filter(None, map(resolver, docids))
         records = [dict(
-                    id = profile.__name__,
-                    text = profile.title,
+                    key = profile.__name__,
+                    value = profile.title,
                     )
                    for profile in profiles
                    if profile.__name__ not in community_member_names

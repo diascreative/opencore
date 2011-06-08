@@ -11,6 +11,12 @@
         <span class="err-text">${ error and error or '' }</span>
     </div>
 
+    <div metal:define-macro="input_fluid" class="text-holder fluid${ error and ' error' or '' }">
+        <label tal:condition="label" for="${name}">${label} <span tal:condition="compulsory" class="required">*</span> <span tal:condition="description" class="description">${description}</span></label>
+        <input type="text" class="text${compulsory and ' check-text' or ''}" name="${name}" value="${default_value}" id="${name}" />
+        <span class="err-text">${ error and error or '' }</span>
+    </div>
+
     <!-- Textareas -->
 
     <div metal:define-macro="textarea" class="text-holder${ error and ' error' or '' }">
@@ -30,7 +36,7 @@
         </tal:block>
         <tal:block condition="not disabled">
         <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${'\n'.join(default_value)}</textarea>
-        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${default_value}</textarea>
+        <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" tal:attributes="alt alt" rows="1">${default_value}</textarea>
         </tal:block>
     </div>
 
@@ -39,6 +45,18 @@
         <span class="err-text textarea-err">${ error and error or '' }</span>
         <textarea tal:condition="isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${'\n'.join(default_value)}</textarea>
         <textarea tal:condition="not isinstance(default_value, (list, tuple))" name="${name}" id="${name}" class="text${compulsory and ' check-text' or ''}" rows="1">${default_value}</textarea>
+    </div>
+
+    <div metal:define-macro="select" class="text-holder fluid${ error and ' error' or '' }">
+        <label for="${name}">${label}${compulsory and ' *' or ''}</label>
+        <select name="${name}" class="text${compulsory and ' check-text' or ''}" id="${ name }">
+        <div tal:repeat="id,title choices" tal:omit-tag="">
+            <option selected="selected" value="${id}" tal:condition="id in default_list">${title}</option>
+            <option value="${id}" tal:condition="id not in default_list">${title}</option>
+        </div>
+        </select>
+
+        <span class="err-text">${ error and error or '' }</span>
     </div>
 
 </div>

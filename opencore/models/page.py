@@ -18,12 +18,14 @@
 from zope.interface import implements
 
 from repoze.folder import Folder
+from repoze.bfg.security import Allow, Everyone
 
-from opencore.models.interfaces import IPage
+from opencore.models.interfaces import IPage, IStaticPage
 from opencore.models.attachments import AttachmentsFolder
 
 class Page(Folder):
     implements(IPage)
+    content_modified = None # will be set by subscriber
     modified_by = None
 
     def __init__(self, title, text, description, creator):
@@ -39,5 +41,10 @@ class Page(Folder):
         self.modified_by = self.creator
         # We might choose to make this more article-ish in KARL3
         self['attachments'] = AttachmentsFolder()
+
+
+class StaticPage(Page):
+    implements(IStaticPage)
+    __acl__ = [(Allow, Everyone, 'view')]
 
 # No tool factory because these are stored in folders

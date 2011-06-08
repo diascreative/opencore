@@ -2,8 +2,8 @@
 # stdlib
 import logging
 import traceback
+from operator import itemgetter, attrgetter
 from datetime import datetime
-from email import utils
 from time import strftime, strptime
 from traceback import format_exc
 
@@ -14,7 +14,6 @@ from zope.interface import implements
 
 # webob
 from webob import Response
-from webob.exc import HTTPUnauthorized
 
 # Repoze
 from repoze.bfg.security import authenticated_userid
@@ -26,14 +25,15 @@ from simplejson import JSONEncoder
 from opencore.models.interfaces import IEventInfo
 from opencore.models.interfaces import IProfileDict
 from opencore.models.mbox import(ALLOWED_MBOX_TYPES, DEFAULT_MBOX_TYPE,
-            TO_SEPARATOR, STATUS_READ, ALLOWED_STATUSES)
+            TO_SEPARATOR, STATUS_READ)
 from opencore.utilities.alerts import alert_user
-from opencore.utilities.alerts import Alert
 from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
 from opencore.utilities.paginate import Pagination
 from opencore.utils import find_profiles
 from opencore.utils import get_setting
+
+from openhcd.views.utils import find_site
 
 """
 Views API
@@ -146,15 +146,16 @@ def _get_mbox_type(request):
 
     return mbox_type
 
-def _user_photo_url(request, user):
-    return '%s/%s/profile_thumbnail' % (request.api.people_url, user)
+def _user_photo_url(request, user): 
+    profile = request.api.find_profile(user)
+    return profile.thumb_url(request)
 
 def _to_from_to_header(message):
     addresses = message.get('To', '').split(TO_SEPARATOR)
     return [elem.strip() for elem in addresses]
 
 def _get_profile_details(context, request, user):
-    profile = find_profiles(context).get(user)
+    profile = request.api.find_profile(user)
     profile_details = getUtility(IProfileDict, name='profile-details')
     profile_details.update_details(profile, request, request.api, (220,150))
 
@@ -179,6 +180,7 @@ def show_mbox(context, request):
 
     mbt = MailboxTool()
     mbox_queues = mbt.get_queues(context, user, mbox_type)
+    alternate_mbox_type = 'sent' if mbox_type == 'inbox' else 'inbox'
     unread = mbt.get_unread(context, user, 'inbox')
 
     pagination = Pagination(page, PER_PAGE, len(mbox_queues))
@@ -206,13 +208,20 @@ def show_mbox(context, request):
         queue = {}
         queue['id'] = mbox_q.id
         queue['name'] = mbox_q.name
-        queue['total_messages'] = len(mbox_q)
+        messages = list(mbox_q)
+        if mbt.has_queue(context, user, alternate_mbox_type, queue['id']):
+            alternate_queue, _, _ = mbt.get_queue_data(context, user,
+                    alternate_mbox_type, queue['id'])
+            messages += list(alternate_queue)
 
-        first_message = mbox_q.get(0)
+        sender_names = get_sender_names(request, user, messages)
 
-        queue['first_message_from'] = first_message['From']
-        queue['first_message_to'] = _to_from_to_header(first_message)
-        queue['first_message_date'] = _format_date(context, first_message['Date'])
+        queue['total_messages'] = len(messages)
+        queue['thread_from'] = ', '.join(sender_names)
+        last_message = messages[queue['total_messages'] - 1]
+        queue['thread_last_date'] = _format_date(context, last_message['Date'])
+        queue['unread'] = mbox_q.get_unread()
+
 
         queues.append(queue)
 
@@ -222,8 +231,23 @@ def show_mbox(context, request):
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
     return_data['unread'] = unread
+    return_data['page'] = page
 
     return return_data
+
+def get_sender_names(request, user, messages):
+    messages.sort(key=itemgetter('Date'))
+    senders = set(message['From'] for message in messages 
+                  if message['From'] != user)
+    display_attr = 'firstname' if len(senders) > 1 else 'fullname'
+    sender_names = []
+    for sender in senders:
+        profile = request.api.find_profile(sender)
+        if profile is not None:
+            sender_names.append(getattr(profile, display_attr))
+        else:
+            sender_names.append(sender)
+    return sender_names
 
 def show_mbox_thread(context, request):
     user = authenticated_userid(request)
@@ -232,46 +256,62 @@ def show_mbox_thread(context, request):
     mbox_type = _get_mbox_type(request)
 
     mbt = MailboxTool()
-    q, _, _ = mbt.get_queue_data(context, user, mbox_type, thread_id)
+    queues = []
+    if mbt.has_queue(context, user, 'inbox', thread_id):
+        inbox_q, _, _ = mbt.get_queue_data(context, user, 'inbox', thread_id)
+        queues.append(inbox_q)
+    if mbt.has_queue(context, user, 'sent', thread_id):
+        sent_q, _, _ = mbt.get_queue_data(context, user, 'sent', thread_id)
+        queues.append(sent_q)
     unread = mbt.get_unread(context, user, 'inbox')
 
     messages = []
 
-    for msg_no in q._messages:
-        msg_dict = {}
-        raw_msg = q._messages[msg_no]
-        message = raw_msg.get()
-        from_ = message['From']
-        from_profile = request.api.find_profile(from_)
+    reply_recipients = set()
 
-        msg_dict['queue_id'] = q.id
-        msg_dict['message_id'] = raw_msg.message_id
-        msg_dict['date'] = _format_date(context, message['Date'])
-        msg_dict['subject'] = message['Subject']
-        msg_dict['flags'] = raw_msg.flags
+    for q in queues:
+        for msg_no in q._messages:
+            msg_dict = {}
+            raw_msg = q._messages[msg_no]
+            raw_msg.flags.append(STATUS_READ)
+            message = raw_msg.get()
+            from_ = message['From']
+            from_profile = request.api.find_profile(from_)
 
-        msg_dict['from'] = from_
-        msg_dict['from_photo'] = _user_photo_url(request, message['From'])
-        msg_dict['from_firstname'] = from_profile.firstname
-        msg_dict['from_lastname'] = from_profile.lastname
-        msg_dict['from_country'] = from_profile.country
-        msg_dict['payload'] = message.get_payload()
+            msg_dict['queue_id'] = q.id
+            msg_dict['message_id'] = raw_msg.message_id
+            msg_dict['raw_date'] = message['Date']
+            msg_dict['date'] = _format_date(context, message['Date'])
+            msg_dict['subject'] = message['Subject']
+            msg_dict['flags'] = raw_msg.flags
 
-        to_data = []
-        for name in sorted(_to_from_to_header(message)):
-            to_datum = {}
-            to_profile = request.api.find_profile(name)
+            msg_dict['from'] = from_
+            if from_ != user:
+                reply_recipients.add(from_)
+            msg_dict['from_photo'] = _user_photo_url(request, message['From'])
+            msg_dict['from_firstname'] = from_profile.firstname
+            msg_dict['from_lastname'] = from_profile.lastname
+            msg_dict['from_country'] = from_profile.country
+            msg_dict['from_organization'] = from_profile.organization
+            msg_dict['payload'] = message.get_payload().decode('utf-8')
 
-            to_datum['name'] = name
-            to_datum['firstname'] = to_profile.firstname
-            to_datum['lastname'] = to_profile.lastname
-            to_datum['photo_url'] = _user_photo_url(request, name)
-            to_datum['country'] = to_profile.country
-            to_data.append(to_datum)
+            to_data = []
+            for name in sorted(_to_from_to_header(message)):
+                to_datum = {}
+                to_profile = request.api.find_profile(name)
 
-        msg_dict['to_data'] = to_data
+                to_datum['name'] = name
+                to_datum['firstname'] = to_profile.firstname
+                to_datum['lastname'] = to_profile.lastname
+                to_datum['photo_url'] = _user_photo_url(request, name)
+                to_datum['country'] = to_profile.country
+                to_data.append(to_datum)
 
-        messages.append(msg_dict)
+            msg_dict['to_data'] = to_data
+
+            messages.append(msg_dict)
+
+    messages.sort(key=itemgetter('raw_date'))
 
     return_data = {}
     return_data['profile'] = _get_profile_details(context, request, user)
@@ -279,8 +319,58 @@ def show_mbox_thread(context, request):
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
     return_data['unread'] = unread
+    return_data['reply_recipients'] = reply_recipients
 
     return return_data
+
+
+def send_to(context, request, to):
+    user = authenticated_userid(request)
+
+    now = str(datetime.utcnow())
+
+    subject = request.POST.get('subject', '')
+    payload = request.POST.get('payload', '')
+    thread_id = request.POST.get('thread_id')
+
+    mbt = MailboxTool()
+
+#   FIXME not sure if this is actually used
+#    unread = mbt.get_unread(context, user, 'inbox')
+#    return_data['unread'] = unread
+
+    msg = MboxMessage(payload.encode('utf-8'))
+    msg['Message-Id'] = MailboxTool.new_message_id()
+    if thread_id is None:
+        msg['Subject'] = subject
+        # We'll setup the subject automatically if it's a reply
+    msg['From'] = user
+    msg['To'] = to
+    msg['Date'] = now
+    msg['X-oc-thread-id'] = thread_id or MailboxTool.new_thread_id()
+
+    site = find_site(context)
+    to_profile = request.api.find_profile(to)
+    from_profile = request.api.find_profile(user)
+    if thread_id is None:
+        mbt.send_message(site, user, to_profile, msg)
+    else:
+        mbt.send_reply(site, thread_id, user, to_profile, msg)
+
+    eventinfo = _MBoxEvent()
+    eventinfo['content'] = msg
+    eventinfo['content_type'] = 'MBoxMessage'
+    eventinfo['context_url'] = from_profile.__name__
+
+    eventinfo.mfrom = from_profile.__name__
+    eventinfo.mfrom_name = from_profile.__name__
+    eventinfo.mto = [to_profile.email]
+    eventinfo.message = msg
+
+    alert_user(to_profile, eventinfo)
+
+
+
 
 def add_message(context, request):
 
@@ -288,68 +378,31 @@ def add_message(context, request):
 
     return_data = {}
     return_data['error_msg'] = ''
+    return_data['success'] = False
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
+    user = authenticated_userid(request)
+    return_data['profile'] = _get_profile_details(context, request, user)
+    mbt = MailboxTool()
+    return_data['unread'] = mbt.get_unread(context, user, 'inbox')
 
     if request.method == 'POST':
-
-        user = authenticated_userid(request)
-        return_data['profile'] = _get_profile_details(context, request, user)
-
-        success = False
-        error_msg = ''
-
-        now = str(datetime.utcnow())
-        to = request.POST['to']
-        to = [elem.strip() for elem in to.split(',')]
-
-        to = to[0]
-
-        subject = request.POST.get('subject', '')
-        payload = request.POST.get('payload', '')
-
-        mbt = MailboxTool()
-
-        unread = mbt.get_unread(context, user, 'inbox')
-        return_data['unread'] = unread
-
-        msg = MboxMessage(payload.encode('utf-8'))
-        msg['Message-Id'] = MailboxTool.new_message_id()
-        msg['Subject'] = subject
-        msg['From'] = user
-        msg['To'] = to
-        msg['Date'] = now
-        msg['X-oc-thread-id'] = MailboxTool.new_thread_id()
-
+        recipients_list = request.POST.getall('to[]')
         try:
-            profiles = find_profiles(context)
-            to_profile = profiles[to]
-            from_profile = profiles[user]
-
-            eventinfo = _MBoxEvent()
-            eventinfo['content'] = msg
-            eventinfo['content_type'] = 'MBoxMessage'
-            eventinfo['context_url'] = from_profile.__name__
-
-            eventinfo.mfrom = from_profile.__name__
-            eventinfo.mfrom_name = from_profile.__name__
-            eventinfo.mto = [to_profile.email]
-            eventinfo.message = msg
-
-            alert_user(to_profile, eventinfo)
-            transaction.commit()
-
+            for recipient in recipients_list:
+                send_to(context, request, recipient)
         except Exception, e:
             error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
             log.error(error_msg)
+            return_data['error_msg'] = error_msg
             transaction.abort()
+            success = False
         else:
+            transaction.commit()
             success = True
 
         return_data['success'] = success
-        return_data['error_msg'] = error_msg
 
-    return_data['success'] = True
 
     return return_data
 
@@ -382,7 +435,7 @@ def delete_thread(context, request):
     success = False
     error_msg = ''
 
-    thread_id = request.POST.get('thread_id', '')
+    thread_id = request.params.get('thread_id', '')
     mbox_type = _get_mbox_type(request)
 
     mbt = MailboxTool()

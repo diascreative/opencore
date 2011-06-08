@@ -167,7 +167,7 @@ class AddExistingUserTests(InviteNewUsersControllerBase):
         
         self.request.POST = MultiDict([
                 ('__start__', u'users:sequence'),
-                ('a_user', u'nyc99'),
+                ('a_user[]', u'nyc99'),
                 ('__end__', u'users:sequence'),
                 ('send', u'send')
                 ])
@@ -221,10 +221,12 @@ class AcceptInvitationControllerTests(CommunityBase):
     def test_handle_submit_password_mismatch(self):
         controller = self._makeOne()
         self.request.POST = MultiDict([
+                ('__start__', u'account:mapping'),
                 ('__start__', u'password:mapping'),
                 ('value', u'1'),
                 ('confirm', u'2'),
                 ('__end__', u'password:mapping'),
+                ('__end__', u'account:mapping'),
                 ('join up', u'join up')
                 ])
         info = controller()
@@ -235,7 +237,9 @@ class AcceptInvitationControllerTests(CommunityBase):
         
         controller = self._makeOne()
         self.request.POST = MultiDict([
+                ('__start__', u'account:mapping'),
                 ('username', u'a'),
+                ('__end__', u'account:mapping'),
                 ('join up', u'join up')
                 ])
         info = controller()
@@ -244,7 +248,9 @@ class AcceptInvitationControllerTests(CommunityBase):
     def test_handle_submit_bad_username(self):
         controller = self._makeOne()
         self.request.POST = MultiDict([
+                ('__start__', u'account:mapping'),
                 ('username', u'a !!'),
+                ('__end__', u'account:mapping'),
                 ('join up', u'join up')
                 ])
         info = controller()
@@ -283,11 +289,14 @@ class AcceptInvitationControllerTests(CommunityBase):
         
         controller = self._makeOne()
         self.request.POST = MultiDict([
+                ('__start__', u'account:mapping'),
                 ('username', u'username'),
                 ('__start__', u'password:mapping'),
                 ('value', u'safe'),
                 ('confirm', u'safe'),
                 ('__end__', u'password:mapping'),
+                ('__end__', u'account:mapping'),
+                ('__start__', u'details:mapping'),
                 ('first_name', u'Joe'),
                 ('last_name', u'Marks'),
                 ('country', u'ZW'),
@@ -297,7 +306,10 @@ class AcceptInvitationControllerTests(CommunityBase):
                 ('day', u''),
                 ('__end__', u'date_of_birth:mapping'),
                 ('gender', u''),
+                ('__end__', u'details:mapping'),
+                ('__start__', u'terms:mapping'),
                 ('terms_of_use', u'true'),
+                ('__end__', u'terms:mapping'),
                 ('join up', u'join up')
                 ])
         
@@ -715,7 +727,7 @@ class TestJqueryMemberSearchView(Base):
         directlyProvides(context, ICommunity)
         context.member_names = set('a',)
         context.moderator_names = set()
-        request = testing.DummyRequest(params={'val':'a'})
+        request = testing.DummyRequest(params={'tag':'a'})
         profiles = testing.DummyModel()
         profile_1 = oitesting.DummyProfile(__name__='a',
                                              security_state='active')
@@ -735,10 +747,11 @@ class TestJqueryMemberSearchView(Base):
         testing.registerAdapter(dummy_catalog_search, (Interface),
                                 ICatalogSearch)
         response = self._callFUT(context, request)
+
         self.assertEqual(
             response.body,
-            '[{"text": "title", "id": "b"}, '
-            '{"text": "title", "id": "c"}]')
+            '[{"value": "title", "key": "b"}, '
+            '{"value": "title", "key": "c"}]')
 
 class DummyMembers(testing.DummyModel):
     def __init__(self):

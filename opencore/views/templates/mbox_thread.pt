@@ -4,46 +4,58 @@
       metal:use-macro="api.generic_layout">
 
 <div metal:fill-slot="content">
-       
-            <h1>My Mailbox</h1>
 
-            <div class="columns">
-                <div class="column column-1-4 first" tal:repeat="message messages">
-                    <img src="${message.from_photo}" class="sponsor-logo" alt="" />
+    <h1>My Mailbox</h1>
+
+    <div class="columns">
+        <div metal:use-macro="api.snippets.macros['profile_bar']" tal:condition="0" />
+
+        <div class="column column-3-4 last">
+            <ul class="tabs"> 
+              <li class="active"><a href="/mbox.html">Inbox (${unread})</a></li>
+                <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
+            </ul>
+
+            <div tal:repeat="message messages">
+                <div tal:condition="repeat.message.start" id="thread-subject">
+                  ${message.subject}
                 </div>
-                <div class="column column-3-4 last">
-                    <ul class="tabs"> 
-                        <li class="active"><a href="/mbox.html">Inbox (6)</a></li>
-                        <li><a href="/mbox.html?mbox_type=sent">Sent</a></li>
-                    </ul>
-	    
-	    <div tal:repeat="message messages">
-		  <div id="container1">
-                    ${message.subject}   
-		  </div>
-		  <div id="container" tal:repeat="message messages">
-		      <div id="avator"> <img src="${message.from_photo}" class="sponsor-logo" alt="" width='50px' height="50px" /> </div>
-		      <div id="mail_info" ><a href="/profiles/${message['payload']}">${message.from_firstname}</a> - ${message.subject}<br>${message.date}</br></div>
-		      <div id="mail_body"> ${message.payload}</div>
-		  </div>
-	  </div>
-                 
-               <div id="container3">
-		  <form method="post" action="">
-			  <div id="mail_reply">
-			      <div id="mail_reply_textarea"> 
-				  <textarea id="comment.text" class="test" cols="107" rows="2" style="width: 672px">Write a Reply</textarea>
-			      </div>
-			 </div>
-                         <div id="mail_button">
-                            <div class="button-holder">
-			       <input type="submit" class="button post-comment" tal:attributes="value 'reply' if api.userid else 'Send mail'"/>
-			   </div>
-                         </div>
-		      </form> 
-	       </div>            
-		${ messages }     
+
+                <div class="inbox-message clearfix">
+                    <div class="avatar">
+                        <img src="${message.from_photo}" alt="" />
+                    </div>
+
+                    <div class="text">
+                        <div class="details">
+                            <a href="/profiles/${message['from']}">${message.from_firstname}</a>
+                            <span tal:condition="message.from_organization or (message.from_country != 'XX')">–</span>
+                            <span tal:condition="message.from_organization" tal:replace="message.from_organization" />
+                            <span class="location" tal:condition="message.from_country != 'XX'">
+                                <a href="${ api.app_url }/searchresults.html?country=${ message.from_country }">${ api.countries.as_dict[message.from_country] }</a></span><br />
+                            <em>${ message.date }</em>
+                        </div>
+
+                        <div class="message-body">
+                            ${ message.payload }
+                        </div>
+                    </div>
                 </div>
             </div>
-    </div>    
+
+            <div id="container3">
+              <form method="post" action="${api.app_url}/mbox_add_message.html" id="inbox-reply" class="clearfix">
+                    <div tal:content="structure api.render_form_widget('textarea_fluid', 'payload', '', default='', alt='Write a Reply')" id="text-area" />
+
+                      <input tal:repeat="recipient reply_recipients" 
+                      type="hidden" name="to" value="${recipient}" />
+                    <input type="hidden" name="thread_id" value="${messages[0]['queue_id']}" />
+                    <div class="button-holder">
+                        <input type="submit" class="button post-comment" tal:attributes="value 'Reply'" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>    
 </html>

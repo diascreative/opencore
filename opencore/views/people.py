@@ -24,6 +24,10 @@ from deform.widget import (
     TextAreaWidget,
     )
 
+from zope.index.text.parsetree import ParseError
+from webob import Response
+from simplejson import JSONEncoder
+
 from repoze.bfg.traversal import model_path
 from repoze.bfg.chameleon_zpt import render_template_to_response
 from repoze.bfg.chameleon_zpt import render_template
@@ -80,7 +84,7 @@ from opencore.views.batch import get_catalog_batch_grid
 
 
 log = logging.getLogger(__name__)
-PROFILE_THUMB_SIZE = (75, 100)
+PROFILE_THUMB_SIZE = (60,60)
 _MIN_PW_LENGTH = None
 max_reset_timedelta = datetime.timedelta(3)  # days
 
@@ -121,7 +125,8 @@ def show_profiles_view(context, request):
         members.append({
                         'url' : '%s/%s/' % (request.api.people_url, profile.__name__),
                         'title' :  profile.title,
-                        'firstname' : profile.firstname
+                        'firstname' : profile.firstname,
+                        'biography' : profile.biography
                         })
 
     return render_template_to_response(
@@ -130,6 +135,33 @@ def show_profiles_view(context, request):
         profiles=profiles,
         members=members,
         )
+
+def profile_json_list(context, request):
+
+    api = request.api
+    prefix = request.params['tag'].lower()
+
+    query = dict(
+        member_name='%s*' % prefix,
+        sort_index='title',
+        limit=20,
+        )
+
+    searcher = ICatalogSearch(context)
+    try:
+        total, docids, resolver = searcher(**query)
+        profiles = filter(None, map(resolver, docids))
+        records = [dict(
+                    key = profile.__name__,
+                    value = profile.title,
+                    )
+                   for profile in profiles
+                   if profile.security_state != 'inactive'
+                   and profile.__name__ != api.userid]
+    except ParseError:
+        records = []
+    result = JSONEncoder().encode(records)
+    return Response(result, content_type="application/x-json")
 
 def get_profile_actions(profile,request):
     # XXX - this should probably be a utility to aid overriding!
@@ -260,7 +292,7 @@ class ShowProfileView(object):
         return render_template_to_response('templates/profile.pt', **self.response)
 
 
-@bfg_view(for_=IProfile, name="thumbnail")
+@bfg_view(for_=IProfile, name="profile_thumbnail")
 def profile_thumbnail(context, request):
     api = request.api
     api.page_title = 'Profile thumbnail redirector'
@@ -271,12 +303,23 @@ def profile_thumbnail(context, request):
         url = api.static_url + "/img/default_user.png"
     return HTTPFound(location=url)
 
+@bfg_view(for_=IProfile, name="thumbnail")
+def thumbnail(context, request):
+    api = request.api
+    api.page_title = 'Profile thumbnail redirector'
+    photo = context.get('photo')
+    if photo is not None:
+        url = thumb_url(photo, request, (300,200))
+    else:
+        url = api.static_url + "/img/default_user.png"
+    return HTTPFound(location=url)
+
 class MethodSchema(object):
 
     def Schema(self):
         schema = self._Schema().clone()
-        schema['photo'].widget.context = self.context
-        schema['photo'].widget.request = self.request
+        schema['profile_image']['photo'].widget.context = self.context
+        schema['profile_image']['photo'].widget.request = self.request
         return schema
 
     class _Schema(MappingSchema):
@@ -294,21 +337,25 @@ class MethodSchema(object):
                 validator=Email(),
                 title='Email address',
                 )
-        
-        password = SchemaNode(
-            String(),
-            widget=CheckedPasswordWidget(),
-            title='Change Password',
-            missing=''
-            )
 
-        photo = SchemaNode(
-            FileData(),
-            widget=ImageUploadWidget(template='avatar'),
-            title='Profile image',
-            missing=None,
-            validator=Function(is_image),
-            )
+        @instantiate(title='Change Password')
+        class passwords(MappingSchema):    
+            password = SchemaNode(
+                String(),
+                widget=CheckedPasswordWidget(),
+                title='',
+                missing=''
+                )
+
+        @instantiate(title='Add a profile image')
+        class profile_image(MappingSchema):
+            photo = SchemaNode(
+                FileData(),
+                widget=ImageUploadWidget(template='avatar'),
+                title='',
+                missing=None,
+                validator=Function(is_image),
+                )
 
         @instantiate()
         class details(MappingSchema):
@@ -409,9 +456,9 @@ class EditProfileFormController(MethodSchema, ContentController):
 
         # change password
         users = find_users(context)
-        if validated['password']:
+        if validated['passwords']['password']:
             users = find_users(context)
-            users.change_password(context.__name__,validated['password'])
+            users.change_password(context.__name__,validated['passwords']['password'])
 
         # handle websites
         context.websites=[]
@@ -424,7 +471,7 @@ class EditProfileFormController(MethodSchema, ContentController):
             context.websites.append(url)
 
         # Handle the picture
-        handle_photo_upload(context, request, validated['photo'])
+        handle_photo_upload(context, request, validated['profile_image']['photo'])
 
         # Handle the social networking stuff
         socials = validated['details']['social_networks']
