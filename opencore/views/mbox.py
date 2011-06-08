@@ -2,7 +2,7 @@
 # stdlib
 import logging
 import traceback
-from operator import itemgetter, attrgetter
+from operator import itemgetter
 from datetime import datetime
 from time import strftime, strptime
 from traceback import format_exc
@@ -30,7 +30,6 @@ from opencore.utilities.alerts import alert_user
 from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
 from opencore.utilities.paginate import Pagination
-from opencore.utils import find_profiles
 from opencore.utils import get_setting
 
 from openhcd.views.utils import find_site

@@ -152,12 +152,11 @@ def profile_json_list(context, request):
         searcher = ICatalogSearch(context)
         try:
             total, docids, resolver = searcher(**query)
-            records = dict((profile.__name__, profile.title)
+            records = [dict(key=profile.__name__, value=profile.title)
                             for profile
                             in map(resolver, docids)
                             if profile.security_state != 'inactive'
-                            and profile.__name__ != request.api.userid
-                            )
+                            and profile.__name__ != request.api.userid]
         except ParseError:
             records = []
     result = JSONEncoder().encode(records)
