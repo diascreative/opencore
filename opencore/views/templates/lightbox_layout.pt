@@ -24,6 +24,7 @@
     <script type="text/javascript" src="${api.static_url}/js/jquery.slideshow.js"></script>
     <script type="text/javascript" src="${api.static_url}/js/jquery.gallery.js"></script>
     <script type="text/javascript" src="${api.static_url}/js/jquery.deleteSelected.js"></script>
+    <script type="text/javascript" src="${api.static_url}/js/jquery.fcbkcomplete.js"></script>
     <script type="text/javascript" src="${api.static_url}/js/main.js"></script>
 
 </head>

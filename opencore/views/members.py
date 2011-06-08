@@ -84,6 +84,7 @@ from opencore.views.forms import (
     _get_manage_actions,
     BaseController,
     KarlUserWidget,
+    UserWidget,
     CommaSeparatedList,
     TOUWidget,
     instantiate,
@@ -738,7 +739,7 @@ class InviteNewUsersController(NewUsersBaseController):
     
     class _Schema(MappingSchema):
         
-        @instantiate(widget=KarlUserWidget(),missing=())
+        @instantiate(widget=UserWidget(),missing=())
         class users(SequenceSchema):
             user = SchemaNode(
                 String(),
@@ -960,7 +961,7 @@ def _send_signup_email(request, invitation):
     mailer.send(info['mfrom'], [invitation.email,], msg)    
 
 def jquery_member_search_view(context, request):
-    prefix = request.params['val'].lower()
+    prefix = request.params['tag'].lower()
     community = find_interface(context, ICommunity)
     member_names = community.member_names
     moderator_names = community.moderator_names
@@ -975,8 +976,8 @@ def jquery_member_search_view(context, request):
         total, docids, resolver = searcher(**query)
         profiles = filter(None, map(resolver, docids))
         records = [dict(
-                    id = profile.__name__,
-                    text = profile.title,
+                    key = profile.__name__,
+                    value = profile.title,
                     )
                    for profile in profiles
                    if profile.__name__ not in community_member_names

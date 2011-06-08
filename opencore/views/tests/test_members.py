@@ -167,7 +167,7 @@ class AddExistingUserTests(InviteNewUsersControllerBase):
         
         self.request.POST = MultiDict([
                 ('__start__', u'users:sequence'),
-                ('a_user', u'nyc99'),
+                ('a_user[]', u'nyc99'),
                 ('__end__', u'users:sequence'),
                 ('send', u'send')
                 ])
@@ -727,7 +727,7 @@ class TestJqueryMemberSearchView(Base):
         directlyProvides(context, ICommunity)
         context.member_names = set('a',)
         context.moderator_names = set()
-        request = testing.DummyRequest(params={'val':'a'})
+        request = testing.DummyRequest(params={'tag':'a'})
         profiles = testing.DummyModel()
         profile_1 = oitesting.DummyProfile(__name__='a',
                                              security_state='active')
@@ -747,10 +747,11 @@ class TestJqueryMemberSearchView(Base):
         testing.registerAdapter(dummy_catalog_search, (Interface),
                                 ICatalogSearch)
         response = self._callFUT(context, request)
+
         self.assertEqual(
             response.body,
-            '[{"text": "title", "id": "b"}, '
-            '{"text": "title", "id": "c"}]')
+            '[{"value": "title", "key": "b"}, '
+            '{"value": "title", "key": "c"}]')
 
 class DummyMembers(testing.DummyModel):
     def __init__(self):

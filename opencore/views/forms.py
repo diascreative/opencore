@@ -251,6 +251,27 @@ class KarlUserWidget(Widget):
 
     def deserialize(self, field, pstruct):
         return pstruct
+
+
+class UserWidget(Widget):
+    """
+    A widget to work with the #membersearch-input magic.
+    The field this is user on *must* be called 'users'.
+    """
+
+    template = 'userwidget'
+
+    def serialize(self, field, cstruct, readonly=False):
+        if field.name!='users':
+            raise Exception(
+                "This widget must be used on a field named 'users'"
+                )
+        # For now we don't bother with cstruct parsing.
+        # If we need to use this widget for edits, then we will have to
+        return field.renderer(self.template, field=field, cstruct=())
+
+    def deserialize(self, field, pstruct):
+        return pstruct
     
 class TOUWidget(CheckboxWidget):
 
