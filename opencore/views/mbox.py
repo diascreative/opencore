@@ -383,8 +383,6 @@ def add_message(context, request):
     return_data['mbox_type'] = mbox_type
     user = authenticated_userid(request)
     return_data['profile'] = _get_profile_details(context, request, user)
-    mbt = MailboxTool()
-    return_data['unread'] = mbt.get_unread(context, user, 'inbox')
 
     if request.method == 'POST':
         recipients_list = request.POST.getall('to[]')
@@ -403,6 +401,8 @@ def add_message(context, request):
 
         return_data['success'] = success
 
+    mbt = MailboxTool()
+    return_data['unread'] = mbt.get_unread(context, user, 'inbox')
 
     return return_data
 

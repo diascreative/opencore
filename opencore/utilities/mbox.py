@@ -70,7 +70,7 @@ def _new_id(container):
     return 0
 
 def _get_mailbox(site, profile_name, suffix):
-    return site['mailboxes'][profile_name + '.' + suffix]
+    return site['mailboxes'].get(profile_name + '.' + suffix, None)
 
 class MBoxException(Exception):
     def __init__(self, msg):
@@ -417,6 +417,8 @@ class MailboxTool(object):
         """
         total = 0
         
+        if _get_mailbox(site, profile_name, mbox_type) is None:
+            return total
         mbox_queues = self.get_queues(site, profile_name, mbox_type)
         for mbox_q in mbox_queues:
             for msg_no in mbox_q._messages:
