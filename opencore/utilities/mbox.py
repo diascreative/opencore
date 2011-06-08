@@ -308,10 +308,11 @@ class MailboxTool(object):
 
     def has_queue(self, site, profile_name, mbox_type, thread_id):
         mb = _get_mailbox(site, profile_name, mbox_type)
-        for q_no in mb:
-            q = mb.get(q_no)
-            if q.id == thread_id:
-                return True
+        if mb is not None:
+            for q_no in mb:
+                q = mb.get(q_no)
+                if q.id == thread_id:
+                    return True
         return False
 
     
