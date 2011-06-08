@@ -175,7 +175,25 @@ def to_community_public(ob):
     if added or removed:
         ob.__acl__ = acl
         log.info('community (%s) to-public, added: %s, removed: %s' % (model_path(ob), added, removed))
-    
+
+
+
+def make_editable_by_user(ob, userid):
+    acl = []
+    acl.append((Allow, 'group.KarlUserAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlAdmin',
+                ADMINISTRATOR_PERMS + ('view_only',)))
+    acl.append((Allow, 'group.KarlStaff',
+                GUEST_PERMS + ('view_only',)))
+    acl.append((Allow, userid, MODERATOR_PERMS))
+    acl.append((Allow, Everyone, ('view_only',)))
+
+    added, removed = acl_diff(ob, acl)
+    if added or removed:
+        ob.__acl__ = acl
+        log.info('community (%s) to-public, added: %s, removed: %s' % (model_path(ob), added, removed))
+
 
 def to_obj_auth_can_create(ob):
     acl  = []
