@@ -266,7 +266,7 @@ def show_mbox_thread(context, request):
 
     messages = []
 
-    reply_recipients = set()
+    return_data = {}
 
     for q in queues:
         for msg_no in q._messages:
@@ -285,8 +285,8 @@ def show_mbox_thread(context, request):
             msg_dict['flags'] = raw_msg.flags
 
             msg_dict['from'] = from_
-            if from_ != user:
-                reply_recipients.add(from_)
+            if 'reply_recipients' not in return_data:
+                return_data['reply_recipients'] = message['X-people-list'].split(",")
             msg_dict['from_photo'] = _user_photo_url(request, message['From'])
             msg_dict['from_firstname'] = from_profile.firstname
             msg_dict['from_lastname'] = from_profile.lastname
@@ -310,27 +310,35 @@ def show_mbox_thread(context, request):
 
             messages.append(msg_dict)
 
+    return_data['reply_recipients'].remove(user)
+
     messages.sort(key=itemgetter('raw_date'))
 
-    return_data = {}
     return_data['profile'] = _get_profile_details(context, request, user)
     return_data['messages'] = messages
     return_data['api'] = request.api
     return_data['mbox_type'] = mbox_type
     return_data['unread'] = unread
-    return_data['reply_recipients'] = reply_recipients
 
     return return_data
 
 
-def send_to(context, request, to):
+def send_to(context, request, to, people_list, store_sent=False, thread_id=None):
     user = authenticated_userid(request)
 
     now = str(datetime.utcnow())
+    is_reply = False
+    if request.POST.get('thread_id'):
+        is_reply = True
 
     subject = request.POST.get('subject', '')
     payload = request.POST.get('payload', '')
-    thread_id = request.POST.get('thread_id')
+    if thread_id is None:
+        # We don't have a thread id. We try to get it from a post variable
+        # (reply) or we create it (new thread).
+        thread_id = request.POST.get('thread_id') 
+        if thread_id is None:
+            thread_id = MailboxTool.new_thread_id()
 
     mbt = MailboxTool()
 
@@ -340,21 +348,24 @@ def send_to(context, request, to):
 
     msg = MboxMessage(payload.encode('utf-8'))
     msg['Message-Id'] = MailboxTool.new_message_id()
-    if thread_id is None:
+    if not is_reply:
         msg['Subject'] = subject
         # We'll setup the subject automatically if it's a reply
     msg['From'] = user
     msg['To'] = to
     msg['Date'] = now
-    msg['X-oc-thread-id'] = thread_id or MailboxTool.new_thread_id()
+    msg['X-oc-thread-id'] = thread_id
+    msg['X-people-list'] = ','.join(people_list)
 
     site = find_site(context)
     to_profile = request.api.find_profile(to)
     from_profile = request.api.find_profile(user)
-    if thread_id is None:
-        mbt.send_message(site, user, to_profile, msg)
+    if is_reply:
+        mbt.send_reply(site, thread_id, user, to_profile, msg,
+                store_sent=store_sent)
     else:
-        mbt.send_reply(site, thread_id, user, to_profile, msg)
+        mbt.send_message(site, user, to_profile, msg,
+                store_sent=store_sent)
 
     eventinfo = _MBoxEvent()
     eventinfo['content'] = msg
@@ -367,6 +378,8 @@ def send_to(context, request, to):
     eventinfo.message = msg
 
     alert_user(to_profile, eventinfo)
+
+    return thread_id
 
 
 
@@ -384,10 +397,15 @@ def add_message(context, request):
     return_data['profile'] = _get_profile_details(context, request, user)
 
     if request.method == 'POST':
-        recipients_list = request.POST.getall('to[]')
+        recipient_list = request.POST.getall('to[]')
         try:
-            for recipient in recipients_list:
-                send_to(context, request, recipient)
+            thread_id = None
+            for i, recipient in enumerate(recipient_list):
+                store_sent = i == 0 # Only store one copy in the sent box
+                people_list = recipient_list + [user]
+                thread_id = send_to(context, request, recipient, people_list, 
+                        store_sent=store_sent,
+                        thread_id=thread_id)
         except Exception, e:
             error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
             log.error(error_msg)

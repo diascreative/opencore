@@ -330,15 +330,17 @@ class MailboxTool(object):
         return q, mb, q_no
         
         
-    def send_message(self, site, from_, to, message, should_commit=False):
+    def send_message(self, site, from_, to, message, should_commit=False,
+            store_sent=False):
         """ Sends a message. Creates 'sent' and 'inbox' queues where appropriate.
         """
         
         # Is it a new thread from the sender's perspective? Add a new 'sent'
         # queue if so. In other case, append the message to an already existing
         # 'sent' queue..
-        sent_mb = self.get_mailbox(site['mailboxes'], from_ + '.sent')
-        self._create_add_queue_message(sent_mb, from_, message)
+        if store_sent:
+            sent_mb = self.get_mailbox(site['mailboxes'], from_ + '.sent')
+            self._create_add_queue_message(sent_mb, from_, message)
         
         # ..same goes for recipients and their 'inbox' queues.
         inbox_mb = self.get_mailbox(site['mailboxes'], to.__name__ + '.inbox')
@@ -349,7 +351,7 @@ class MailboxTool(object):
 
 
     def send_reply(self, site, thread_id, from_, to, message,
-            should_commit=False):
+            should_commit=False, store_sent=False):
 
         original_queue, _, _ = self.get_queue_data(site, from_, 'inbox',
                 thread_id)
@@ -359,7 +361,8 @@ class MailboxTool(object):
             message['Subject'] = original_subject
         else:
             message['Subject'] = reply_prefix + original_subject
-        self.send_message(site, from_, to, message, should_commit)
+        self.send_message(site, from_, to, message, should_commit,
+                store_sent)
         
 
     def delete_message(self, site, profile_name, mbox_type, thread_id, message_id):
