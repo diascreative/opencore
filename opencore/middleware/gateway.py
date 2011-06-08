@@ -25,7 +25,7 @@ class GatewayMiddleware(object):
         elif password == self.password:
             res = request.get_response(self.app)
             res.set_cookie(self.cookie_name, self.cookie_value, max_age=self.lifetime, path='/',
-                           domain=self.domain, secure=True)
+                           domain=self.domain)
             return res(environ, start_response)
 
         else:
