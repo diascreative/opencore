@@ -48,7 +48,7 @@
                     <div tal:content="structure api.render_form_widget('textarea_fluid', 'payload', '', default='', alt='Write a Reply')" id="text-area" />
 
                       <input tal:repeat="recipient reply_recipients" 
-                      type="hidden" name="to" value="${recipient}" />
+                      type="hidden" name="to[]" value="${recipient}" />
                     <input type="hidden" name="thread_id" value="${messages[0]['queue_id']}" />
                     <div class="button-holder">
                         <input type="submit" class="button post-comment" tal:attributes="value 'Reply'" />
