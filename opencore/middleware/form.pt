@@ -1,28 +1,53 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
-<html xmlns="http://www.w3.org/1999/xhtml"> 
-    <head> 
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
-        <title>Login</title>
-        <style type="text/css">
-            body { background : #F2F1F0; color : #4d4d4d; font-family : Helvetica, Verdana, Arial, sans-serif; font-size : 13px; line-height : 1.5em; margin : 0; padding : 0; }
-            #header { background:url("./header.png") repeat-x scroll 0 100% #fff; margin-bottom : 40px; padding : 28px 0 26px;}
-            h2 { color : #999; font-family : georgia, Georgia, "Times New Roman", Times, serif; font-size : 16px; font-style : italic; font-weight : normal; line-height : 24px; text-transform : none; }
-            .centered { margin : 0 auto; width : 955px; }
-            input.text { background : #fafafa; border : solid 1px #a3a3a3; border-left-color : #c4c4c4; border-bottom-color : #f2f2f2; border-right-color : #f2f2f2; border-top : 2px #a3a3a3 solid; display : block; font-size : 12px; line-height : 20px; height : 20px; margin-bottom : 10px; padding : 4px 5px 2px; width : 250px; }
-        </style>
-    </head> 
-    <body>
-        <div id="header">
-            <div class="centered">
-                <img src="./logo.png" alt="" />
-                <h2>Crowd sourced innovation to solve the world's tough challenges.</h2>
-            </div>
-        </div>
-        <div class="centered">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>OpenHCD - Login</title>
+    <style type="text/css">
+        html, body { height : 100%; margin : 0; padding : 0; }
+        a { line-height : 55px; text-decoration : none; }
+        a img { border : none; vertical-align : middle; }
+        #wrapper { min-height: 100%; height: auto !important; height: 100%; margin: 0 0 -55px; }
+        #top, #footer, #footer-push { height : 55px; }
+        #top, #footer { background : #414040; }
+
+        input.text { border : 1px solid #999; display : block; height : 26px; width  : 230px; }
+        #content { height : 427px; margin : 76px auto; width : 396px; }
+        h1 { background : url(./logo.png) 0 0 no-repeat; color : #fff; font-size : 1px; line-height : 1px; height : 95px; overflow : hidden; text-indent : 400px; width : 396px; }
+        form { display : block; padding : 58px 0 0 108px; }
+        .button {
+            background      : url('./button.png') left 0 no-repeat;
+            border          : 0 !important;
+            color           : #fff;
+            cursor          : pointer;
+            display         : block;
+            font            : italic normal normal 14px/33px 'Georgia', serif;
+            height          : 33px;
+            margin          : 16px 0 0;
+            outline         : 0 !important;
+            overflow        : hidden;
+            text-align      : center;
+            text-decoration : none !important;
+            width           : 160px;
+        }
+        .button:hover { background-position : right 0px; color : #fff; }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="top"></div>
+        
+        <div id="content">
+            <h1>OpenHCD - a global community using Human-Centered Design</h1>
             <form action="" method="POST">
                 <input type="password" class="text" name="password" />
-                <input type="submit" value="let me in" />
+                <input type="submit" class="button" value="Let me in" />
             </form>
         </div>
-    </body>
+
+        <div id="footer-push"></div>
+    </div>
+
+    <div id="footer"></div> 
+</body> 
 </html>
