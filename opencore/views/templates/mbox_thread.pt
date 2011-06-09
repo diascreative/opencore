@@ -17,6 +17,8 @@
             </ul>
 
             <div tal:repeat="message messages">
+                <span id="last-message"
+                  tal:condition="repeat.message.end"></span>
                 <div tal:condition="repeat.message.start" id="thread-subject">
                   ${message.subject}
                 </div>

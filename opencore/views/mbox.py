@@ -6,6 +6,7 @@ from operator import itemgetter
 from datetime import datetime
 from time import strftime, strptime
 from traceback import format_exc
+from urllib import urlencode
 
 # Zope
 import transaction
@@ -14,9 +15,11 @@ from zope.interface import implements
 
 # webob
 from webob import Response
+from webob.exc import HTTPFound
 
 # Repoze
 from repoze.bfg.security import authenticated_userid
+from repoze.bfg.url import model_url
 
 # simplejson
 from simplejson import JSONEncoder
@@ -406,6 +409,11 @@ def add_message(context, request):
                 thread_id = send_to(context, request, recipient, people_list, 
                         store_sent=store_sent,
                         thread_id=thread_id)
+            location = (model_url(context, request) 
+                    + 'mbox_thread.html?' 
+                    + urlencode({'thread_id': thread_id})
+                    + '#last-message')
+            return HTTPFound(location=location)
         except Exception, e:
             error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
             log.error(error_msg)
@@ -422,6 +430,8 @@ def add_message(context, request):
     return_data['unread'] = mbt.get_unread(context, user, 'inbox')
 
     return return_data
+
+
 
 def delete_message(context, request):
 
