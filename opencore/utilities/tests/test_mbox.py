@@ -43,6 +43,7 @@ def get_data():
     msg['To'] = ', '.join(to)
     msg['Date'] = now
     msg['X-oc-thread-id'] = thread_id
+    msg['X-people-list'] = 'admin'
 
     return site, from_, to, msg, thread_id, msg_id, flags, subject, payload, now
 

@@ -1,7 +1,8 @@
 
 # stdlib
-import unittest, uuid
 from datetime import datetime
+import unittest, uuid
+from urllib import urlencode
 
 # Zope
 import transaction
@@ -200,15 +201,13 @@ class MBoxViewTestCase(unittest.TestCase):
             request.api.find_profile = (lambda userid: 
                     self.bob if userid == 'bob' else self.alice)
             request.POST = MultiDict([
-                ('to', 'bob'),
+                ('to[]', 'bob'),
                 ('subject', subject),
                 ('payload', payload),
                 ])
 
             response = add_message(site, request)
-            self.assertEquals(response['api'], request.api)
-            self.assertEquals(response['error_msg'], '', response['error_msg'])
-            self.assertEquals(response['success'], True)
+            self.assertTrue("mbox_thread" in response.location)
 
             transaction.commit()
 
@@ -233,16 +232,23 @@ class MBoxViewTestCase(unittest.TestCase):
                     self.bob if userid == 'bob' else self.alice)
 
             response = add_message(self.context, request)
-            self.assertEquals(response['api'], request.api)
-            self.assertEquals(response['error_msg'], '', response['error_msg'])
-            self.assertEquals(response['success'], True)
+
+            # Mailboxes have been created
             self.assertTrue('bob.inbox' in self.context['mailboxes'])
             self.assertTrue('alice.inbox' in self.context['mailboxes'])
 
+            # Queues have been created
             bob_inbox = self.context['mailboxes']['bob.inbox']
             alice_inbox = self.context['mailboxes']['alice.inbox']
             self.assertEquals(len(bob_inbox), 1)
             self.assertEquals(len(alice_inbox), 1)
+
+            # Redirect to new message
+            self.assertEquals(
+                   'http://example.com/mbox_thread.html?' 
+                   + urlencode({'thread_id': alice_inbox[0].id})
+                   + '#last-message',
+                   response.location)
             r.restore()
 
             transaction.commit()

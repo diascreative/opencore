@@ -488,9 +488,15 @@ def _add_existing_users(context, community, profiles, text, request, status=None
         msg = fmt % len(profiles)
     if status:
         msg = msg + ' ' + status    
-    location = model_url(context, request, 'manage.html',
-                         query={'status_message': msg})
-    return HTTPFound(location=location)
+    if request.POST.get('return_to') is not None:
+        location  = request.POST['return_to']
+        return render_template_to_response('templates/javascript_redirect.pt', 
+                url=location)
+
+    else:
+        location = model_url(context, request, 'manage.html',
+                             query={'status_message': msg})
+        return HTTPFound(location=location)
 
 
 class AcceptInvitationController(MembersBaseController):

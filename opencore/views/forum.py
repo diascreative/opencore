@@ -20,9 +20,11 @@ from colander import (
     MappingSchema,
     SchemaNode,
     String,
+    null,
     )
 from deform.widget import (
     RichTextWidget,
+    HiddenWidget,
     )
 
 import datetime
@@ -312,6 +314,18 @@ class AddForumTopicController(BaseController):
             title='Comment',
             )
 
+        return_to = SchemaNode(
+                String(),
+                widget=HiddenWidget(),
+                missing = None,
+                )
+
+    def form_defaults(self):
+        if self.request.params.get('return_to'):
+            return {'return_to': self.request.params['return_to']}
+        else:
+            return null
+
     def handle_submit(self, validated):
         context = self.context
         request = self.request
@@ -333,5 +347,10 @@ class AddForumTopicController(BaseController):
             topic.description = validated['title']    
         context[name] = topic
       
-        location = model_url(topic, request)
-        return HTTPFound(location=location)
+        if request.POST.get('return_to') is not None:
+            location  = request.POST['return_to']
+            return render_template_to_response('templates/javascript_redirect.pt', 
+                    url=location)
+        else:
+            location = model_url(topic, request)
+            return HTTPFound(location=location)
