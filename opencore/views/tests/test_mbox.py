@@ -201,7 +201,7 @@ class MBoxViewTestCase(unittest.TestCase):
             request.api.find_profile = (lambda userid: 
                     self.bob if userid == 'bob' else self.alice)
             request.POST = MultiDict([
-                ('to', 'bob'),
+                ('to[]', 'bob'),
                 ('subject', subject),
                 ('payload', payload),
                 ])
@@ -245,7 +245,7 @@ class MBoxViewTestCase(unittest.TestCase):
 
             # Redirect to new message
             self.assertEquals(
-                   'http://example.com//mbox_thread.html?' 
+                   'http://example.com/mbox_thread.html?' 
                    + urlencode({'thread_id': alice_inbox[0].id})
                    + '#last-message',
                    response.location)

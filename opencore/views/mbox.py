@@ -334,7 +334,7 @@ def send_to(context, request, to, people_list, store_sent=False, thread_id=None)
     if request.POST.get('thread_id'):
         is_reply = True
 
-    subject = request.POST.get('subject', '')
+    subject = request.POST.get('subject') or '(empty subject)'
     payload = request.POST.get('payload', '')
     if thread_id is None:
         # We don't have a thread id. We try to get it from a post variable
@@ -401,30 +401,31 @@ def add_message(context, request):
 
     if request.method == 'POST':
         recipient_list = request.POST.getall('to[]')
-        try:
-            thread_id = None
-            for i, recipient in enumerate(recipient_list):
-                store_sent = i == 0 # Only store one copy in the sent box
-                people_list = recipient_list + [user]
-                thread_id = send_to(context, request, recipient, people_list, 
-                        store_sent=store_sent,
-                        thread_id=thread_id)
-            location = (model_url(context, request) 
-                    + 'mbox_thread.html?' 
-                    + urlencode({'thread_id': thread_id})
-                    + '#last-message')
-            return HTTPFound(location=location)
-        except Exception, e:
-            error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
-            log.error(error_msg)
-            return_data['error_msg'] = error_msg
-            transaction.abort()
-            success = False
-        else:
-            transaction.commit()
-            success = True
+        if recipient_list:
+            try:
+                thread_id = None
+                for i, recipient in enumerate(recipient_list):
+                    store_sent = i == 0 # Only store one copy in the sent box
+                    people_list = recipient_list + [user]
+                    thread_id = send_to(context, request, recipient, people_list, 
+                            store_sent=store_sent,
+                            thread_id=thread_id)
+                location = (model_url(context, request) 
+                        + 'mbox_thread.html?' 
+                        + urlencode({'thread_id': thread_id})
+                        + '#last-message')
+                return HTTPFound(location=location)
+            except Exception, e:
+                error_msg = "Couldnt't add a new message, e=[%s]" % traceback.format_exc(e)
+                log.error(error_msg)
+                return_data['error_msg'] = error_msg
+                transaction.abort()
+                success = False
+            else:
+                transaction.commit()
+                success = True
 
-        return_data['success'] = success
+            return_data['success'] = success
 
     mbt = MailboxTool()
     return_data['unread'] = mbt.get_unread(context, user, 'inbox')
