@@ -77,7 +77,7 @@ def _set_cookie_via_request(request, value):
     request.response_headerlist = [header]
 
 
-def _show_communities_view_helper(context,
+def show_communities_view_helper(context,
                                   request,
                                   filter_func=None,
                                   **kw
@@ -158,7 +158,7 @@ def _show_communities_view_helper(context,
 def show_all_communities_view(context, request):
     _set_cookie_via_request(request, 'all')
 
-    return _show_communities_view_helper(context, request)
+    return show_communities_view_helper(context, request)
 
 
 def show_active_communities_view(context, request):
@@ -167,7 +167,7 @@ def show_active_communities_view(context, request):
     six_months_ago = _today() - datetime.timedelta(days=180)
     content_modified = (coarse_datetime_repr(six_months_ago), None)
 
-    return _show_communities_view_helper(context,
+    return show_communities_view_helper(context,
                                          request, prefix='Active ',
                                          content_modified=content_modified,
                                         )
