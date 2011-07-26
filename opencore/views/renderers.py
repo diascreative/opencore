@@ -18,6 +18,6 @@ def jsonp_renderer_factory(name):
 
         res = json.dumps(value)
         if callback:
-            res = '%s(%s)' % (callback, res)
+            res = '%s(%s);' % (callback, res)
         return res
     return _render
