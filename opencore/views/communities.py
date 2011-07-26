@@ -77,6 +77,23 @@ def _set_cookie_via_request(request, value):
     request.response_headerlist = [header]
 
 
+def json_communities_helper(context, request):
+    """
+    query communities list for return as json
+    """
+    communities_path = model_path(context)
+    query = dict(
+        interfaces=[ICommunity],
+        path={'query': communities_path, 'depth': 1}
+    )
+    try:
+        batch_info = get_catalog_batch_grid(context, request, None, **query)
+    except ParseError, e:
+        batch_info = {'entries' : []}
+        error = 'Error: %s' % e
+    return batch_info['entries']
+
+
 def show_communities_view_helper(context,
                                   request,
                                   filter_func=None,
