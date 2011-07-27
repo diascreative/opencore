@@ -29,7 +29,7 @@ class Test_jsonp_renderer_factory(unittest.TestCase):
         request = testing.DummyRequest()
         request.params['callback'] = 'callback1'
         result = renderer({'a':1}, {'request': request})
-        self.assertEqual(result, 'callback1({"a": 1})')
+        self.assertEqual(result, 'callback1({"a": 1});')
 
     def test_override_callback_key(self):
         renderer = self._callFUT(None)
@@ -37,5 +37,5 @@ class Test_jsonp_renderer_factory(unittest.TestCase):
         request.params['jsonp_callback_key'] = 'jsonp'
         request.params['jsonp'] = 'callback2'
         result = renderer({'a':1}, {'request': request})
-        self.assertEqual(result, 'callback2({"a": 1})')
+        self.assertEqual(result, 'callback2({"a": 1});')
 
