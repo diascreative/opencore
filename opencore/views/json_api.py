@@ -18,16 +18,27 @@ class json_view(object):
                  xhr=False, accept=None, header=None, path_info=None,
                  custom_predicates=(), context=None):
         # set up json view
-        self.json = bfg_view(name=name + '.json', request_type=request_type, for_=for_, permission=permission,
+        name_json = ''
+        name_jsonp= ''
+        path_info_json = None
+        path_info_jsonp = None
+        if name:
+            name_json = name + '.json'
+            name_jsonp = name + '.jsonp'
+        if path_info:
+            path_info_json = path_info + r'\.json'
+            path_info_jsonp = path_info + r'\.jsonp'
+
+        self.json = bfg_view(name=name_json, request_type=request_type, for_=for_, permission=permission,
                  route_name=route_name, request_method=request_method, request_param=request_param,
                 containment=containment, attr=attr, renderer='json', wrapper=wrapper,
-                 xhr=xhr, accept=accept, header=header, path_info=path_info,
+                 xhr=xhr, accept=accept, header=header, path_info=path_info_json,
                  custom_predicates=custom_predicates, context=context)
         # set up jsonp view
-        self.jsonp = bfg_view(name=name + '.jsonp', request_type=request_type, for_=for_, permission=permission,
+        self.jsonp = bfg_view(name=name_jsonp, request_type=request_type, for_=for_, permission=permission,
                  route_name=route_name, request_method=request_method, request_param=request_param,
                  containment=containment, attr=attr, renderer='jsonp', wrapper=wrapper,
-                 xhr=xhr, accept=accept, header=header, path_info=path_info,
+                 xhr=xhr, accept=accept, header=header, path_info=path_info_jsonp,
                  custom_predicates=custom_predicates, context=context)
 
     def __call__(self, wrapped):
