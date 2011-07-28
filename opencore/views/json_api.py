@@ -28,6 +28,8 @@ class json_view(object):
         if path_info:
             path_info_json = path_info + r'\.json'
             path_info_jsonp = path_info + r'\.jsonp'
+        if not permission:
+            permission = "api"
 
         self.json = bfg_view(name=name_json, request_type=request_type, for_=for_, permission=permission,
                  route_name=route_name, request_method=request_method, request_param=request_param,
