@@ -33,13 +33,12 @@ from opencore.models.interfaces import IPeopleCategoryItem
 from opencore.models.interfaces import ISocial
 from opencore.utilities.image import thumb_url
 
-
 class Profile(Folder):
 
     implements(IProfile)
 
     alert_attachments = 'link'
-   
+
     def __init__(self,
                  firstname = '',
                  lastname = '',
@@ -90,8 +89,8 @@ class Profile(Folder):
         self.password_reset_time = None
         self.preferred_communities = preferred_communities
         self.last_login_time = None
-        # states are 
-        # 1. inactive - user has become inactive rather than deleted from the system. 
+        # states are
+        # 1. inactive - user has become inactive rather than deleted from the system.
         # 2. active   - registered with a invite email which creates the profile
         self.security_state = 'active'
         self.dob = dob
@@ -207,22 +206,23 @@ class ProfileCategoryGetter:
         if not values:
             return default
         return values
-        
+
 social_category =  ProfileCategoryGetter('social')
-   
+
 class SocialCategory(Folder):
     """container for social sites profile information
-    """    
+    """
     def ids(self):
         results = {}
         for k,v in self.items():
             results[k] = v.id
-        return results    
+        return results
 
 class SocialCategoryItem(Persistent):
     implements(ISocial)
-    
+
     def __init__(self, id, title, description=u''):
-        self.id = unicode(id) 
+        self.id = unicode(id)
         self.title = unicode(title)
-        self.description = unicode(description)   
+        self.description = unicode(description)
+

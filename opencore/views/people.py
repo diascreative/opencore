@@ -338,7 +338,7 @@ class MethodSchema(object):
                 )
 
         @instantiate(title='Change Password')
-        class passwords(MappingSchema):    
+        class passwords(MappingSchema):
             password = SchemaNode(
                 String(),
                 widget=CheckedPasswordWidget(),
@@ -411,7 +411,7 @@ class EditProfileFormController(MethodSchema, ContentController):
 
 
     def __init__(self, context, request):
-        super(EditProfileFormController,self).__init__(context,request)
+        super(EditProfileFormController, self).__init__(context, request)
         self.social_category = social_category(context, None)
         if not self.social_category:
             # the social category is lazily instantiated
