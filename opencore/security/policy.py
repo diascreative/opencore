@@ -20,11 +20,13 @@ DELETE_COMMUNITY = 'delete community'
 MODERATE = 'moderate'
 ADMINISTER = 'administer'
 COMMENT = 'comment'
+API = 'api'
 
 GUEST_PERMS = (VIEW, COMMENT)
 MEMBER_PERMS = GUEST_PERMS + (EDIT, CREATE, DELETE)
 MODERATOR_PERMS = MEMBER_PERMS + (MODERATE,)
 ADMINISTRATOR_PERMS = MODERATOR_PERMS + (ADMINISTER, DELETE_COMMUNITY)
+API_PERMS = (VIEW, API)
 
 ALL = AllPermissionsList()
 NO_INHERIT = (Deny, Everyone, ALL)
@@ -114,7 +116,6 @@ def to_profile_active(ob):
                 ADMINISTRATOR_PERMS + ('view_only',)))
     acl.append((Allow, 'group.KarlStaff',
                 GUEST_PERMS + ('view_only',)))
-    
     # not auth'd users can view all content
     acl.append((Allow, Everyone, ('view_only',)))
      

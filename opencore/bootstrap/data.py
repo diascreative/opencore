@@ -11,6 +11,7 @@ from opencore.security.policy import ADMINISTRATOR_PERMS
 from opencore.security.policy import GUEST_PERMS
 from opencore.security.policy import MEMBER_PERMS
 from opencore.security.policy import MODERATOR_PERMS
+from opencore.security.policy import API_PERMS
 
 _marker = object()
 
@@ -35,6 +36,7 @@ class DefaultInitialData(object):
         (Allow, 'group.KarlStaff', MEMBER_PERMS),
         (Allow, 'group.KarlModerator', MODERATOR_PERMS),
         (Allow, 'group.KarlAdmin', ADMINISTRATOR_PERMS),
+        (Allow, 'group.API', API_PERMS),
     ]
 
     profiles_acl = [
@@ -50,6 +52,7 @@ class DefaultInitialData(object):
     users_and_groups = [
         ('admin', 'Ad','Min','admin@example.com',
          ('group.KarlAdmin', 'group.KarlUserAdmin', 'group.KarlStaff')),
+        ('api', 'API', 'User', 'api@example.com', ('group.API',)),
     ]
 
     initial_static_titles = ('Funding', 'FAQ', 'About', 'Contact',
