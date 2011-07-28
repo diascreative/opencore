@@ -8,9 +8,9 @@ from urlparse import parse_qs
 class APIKeyPlugin(object):
 
     def __init__(self, key_name, keys='', user_name=''):
-        self.key_name = key_name
+        self.key_name = key_name.strip()
         self.valid_keys = [v.strip() for v in keys.split(',')]
-        self.user_name = user_name
+        self.user_name = user_name.strip()
 
     def identify(self, environ):
         this_key = self._extract_key(environ)
@@ -27,7 +27,7 @@ class APIKeyPlugin(object):
     
     def _extract_key(self, environ):
         try:
-            return parse_qs(environ['QUERY_STRING'])[self.key_name]
+            return parse_qs(environ['QUERY_STRING'])[self.key_name][0]
         except Exception:
             return None
 
