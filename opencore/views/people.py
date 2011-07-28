@@ -615,7 +615,7 @@ class ResetConfirmController(object):
         if not key or len(key) != 40:
             self.api.page_title = 'Password Reset URL Problem'
             return render_template_to_response('templates/reset_failed.pt',
-                                               api=api)
+                                               api=self.api)
 
 
         if self.request.method == 'POST':
