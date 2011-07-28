@@ -14,7 +14,6 @@ class APIKeyPlugin(object):
 
     def identify(self, environ):
         this_key = self._extract_key(environ)
-        import pdb; pdb.set_trace()
         if this_key and this_key in self.valid_keys:
             return {'repoze.who.userid' : self.user_name}
         else:
