@@ -815,6 +815,8 @@ def create_user_mboxes(context):
         mbt = MailboxTool()
         mbt.get_mailbox(mboxes, mbox_name)
         
+def get_gallery_first_thumb_url_redirect(context, request, size, default):
+    return HTTPFound(location=get_gallery_first_thumb_url(context, request, size, default))
 
 def get_gallery_first_thumb_url(context, request, size, default):
     from opencore.utilities.image import thumb_url
@@ -826,7 +828,7 @@ def get_gallery_first_thumb_url(context, request, size, default):
         url = thumb_url(ordered_gallery[0], request, size)
     else:
         url = request.api.static_url + default
-    return HTTPFound(location=url)
+    return url
 
 def get_gallery_items(context, request, size):
     from opencore.views.forms import GalleryWidgetImageItem, GalleryWidgetVideoItem
