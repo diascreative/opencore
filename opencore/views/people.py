@@ -582,7 +582,8 @@ def deactivate_profile_view(context, request):
     return dict(api=api, myself=myself)
 
 def reactivate_profile_view(context, request,
-                            reset_password=request_password_reset):
+                            reset_password=request_password_reset,
+                            to_profile_active=to_profile_active):
     name = context.__name__
     confirm = request.params.get('confirm')
     if confirm:
