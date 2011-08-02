@@ -102,18 +102,22 @@ def find_users(root):
         return Users()
     return root[zodb_root].users
 
-def to_profile_active(ob):
+def to_profile_active(ob, extra_acl=None, override_default_acl=False):
     from opencore.utils import find_users
     from opencore.views.communities import get_community_groups
-    acl  = [
-        (Allow, ob.creator, MEMBER_PERMS + ('view_only',)),
-    ]
-    acl.append((Allow, 'group.KarlUserAdmin',
-                ADMINISTRATOR_PERMS + ('view_only',)))
-    acl.append((Allow, 'group.KarlAdmin',
-                ADMINISTRATOR_PERMS + ('view_only',)))
-    acl.append((Allow, 'group.KarlStaff',
-                GUEST_PERMS + ('view_only',)))
+    acl  = []
+    if not override_default_acl:
+        acl.append((Allow, ob.creator,
+                    MEMBER_PERMS + ('view_only',)))
+        acl.append((Allow, 'group.KarlUserAdmin',
+                    ADMINISTRATOR_PERMS + ('view_only',)))
+        acl.append((Allow, 'group.KarlAdmin',
+                    ADMINISTRATOR_PERMS + ('view_only',)))
+        acl.append((Allow, 'group.KarlStaff',
+                    GUEST_PERMS + ('view_only',)))
+
+    if extra_acl:
+        acl = acl + extra_acl
 
     # not auth'd users can view all content
     acl.append((Allow, Everyone, ('view_only',)))
