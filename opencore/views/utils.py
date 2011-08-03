@@ -815,6 +815,8 @@ def create_user_mboxes(context):
         mbt = MailboxTool()
         mbt.get_mailbox(mboxes, mbox_name)
         
+def get_gallery_first_thumb_url_redirect(context, request, size, default):
+    return HTTPFound(location=get_gallery_first_thumb_url(context, request, size, default))
 
 def get_gallery_first_thumb_url(context, request, size, default):
     from opencore.utilities.image import thumb_url
@@ -826,10 +828,13 @@ def get_gallery_first_thumb_url(context, request, size, default):
         url = thumb_url(ordered_gallery[0], request, size)
     else:
         url = request.api.static_url + default
-    return HTTPFound(location=url)
+    return url
+
 
 def get_gallery_items(context, request, size):
+
     from opencore.views.forms import GalleryWidgetImageItem, GalleryWidgetVideoItem
+
     items = []
 
     if 'gallery' in context:
@@ -844,3 +849,34 @@ def get_gallery_items(context, request, size):
                 items.append(GalleryWidgetVideoItem(item)) 
 
     return items
+
+def get_gallery_items_by_type(context, request, image_size):
+    """
+    Return map of separated images and videos -- for api.
+    """
+    from opencore.views.forms import GalleryWidgetImageItem, GalleryWidgetVideoItem
+    from opencore.utilities.image import thumb_url
+
+    images = []
+    videos = []
+    gallery_list = []
+    if 'gallery' in context:
+        gallery_list = list(context['gallery'].values())
+        gallery_list.sort(key=operator.attrgetter('order'))
+    for item in gallery_list:
+        if getattr(item, 'is_image', False):
+            image_item = GalleryWidgetImageItem(item, request.api,
+                    size=image_size)
+            images.append({
+                'url' : image_item.preview_url,
+                'thumb_url' : image_item.thumb_url,
+            })
+        else:
+            videos.append({
+                'url' : item['original_url'],
+                'thumb_url' : item['thumbnail_url'],
+            })
+    return {
+        'images' : images,
+        'videos' : videos,
+    }
