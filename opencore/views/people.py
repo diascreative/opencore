@@ -144,7 +144,7 @@ def profile_json_list(context, request):
         limit=20,
         )
 
-    prefix = request.params.get('tag')
+    prefix = request.params.get('search')
     if prefix:
         query['member_name'] = '%s*' % prefix.lower()
 
@@ -158,7 +158,7 @@ def profile_json_list(context, request):
                    and profile.__name__ != request.api.userid]
     except ParseError:
         records = []
-    result = JSONEncoder().encode(records)
+    result = JSONEncoder().encode({'items': records})
     return Response(result, content_type="application/x-json")
 
 def get_profile_actions(profile,request):
