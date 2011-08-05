@@ -703,5 +703,7 @@
     handler=".api.handle_request_api" />
 
 
+  <adapter factory=".adapters.ProfileDict" />
+
 </configure>
 

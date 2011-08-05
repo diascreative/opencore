@@ -1,14 +1,14 @@
+from zope.component import adapts
 from zope.component import getUtility
 from zope.interface import implements
 
 from repoze.bfg.chameleon_zpt import render_template
 from repoze.bfg.chameleon_zpt import get_template
 from repoze.bfg.url import model_url
+from repoze.bfg.interfaces import IRequest
 from repoze.lemonade.listitem import get_listitems
 
 from opencore.models.interfaces import IToolFactory
-from opencore.utils import find_interface
-from opencore.utils import find_profiles
 from opencore.views.interfaces import IFooter
 from opencore.views.interfaces import IToolAddables
 from opencore.views.interfaces import IFolderAddables
@@ -16,6 +16,12 @@ from opencore.views.interfaces import ILayoutProvider
 from opencore.views.interfaces import IBylineInfo
 from opencore.utilities.interfaces import IAppDates
 from opencore.models.interfaces import IForum
+from opencore.models.interfaces import IProfile
+from opencore.views.interfaces import IAPIDict
+from opencore.utilities.image import thumb_url
+from opencore.utils import find_interface
+from opencore.utils import find_profiles
+from opencore.consts import countries
 
 
 
@@ -180,3 +186,54 @@ class BylineInfo(object):
     def __str__(self):
         return 'BylineInfo: name=%s, url=%s, posted: %s' % (self.author_name,
           self.author_url, self.posted_date)
+
+
+class ProfileDict(dict):
+    implements(IAPIDict)
+    adapts(IProfile, IRequest)
+
+    def __init__(self, profile, request):
+        self['firstname'] = profile.firstname
+        self['lastname'] = profile.lastname
+        self['email'] = profile.email
+        self['biography'] = profile.biography
+        self['biography'] = profile.biography
+        self['country'] = profile.country
+        self['security_state'] = profile.security_state
+
+        if hasattr(profile, 'created'):
+            self['joined'] = profile.created.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        if hasattr(profile, 'last_login_time'):
+            self["last_login_time"] = profile.last_login_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        if hasattr(profile, 'websites'):
+            self['websites'] = profile.websites
+
+        if hasattr(profile, 'categories'):
+            self['twitter'] = profile.categories.get('twitter', '')
+            self['facebook'] = profile.categories.get('facebook', '')
+
+        if self.has_key("country"):
+            # translate from country code to country name
+            country_code = self["country"]
+            country = countries.as_dict.get(country_code, u'')
+            self["country"] = country
+
+        # Avatar
+        photo = profile.get('photo')
+        photo_thumb_size = request.params.get('photo_thumb_size', '220x150')
+        try:
+            photo_thumb_size = photo_thumb_size.split('x', 1)
+            photo_thumb_size = [int(n) for n in photo_thumb_size]
+        except:
+            # TODO: add errorcode
+            self['error'] = 'Dimensions provided in incorrect format. Should be formatted "100x100"'
+            photo_thumb_size = (220,150)
+
+        if photo is not None:
+            photo_url = thumb_url(photo, request, tuple(photo_thumb_size))
+        else:
+            photo_url = request.api.static_url + "/img/default_user.png"
+        self["photo"] = photo_url
+

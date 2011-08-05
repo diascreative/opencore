@@ -103,4 +103,9 @@ class IFolderCustomizer(Interface):
 
 class IShowSendalert(Interface):
     """ Policy for when to show-hide the sendalert choice """
-    
+
+class IAPIDict(Interface):
+    """ Adapter for providing a sanitised dictionary of values for use in API
+        views.
+    """
+
