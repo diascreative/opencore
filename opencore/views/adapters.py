@@ -204,7 +204,7 @@ class ProfileDict(dict):
         if hasattr(profile, 'created'):
             self['joined'] = profile.created.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        if hasattr(profile, 'last_login_time'):
+        if hasattr(profile, 'last_login_time') and profile.last_login_time is not None:
             self["last_login_time"] = profile.last_login_time.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         if hasattr(profile, 'websites'):
