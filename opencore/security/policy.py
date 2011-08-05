@@ -117,6 +117,8 @@ def to_profile_active(ob, extra_acl=None, override_default_acl=False):
                     ADMINISTRATOR_PERMS + ('view_only',)))
         acl.append((Allow, 'group.KarlStaff',
                     GUEST_PERMS + ('view_only',)))
+        acl.append((Allow, 'group.API',
+                    API_PERMS))
 
     if extra_acl:
         acl = acl + extra_acl
