@@ -678,3 +678,4 @@ def handle_request_api(event):
         return
 
     request.api = get_template_api(context, request)
+

@@ -77,7 +77,7 @@ class IIntranetPortlet(Interface):
     title = Attribute('The title of the portlet')
     href = Attribute('URL to get to the container being summarized')
     entries = Attribute('Up to five of the entries')
-    
+
 class IFileInfo(Interface):
     """ An interface representing file info for display in views """
     name = Attribute('The name of the file in its container')

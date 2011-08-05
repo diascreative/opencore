@@ -136,7 +136,7 @@ class DefaultLayoutProvider(object):
             layout = getattr(self, 'generic_layout')
         else:
             layout = self.generic_layout
-        return layout    
+        return layout
 
 class BylineInfo(object):
     """ Adapter to grab resource info for the byline in ZPT """
@@ -176,7 +176,7 @@ class BylineInfo(object):
     @property
     def timestamp(self):
         return self.context.created
-    
+
     def __str__(self):
         return 'BylineInfo: name=%s, url=%s, posted: %s' % (self.author_name,
           self.author_url, self.posted_date)

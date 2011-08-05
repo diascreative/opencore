@@ -583,7 +583,7 @@
     name="rename_user.html"
     renderer="templates/admin/rename_merge_user.pt"
     />
-    
+
     <!-- Password reset -->
   <view
     for="opencore.models.interfaces.ISite"
@@ -591,7 +591,7 @@
     name="reset_request.html"
     renderer="templates/reset_request.pt"
     />
-    
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.password_reset.ResetConfirmView"
@@ -600,7 +600,7 @@
     />
 
   <!-- user messaging -->
-  
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.mbox.show_mbox"
@@ -608,7 +608,7 @@
     renderer="templates/mbox.pt"
     permission="view"
     />
-    
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.mbox.show_mbox_thread"
@@ -616,7 +616,7 @@
     renderer="templates/mbox_thread.pt"
     permission="view"
     />
-    
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.mbox.add_message"
@@ -624,21 +624,21 @@
     renderer="templates/mbox_add_message.pt"
     permission="view"
     />
-    
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.mbox.delete_message"
     name="mbox_delete_message.html"
     permission="view"
     />
-    
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.mbox.delete_thread"
     name="mbox_delete_thread.html"
     permission="view"
     />
-    
+
   <view
     for="opencore.models.interfaces.ISite"
     view="opencore.views.mbox.mark_message_read"
