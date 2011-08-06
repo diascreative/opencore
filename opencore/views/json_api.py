@@ -1,9 +1,13 @@
-"""
-JSON API view
+""" JSON API Utilities
 """
 
-
+from webob.exc import HTTPNotFound
+from zope.interface import Interface
+from zope.component import queryMultiAdapter
 from repoze.bfg.view import bfg_view
+from repoze.folder.interfaces import IFolder
+
+from opencore.views.interfaces import IAPIDict
 
 class json_view(object):
     """
@@ -45,3 +49,40 @@ class json_view(object):
 
     def __call__(self, wrapped):
         return self.jsonp(self.json(wrapped))
+
+
+## Default JSON views
+
+@json_view(name="data", for_=Interface)
+def data_json(context, request):
+    """ Return details of a content object as JSON formatted by a multi adapter
+        registered against that interface.
+    """
+    details = queryMultiAdapter((context, request),
+                                IAPIDict)
+    if details is None:
+        # there is no adapter registered for this content type
+        raise HTTPNotFound()
+
+    return {
+        'item' : details
+    }
+
+@json_view(name="list", for_=IFolder)
+def list_json(context, request):
+    """ Return a list of content objects as JSON formatted by a multi adapter
+        registered against that interface.
+    """
+    items = []
+
+    for item in context.values():
+        details = queryMultiAdapter((item, request),
+                                    IAPIDict)
+        if details is not None:
+            # this object has a renderer regsitered for it.
+            items.append(details)
+
+    return {
+        'items' : items
+    }
+
