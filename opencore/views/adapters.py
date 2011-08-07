@@ -193,12 +193,11 @@ class ProfileDict(dict):
     adapts(IProfile, IRequest)
 
     def __init__(self, profile, request):
+        self['username'] = profile.__name__
         self['firstname'] = profile.firstname
         self['lastname'] = profile.lastname
         self['email'] = profile.email
         self['biography'] = profile.biography
-        self['biography'] = profile.biography
-        self['country'] = profile.country
         self['security_state'] = profile.security_state
 
         if hasattr(profile, 'created'):
