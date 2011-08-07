@@ -33,11 +33,14 @@ class TestProfileDict(unittest.TestCase):
         api.static_url='http://example.com'
         request = testing.DummyRequest(api=api)
 
-        a = self._callFUT(context, request)
-        self.assertNotEqual(a, None)
+        res = self._callFUT(context, request)
+        self.assertNotEqual(res, None)
 
-        self.assertEqual(a['firstname'], context.firstname)
-        self.assertEqual(a['firstname'], context.firstname)
-        self.assertEqual(a['firstname'], context.firstname)
-        self.assertEqual(a['firstname'], context.firstname)
+        self.assertEqual(res['username'], context.__name__)
+        self.assertEqual(res['firstname'], context.firstname)
+        self.assertEqual(res['lastname'], context.lastname)
+        self.assertEqual(res['email'], context.email)
+        self.assertEqual(res['biography'], context.biography)
+        self.assertEqual(res['joined'], context.created.strftime('%Y-%m-%dT%H:%M:%SZ'))
+        self.assertEqual(res['websites'], context.websites)
 
