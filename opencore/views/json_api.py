@@ -53,7 +53,6 @@ class json_view(object):
 
 ## Default JSON views
 
-@json_view(name="data", for_=Interface)
 def data_json(context, request):
     """ Return details of a content object as JSON formatted by a multi adapter
         registered against that interface.
@@ -68,7 +67,6 @@ def data_json(context, request):
         'item' : details
     }
 
-@json_view(name="list", for_=IFolder)
 def list_json(context, request):
     """ Return a list of content objects as JSON formatted by a multi adapter
         registered against that interface.

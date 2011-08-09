@@ -702,8 +702,38 @@
     for="repoze.bfg.interfaces.IAfterTraversal"
     handler=".api.handle_request_api" />
 
+  
+  <!-- API -->
 
   <adapter factory=".adapters.ProfileDict" />
+
+  <view
+    for="zope.interface.Interface"
+    view=".json_api.data_json"
+    name="data.json"
+    renderer="json"
+    permission="api"/>
+
+  <view
+    for="zope.interface.Interface"
+    view=".json_api.data_json"
+    name="data.jsonp"
+    renderer="jsonp"
+    permission="api"/>
+
+  <view
+    for="repoze.folder.interfaces.IFolder"
+    view=".json_api.list_json"
+    name="list.json"
+    renderer="json"
+    permission="api"/>
+
+  <view
+    for="repoze.folder.interfaces.IFolder"
+    view=".json_api.list_json"
+    name="list.jsonp"
+    renderer="jsonp"
+    permission="api"/>
 
 </configure>
 
