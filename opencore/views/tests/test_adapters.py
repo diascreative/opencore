@@ -36,6 +36,7 @@ class TestProfileDict(unittest.TestCase):
         res = self._callFUT(context, request)
         self.assertNotEqual(res, None)
 
+        self.assertEqual(res['id'], context.__name__)
         self.assertEqual(res['username'], context.__name__)
         self.assertEqual(res['firstname'], context.firstname)
         self.assertEqual(res['lastname'], context.lastname)

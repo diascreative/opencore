@@ -193,6 +193,7 @@ class ProfileDict(dict):
     adapts(IProfile, IRequest)
 
     def __init__(self, profile, request):
+        self['id'] = profile.__name__
         self['username'] = profile.__name__
         self['firstname'] = profile.firstname
         self['lastname'] = profile.lastname
