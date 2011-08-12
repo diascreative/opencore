@@ -818,7 +818,7 @@ def create_user_mboxes(context):
 def get_gallery_first_thumb_url_redirect(context, request, size, default):
     return HTTPFound(location=get_gallery_first_thumb_url(context, request, size, default))
 
-def get_gallery_first_thumb_url(context, request, size, default):
+def get_gallery_first_thumb_url(context, request, size, default=None):
     from opencore.utilities.image import thumb_url
     gallery = context.get('gallery', {})
     if len(gallery):
@@ -827,8 +827,14 @@ def get_gallery_first_thumb_url(context, request, size, default):
         ordered_gallery = sorted(gallery_images, key=operator.attrgetter('order'))
         url = thumb_url(ordered_gallery[0], request, size)
     else:
-        url = request.api.static_url + default
+        if default:
+            url = request.api.static_url + default
+        else:
+            url = None
     return url
+
+def get_gallery_first_preview_url(context, request, default=None):
+    return get_gallery_first_thumb_url(context, request, (800,600), default)
 
 
 def get_gallery_items(context, request, size):
