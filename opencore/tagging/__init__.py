@@ -469,7 +469,7 @@ class TopicFilteredTags(Tags):
                        if not x.startswith('topic.')]) 
     
         result = self.getTagObjects(items, users, community=community)
-        return set([tag.name for tag in result if not tag.name.startswith('topic.')])
+        return set([tag.name for tag in result])  # self.getTagObjects() deals with filtering
     
     def getTagObjects(self, items=None, users=None, tags=None, community=None):
         """ See ITaggingEngine.
@@ -477,7 +477,7 @@ class TopicFilteredTags(Tags):
         ids = self._getTagIds(items, users, tags, community)
         objs = [self._tagid_to_obj[id] for id in ids]
         return set([obj for obj in objs if not obj.name.startswith('topic.')])
-         
+    
     def getFrequency(self, tags=None, community=None, user=None):
         """ See ITaggingEngine.
         """
@@ -497,6 +497,27 @@ class TopicFilteredTags(Tags):
                 result[tag_obj.name] = result.setdefault(tag_obj.name, 0) + 1
         return sorted(result.items(), key=lambda x: x[1])
     
+    def getTopics(self, items=None, users=None, community=None, strip_prefix=False):
+        """ See ITaggingEngine.
+        """
+        if items is None and users is None and community is None:
+            # shortcut
+            return set([x for x in self._name_to_tagids.keys() 
+                       if x.startswith('topic.')]) 
+    
+        result = self.getTopicObjects(items, users, community=community)
+        if strip_prefix:
+            return set([tag.name.replace('topic.', '', 1) for tag in result]) # self.getTopicObjects() deals with filtering
+        else:
+            return set([tag.name for tag in result]) # self.getTopicObjects() deals with filtering
+    
+    def getTopicObjects(self, items=None, users=None, tags=None, community=None):
+        """ See ITaggingEngine.
+        """
+        ids = self._getTagIds(items, users, tags, community)
+        objs = [self._tagid_to_obj[id] for id in ids]
+        return set([obj for obj in objs if obj.name.startswith('topic.')])
+         
 class TagCommunityFinder(object):
     implements(ITagCommunityFinder)
 
