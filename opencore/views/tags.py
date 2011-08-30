@@ -101,9 +101,9 @@ def set_tags(context, request, values):
     username = authenticated_userid(request)
     path = model_path(context)
     catalog = find_catalog(context)
-    docid = catalog.document_map.docid_for_address(path)
+    docid = getattr(context, 'docid', None) or catalog.document_map.docid_for_address(path)
     tags = find_tags(context)
-    if tags is not None: # testing
+    if tags is not None and docid is not None: # testing
         tags.update(item=docid, user=username, tags=values)
 
 
