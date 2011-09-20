@@ -448,6 +448,23 @@ class MethodWidget(Widget):
     def deserialize(self, field, pstruct):
         return pstruct
 
+class LocationWidget(Widget):
+    """ A widget for inputting a location through a live search powered by
+        Google Maps.
+    """
+
+    template = 'auto_complete_location'
+
+    def serialize(self, field, cstruct, readonly=False):
+        params = {
+                'field': field, 
+                'cstruct': cstruct,
+                }
+        return field.renderer(self.template, **params)
+
+    def deserialize(self, field, pstruct):
+        return pstruct
+
 ## Types
 
 # Gallery stuff
