@@ -2,6 +2,6 @@
     <input type="text"
            name="${field.name}"
            value="${cstruct}" 
-           class="location-complete"
+           class="text location-complete"
            id="${field.oid}"/>
 </span>
