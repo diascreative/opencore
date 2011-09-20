@@ -1,0 +1,8 @@
+<span tal:omit-tag="">
+  <input type="hidden"
+         name="${field.name}"
+         class="location-coordinates"
+         value="${cstruct}" 
+         id="${field.oid}-coordinates"/>
+</span>
+

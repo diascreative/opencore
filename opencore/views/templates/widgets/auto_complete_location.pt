@@ -4,10 +4,4 @@
            value="${cstruct}" 
            class="location-complete"
            id="${field.oid}"/>
-
-    <input type="hidden"
-           name="${field.name}-coordinates"
-           class="location-coordinates"
-           value="${cstruct}" 
-           id="${field.oid}-coordinates"/>
 </span>
