@@ -2,7 +2,12 @@
     <input type="text"
            name="${field.name}"
            value="${cstruct}" 
-           tal:attributes="size field.widget.size;
-                           class field.widget.css_class"
+           class="location-complete"
            id="${field.oid}"/>
+
+    <input type="hidden"
+           name="${field.name}-coordinates"
+           class="location-coordinates"
+           value="${cstruct}" 
+           id="${field.oid}-coordinates"/>
 </span>
