@@ -822,10 +822,15 @@ def get_gallery_first_thumb_url(context, request, size, default=None):
     from opencore.utilities.image import thumb_url
     gallery = context.get('gallery', {})
     if len(gallery):
-        gallery_images = [item for item in gallery.values() 
-                                        if getattr(item, 'is_image', False)]
-        ordered_gallery = sorted(gallery_images, key=operator.attrgetter('order'))
-        url = thumb_url(ordered_gallery[0], request, size)
+        gallery_items = [item for item in gallery.values()]
+        ordered_gallery = sorted(gallery_items, key=operator.attrgetter('order'))
+        first_item = ordered_gallery[0]
+        if getattr(first_item, 'is_image', False):
+            # This is an image
+            url = thumb_url(first_item, request, size)
+        else:
+            # This is a video
+            url = first_item['thumbnail_url']
     else:
         if default:
             url = request.api.static_url + default
