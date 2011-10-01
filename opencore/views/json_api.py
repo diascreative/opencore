@@ -24,27 +24,22 @@ class json_view(object):
         # set up json view
         name_json = ''
         name_jsonp= ''
-        path_info_json = None
-        path_info_jsonp = None
         if name:
             name_json = name + '.json'
             name_jsonp = name + '.jsonp'
-        if path_info:
-            path_info_json = path_info + r'\.json'
-            path_info_jsonp = path_info + r'\.jsonp'
         if not permission:
             permission = "api"
-
+        
         self.json = bfg_view(name=name_json, request_type=request_type, for_=for_, permission=permission,
                  route_name=route_name, request_method=request_method, request_param=request_param,
                 containment=containment, attr=attr, renderer='json', wrapper=wrapper,
-                 xhr=xhr, accept=accept, header=header, path_info=path_info_json,
+                 xhr=xhr, accept=accept, header=header, path_info=path_info,
                  custom_predicates=custom_predicates, context=context)
         # set up jsonp view
         self.jsonp = bfg_view(name=name_jsonp, request_type=request_type, for_=for_, permission=permission,
                  route_name=route_name, request_method=request_method, request_param=request_param,
                  containment=containment, attr=attr, renderer='jsonp', wrapper=wrapper,
-                 xhr=xhr, accept=accept, header=header, path_info=path_info_jsonp,
+                 xhr=xhr, accept=accept, header=header, path_info=path_info,
                  custom_predicates=custom_predicates, context=context)
 
     def __call__(self, wrapped):
