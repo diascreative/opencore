@@ -34,8 +34,7 @@ from opencore.utilities.mbox import MailboxTool
 from opencore.utilities.mbox import MboxMessage
 from opencore.utilities.paginate import Pagination
 from opencore.utils import get_setting
-
-from openhcd.views.utils import find_site
+from opencore.utils import find_site
 
 """
 Views API
