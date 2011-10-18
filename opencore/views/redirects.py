@@ -1,5 +1,7 @@
 # Copyright (C) 2008-2009 Open Society Institute
-#               Thomas Moroz: tmoroz@sorosny.org
+#               !!! The original copyright holder !!!
+#               2010-2011 Large Blue
+#               Fergus Doyle: fergus.doyle@largeblue.com
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License Version 2 as published
