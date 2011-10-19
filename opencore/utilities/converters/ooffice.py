@@ -1,5 +1,5 @@
 # Copyright (C) 2008-2009 Open Society Institute
-#               !!! The original copyright holder !!!
+#               Thomas Moroz: tmoroz.org
 #               2010-2011 Large Blue
 #               Fergus Doyle: fergus.doyle@largeblue.com
 #
