@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>OpenHCD - Login</title>
+    <title>OpenCORE</title>
     <style type="text/css">
         html, body { height : 100%; margin : 0; padding : 0; }
         a { line-height : 55px; text-decoration : none; }
@@ -38,7 +38,7 @@
         <div id="top"></div>
         
         <div id="content">
-            <h1>OpenHCD - a global community using Human-Centered Design</h1>
+            <h1>OpenCORE</h1>
             <form action="" method="POST">
                 <input type="password" class="text" name="password" />
                 <input type="submit" class="button" value="Let me in" />
