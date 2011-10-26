@@ -1,6 +1,4 @@
-# Copyright (C) 2008-2009 Open Society Institute
-#               Thomas Moroz: tmoroz.org
-#               2010-2011 Large Blue
+# Copyright (C) 2010-2011 Large Blue
 #               Fergus Doyle: fergus.doyle@largeblue.com
 #
 # This program is free software; you can redistribute it and/or modify it
